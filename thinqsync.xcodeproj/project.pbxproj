@@ -1,0 +1,578 @@
+// !$*UTF8*$!
+{
+	archiveVersion = 1;
+	classes = {
+	};
+	objectVersion = 77;
+	objects = {
+
+/* Begin PBXContainerItemProxy section */
+		0C6A3B332EB55E0E003F89B9 /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = 0C6A3B1D2EB55E0E003F89B9 /* Project object */;
+			proxyType = 1;
+			remoteGlobalIDString = 0C6A3B242EB55E0E003F89B9;
+			remoteInfo = thinqsync;
+		};
+		0C6A3B3D2EB55E0E003F89B9 /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = 0C6A3B1D2EB55E0E003F89B9 /* Project object */;
+			proxyType = 1;
+			remoteGlobalIDString = 0C6A3B242EB55E0E003F89B9;
+			remoteInfo = thinqsync;
+		};
+/* End PBXContainerItemProxy section */
+
+/* Begin PBXFileReference section */
+		0C6A3B252EB55E0E003F89B9 /* thinqsync.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = thinqsync.app; sourceTree = BUILT_PRODUCTS_DIR; };
+		0C6A3B322EB55E0E003F89B9 /* thinqsyncTests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = thinqsyncTests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
+		0C6A3B3C2EB55E0E003F89B9 /* thinqsyncUITests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = thinqsyncUITests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
+/* End PBXFileReference section */
+
+/* Begin PBXFileSystemSynchronizedRootGroup section */
+		0C6A3B272EB55E0E003F89B9 /* thinqsync */ = {
+			isa = PBXFileSystemSynchronizedRootGroup;
+			path = thinqsync;
+			sourceTree = "<group>";
+		};
+		0C6A3B352EB55E0E003F89B9 /* thinqsyncTests */ = {
+			isa = PBXFileSystemSynchronizedRootGroup;
+			path = thinqsyncTests;
+			sourceTree = "<group>";
+		};
+		0C6A3B3F2EB55E0E003F89B9 /* thinqsyncUITests */ = {
+			isa = PBXFileSystemSynchronizedRootGroup;
+			path = thinqsyncUITests;
+			sourceTree = "<group>";
+		};
+/* End PBXFileSystemSynchronizedRootGroup section */
+
+/* Begin PBXFrameworksBuildPhase section */
+		0C6A3B222EB55E0E003F89B9 /* Frameworks */ = {
+			isa = PBXFrameworksBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		0C6A3B2F2EB55E0E003F89B9 /* Frameworks */ = {
+			isa = PBXFrameworksBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		0C6A3B392EB55E0E003F89B9 /* Frameworks */ = {
+			isa = PBXFrameworksBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXFrameworksBuildPhase section */
+
+/* Begin PBXGroup section */
+		0C6A3B1C2EB55E0E003F89B9 = {
+			isa = PBXGroup;
+			children = (
+				0C6A3B272EB55E0E003F89B9 /* thinqsync */,
+				0C6A3B352EB55E0E003F89B9 /* thinqsyncTests */,
+				0C6A3B3F2EB55E0E003F89B9 /* thinqsyncUITests */,
+				0C6A3B262EB55E0E003F89B9 /* Products */,
+			);
+			sourceTree = "<group>";
+		};
+		0C6A3B262EB55E0E003F89B9 /* Products */ = {
+			isa = PBXGroup;
+			children = (
+				0C6A3B252EB55E0E003F89B9 /* thinqsync.app */,
+				0C6A3B322EB55E0E003F89B9 /* thinqsyncTests.xctest */,
+				0C6A3B3C2EB55E0E003F89B9 /* thinqsyncUITests.xctest */,
+			);
+			name = Products;
+			sourceTree = "<group>";
+		};
+/* End PBXGroup section */
+
+/* Begin PBXNativeTarget section */
+		0C6A3B242EB55E0E003F89B9 /* thinqsync */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = 0C6A3B462EB55E0E003F89B9 /* Build configuration list for PBXNativeTarget "thinqsync" */;
+			buildPhases = (
+				0C6A3B212EB55E0E003F89B9 /* Sources */,
+				0C6A3B222EB55E0E003F89B9 /* Frameworks */,
+				0C6A3B232EB55E0E003F89B9 /* Resources */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+			);
+			fileSystemSynchronizedGroups = (
+				0C6A3B272EB55E0E003F89B9 /* thinqsync */,
+			);
+			name = thinqsync;
+			packageProductDependencies = (
+			);
+			productName = thinqsync;
+			productReference = 0C6A3B252EB55E0E003F89B9 /* thinqsync.app */;
+			productType = "com.apple.product-type.application";
+		};
+		0C6A3B312EB55E0E003F89B9 /* thinqsyncTests */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = 0C6A3B492EB55E0E003F89B9 /* Build configuration list for PBXNativeTarget "thinqsyncTests" */;
+			buildPhases = (
+				0C6A3B2E2EB55E0E003F89B9 /* Sources */,
+				0C6A3B2F2EB55E0E003F89B9 /* Frameworks */,
+				0C6A3B302EB55E0E003F89B9 /* Resources */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+				0C6A3B342EB55E0E003F89B9 /* PBXTargetDependency */,
+			);
+			fileSystemSynchronizedGroups = (
+				0C6A3B352EB55E0E003F89B9 /* thinqsyncTests */,
+			);
+			name = thinqsyncTests;
+			packageProductDependencies = (
+			);
+			productName = thinqsyncTests;
+			productReference = 0C6A3B322EB55E0E003F89B9 /* thinqsyncTests.xctest */;
+			productType = "com.apple.product-type.bundle.unit-test";
+		};
+		0C6A3B3B2EB55E0E003F89B9 /* thinqsyncUITests */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = 0C6A3B4C2EB55E0E003F89B9 /* Build configuration list for PBXNativeTarget "thinqsyncUITests" */;
+			buildPhases = (
+				0C6A3B382EB55E0E003F89B9 /* Sources */,
+				0C6A3B392EB55E0E003F89B9 /* Frameworks */,
+				0C6A3B3A2EB55E0E003F89B9 /* Resources */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+				0C6A3B3E2EB55E0E003F89B9 /* PBXTargetDependency */,
+			);
+			fileSystemSynchronizedGroups = (
+				0C6A3B3F2EB55E0E003F89B9 /* thinqsyncUITests */,
+			);
+			name = thinqsyncUITests;
+			packageProductDependencies = (
+			);
+			productName = thinqsyncUITests;
+			productReference = 0C6A3B3C2EB55E0E003F89B9 /* thinqsyncUITests.xctest */;
+			productType = "com.apple.product-type.bundle.ui-testing";
+		};
+/* End PBXNativeTarget section */
+
+/* Begin PBXProject section */
+		0C6A3B1D2EB55E0E003F89B9 /* Project object */ = {
+			isa = PBXProject;
+			attributes = {
+				BuildIndependentTargetsInParallel = 1;
+				LastSwiftUpdateCheck = 2600;
+				LastUpgradeCheck = 2600;
+				TargetAttributes = {
+					0C6A3B242EB55E0E003F89B9 = {
+						CreatedOnToolsVersion = 26.0.1;
+					};
+					0C6A3B312EB55E0E003F89B9 = {
+						CreatedOnToolsVersion = 26.0.1;
+						TestTargetID = 0C6A3B242EB55E0E003F89B9;
+					};
+					0C6A3B3B2EB55E0E003F89B9 = {
+						CreatedOnToolsVersion = 26.0.1;
+						TestTargetID = 0C6A3B242EB55E0E003F89B9;
+					};
+				};
+			};
+			buildConfigurationList = 0C6A3B202EB55E0E003F89B9 /* Build configuration list for PBXProject "thinqsync" */;
+			developmentRegion = en;
+			hasScannedForEncodings = 0;
+			knownRegions = (
+				en,
+				Base,
+			);
+			mainGroup = 0C6A3B1C2EB55E0E003F89B9;
+			minimizedProjectReferenceProxies = 1;
+			preferredProjectObjectVersion = 77;
+			productRefGroup = 0C6A3B262EB55E0E003F89B9 /* Products */;
+			projectDirPath = "";
+			projectRoot = "";
+			targets = (
+				0C6A3B242EB55E0E003F89B9 /* thinqsync */,
+				0C6A3B312EB55E0E003F89B9 /* thinqsyncTests */,
+				0C6A3B3B2EB55E0E003F89B9 /* thinqsyncUITests */,
+			);
+		};
+/* End PBXProject section */
+
+/* Begin PBXResourcesBuildPhase section */
+		0C6A3B232EB55E0E003F89B9 /* Resources */ = {
+			isa = PBXResourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		0C6A3B302EB55E0E003F89B9 /* Resources */ = {
+			isa = PBXResourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		0C6A3B3A2EB55E0E003F89B9 /* Resources */ = {
+			isa = PBXResourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXResourcesBuildPhase section */
+
+/* Begin PBXSourcesBuildPhase section */
+		0C6A3B212EB55E0E003F89B9 /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		0C6A3B2E2EB55E0E003F89B9 /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		0C6A3B382EB55E0E003F89B9 /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXSourcesBuildPhase section */
+
+/* Begin PBXTargetDependency section */
+		0C6A3B342EB55E0E003F89B9 /* PBXTargetDependency */ = {
+			isa = PBXTargetDependency;
+			target = 0C6A3B242EB55E0E003F89B9 /* thinqsync */;
+			targetProxy = 0C6A3B332EB55E0E003F89B9 /* PBXContainerItemProxy */;
+		};
+		0C6A3B3E2EB55E0E003F89B9 /* PBXTargetDependency */ = {
+			isa = PBXTargetDependency;
+			target = 0C6A3B242EB55E0E003F89B9 /* thinqsync */;
+			targetProxy = 0C6A3B3D2EB55E0E003F89B9 /* PBXContainerItemProxy */;
+		};
+/* End PBXTargetDependency section */
+
+/* Begin XCBuildConfiguration section */
+		0C6A3B442EB55E0E003F89B9 /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ALWAYS_SEARCH_USER_PATHS = NO;
+				ASSETCATALOG_COMPILER_GENERATE_SWIFT_ASSET_SYMBOL_EXTENSIONS = YES;
+				CLANG_ANALYZER_NONNULL = YES;
+				CLANG_ANALYZER_NUMBER_OBJECT_CONVERSION = YES_AGGRESSIVE;
+				CLANG_CXX_LANGUAGE_STANDARD = "gnu++20";
+				CLANG_ENABLE_MODULES = YES;
+				CLANG_ENABLE_OBJC_ARC = YES;
+				CLANG_ENABLE_OBJC_WEAK = YES;
+				CLANG_WARN_BLOCK_CAPTURE_AUTORELEASING = YES;
+				CLANG_WARN_BOOL_CONVERSION = YES;
+				CLANG_WARN_COMMA = YES;
+				CLANG_WARN_CONSTANT_CONVERSION = YES;
+				CLANG_WARN_DEPRECATED_OBJC_IMPLEMENTATIONS = YES;
+				CLANG_WARN_DIRECT_OBJC_ISA_USAGE = YES_ERROR;
+				CLANG_WARN_DOCUMENTATION_COMMENTS = YES;
+				CLANG_WARN_EMPTY_BODY = YES;
+				CLANG_WARN_ENUM_CONVERSION = YES;
+				CLANG_WARN_INFINITE_RECURSION = YES;
+				CLANG_WARN_INT_CONVERSION = YES;
+				CLANG_WARN_NON_LITERAL_NULL_CONVERSION = YES;
+				CLANG_WARN_OBJC_IMPLICIT_RETAIN_SELF = YES;
+				CLANG_WARN_OBJC_LITERAL_CONVERSION = YES;
+				CLANG_WARN_OBJC_ROOT_CLASS = YES_ERROR;
+				CLANG_WARN_QUOTED_INCLUDE_IN_FRAMEWORK_HEADER = YES;
+				CLANG_WARN_RANGE_LOOP_ANALYSIS = YES;
+				CLANG_WARN_STRICT_PROTOTYPES = YES;
+				CLANG_WARN_SUSPICIOUS_MOVE = YES;
+				CLANG_WARN_UNGUARDED_AVAILABILITY = YES_AGGRESSIVE;
+				CLANG_WARN_UNREACHABLE_CODE = YES;
+				CLANG_WARN__DUPLICATE_METHOD_MATCH = YES;
+				COPY_PHASE_STRIP = NO;
+				DEBUG_INFORMATION_FORMAT = dwarf;
+				DEVELOPMENT_TEAM = L5774582ZK;
+				ENABLE_STRICT_OBJC_MSGSEND = YES;
+				ENABLE_TESTABILITY = YES;
+				ENABLE_USER_SCRIPT_SANDBOXING = YES;
+				GCC_C_LANGUAGE_STANDARD = gnu17;
+				GCC_DYNAMIC_NO_PIC = NO;
+				GCC_NO_COMMON_BLOCKS = YES;
+				GCC_OPTIMIZATION_LEVEL = 0;
+				GCC_PREPROCESSOR_DEFINITIONS = (
+					"DEBUG=1",
+					"$(inherited)",
+				);
+				GCC_WARN_64_TO_32_BIT_CONVERSION = YES;
+				GCC_WARN_ABOUT_RETURN_TYPE = YES_ERROR;
+				GCC_WARN_UNDECLARED_SELECTOR = YES;
+				GCC_WARN_UNINITIALIZED_AUTOS = YES_AGGRESSIVE;
+				GCC_WARN_UNUSED_FUNCTION = YES;
+				GCC_WARN_UNUSED_VARIABLE = YES;
+				LOCALIZATION_PREFERS_STRING_CATALOGS = YES;
+				MACOSX_DEPLOYMENT_TARGET = 15.6;
+				MTL_ENABLE_DEBUG_INFO = INCLUDE_SOURCE;
+				MTL_FAST_MATH = YES;
+				ONLY_ACTIVE_ARCH = YES;
+				SDKROOT = macosx;
+				SWIFT_ACTIVE_COMPILATION_CONDITIONS = "DEBUG $(inherited)";
+				SWIFT_OPTIMIZATION_LEVEL = "-Onone";
+			};
+			name = Debug;
+		};
+		0C6A3B452EB55E0E003F89B9 /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ALWAYS_SEARCH_USER_PATHS = NO;
+				ASSETCATALOG_COMPILER_GENERATE_SWIFT_ASSET_SYMBOL_EXTENSIONS = YES;
+				CLANG_ANALYZER_NONNULL = YES;
+				CLANG_ANALYZER_NUMBER_OBJECT_CONVERSION = YES_AGGRESSIVE;
+				CLANG_CXX_LANGUAGE_STANDARD = "gnu++20";
+				CLANG_ENABLE_MODULES = YES;
+				CLANG_ENABLE_OBJC_ARC = YES;
+				CLANG_ENABLE_OBJC_WEAK = YES;
+				CLANG_WARN_BLOCK_CAPTURE_AUTORELEASING = YES;
+				CLANG_WARN_BOOL_CONVERSION = YES;
+				CLANG_WARN_COMMA = YES;
+				CLANG_WARN_CONSTANT_CONVERSION = YES;
+				CLANG_WARN_DEPRECATED_OBJC_IMPLEMENTATIONS = YES;
+				CLANG_WARN_DIRECT_OBJC_ISA_USAGE = YES_ERROR;
+				CLANG_WARN_DOCUMENTATION_COMMENTS = YES;
+				CLANG_WARN_EMPTY_BODY = YES;
+				CLANG_WARN_ENUM_CONVERSION = YES;
+				CLANG_WARN_INFINITE_RECURSION = YES;
+				CLANG_WARN_INT_CONVERSION = YES;
+				CLANG_WARN_NON_LITERAL_NULL_CONVERSION = YES;
+				CLANG_WARN_OBJC_IMPLICIT_RETAIN_SELF = YES;
+				CLANG_WARN_OBJC_LITERAL_CONVERSION = YES;
+				CLANG_WARN_OBJC_ROOT_CLASS = YES_ERROR;
+				CLANG_WARN_QUOTED_INCLUDE_IN_FRAMEWORK_HEADER = YES;
+				CLANG_WARN_RANGE_LOOP_ANALYSIS = YES;
+				CLANG_WARN_STRICT_PROTOTYPES = YES;
+				CLANG_WARN_SUSPICIOUS_MOVE = YES;
+				CLANG_WARN_UNGUARDED_AVAILABILITY = YES_AGGRESSIVE;
+				CLANG_WARN_UNREACHABLE_CODE = YES;
+				CLANG_WARN__DUPLICATE_METHOD_MATCH = YES;
+				COPY_PHASE_STRIP = NO;
+				DEBUG_INFORMATION_FORMAT = "dwarf-with-dsym";
+				DEVELOPMENT_TEAM = L5774582ZK;
+				ENABLE_NS_ASSERTIONS = NO;
+				ENABLE_STRICT_OBJC_MSGSEND = YES;
+				ENABLE_USER_SCRIPT_SANDBOXING = YES;
+				GCC_C_LANGUAGE_STANDARD = gnu17;
+				GCC_NO_COMMON_BLOCKS = YES;
+				GCC_WARN_64_TO_32_BIT_CONVERSION = YES;
+				GCC_WARN_ABOUT_RETURN_TYPE = YES_ERROR;
+				GCC_WARN_UNDECLARED_SELECTOR = YES;
+				GCC_WARN_UNINITIALIZED_AUTOS = YES_AGGRESSIVE;
+				GCC_WARN_UNUSED_FUNCTION = YES;
+				GCC_WARN_UNUSED_VARIABLE = YES;
+				LOCALIZATION_PREFERS_STRING_CATALOGS = YES;
+				MACOSX_DEPLOYMENT_TARGET = 15.6;
+				MTL_ENABLE_DEBUG_INFO = NO;
+				MTL_FAST_MATH = YES;
+				SDKROOT = macosx;
+				SWIFT_COMPILATION_MODE = wholemodule;
+			};
+			name = Release;
+		};
+		0C6A3B472EB55E0E003F89B9 /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
+				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
+				CODE_SIGN_STYLE = Automatic;
+				COMBINE_HIDPI_IMAGES = YES;
+				CURRENT_PROJECT_VERSION = 1;
+				DEVELOPMENT_TEAM = L5774582ZK;
+				ENABLE_APP_SANDBOX = YES;
+				ENABLE_HARDENED_RUNTIME = YES;
+				ENABLE_PREVIEWS = YES;
+				ENABLE_USER_SELECTED_FILES = readonly;
+				GENERATE_INFOPLIST_FILE = YES;
+				INFOPLIST_KEY_NSHumanReadableCopyright = "";
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/../Frameworks",
+				);
+				MARKETING_VERSION = 1.0;
+				PRODUCT_BUNDLE_IDENTIFIER = MIT.thinqsync;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				REGISTER_APP_GROUPS = YES;
+				STRING_CATALOG_GENERATE_SYMBOLS = YES;
+				SWIFT_APPROACHABLE_CONCURRENCY = YES;
+				SWIFT_DEFAULT_ACTOR_ISOLATION = MainActor;
+				SWIFT_EMIT_LOC_STRINGS = YES;
+				SWIFT_UPCOMING_FEATURE_MEMBER_IMPORT_VISIBILITY = YES;
+				SWIFT_VERSION = 5.0;
+			};
+			name = Debug;
+		};
+		0C6A3B482EB55E0E003F89B9 /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
+				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
+				CODE_SIGN_STYLE = Automatic;
+				COMBINE_HIDPI_IMAGES = YES;
+				CURRENT_PROJECT_VERSION = 1;
+				DEVELOPMENT_TEAM = L5774582ZK;
+				ENABLE_APP_SANDBOX = YES;
+				ENABLE_HARDENED_RUNTIME = YES;
+				ENABLE_PREVIEWS = YES;
+				ENABLE_USER_SELECTED_FILES = readonly;
+				GENERATE_INFOPLIST_FILE = YES;
+				INFOPLIST_KEY_NSHumanReadableCopyright = "";
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/../Frameworks",
+				);
+				MARKETING_VERSION = 1.0;
+				PRODUCT_BUNDLE_IDENTIFIER = MIT.thinqsync;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				REGISTER_APP_GROUPS = YES;
+				STRING_CATALOG_GENERATE_SYMBOLS = YES;
+				SWIFT_APPROACHABLE_CONCURRENCY = YES;
+				SWIFT_DEFAULT_ACTOR_ISOLATION = MainActor;
+				SWIFT_EMIT_LOC_STRINGS = YES;
+				SWIFT_UPCOMING_FEATURE_MEMBER_IMPORT_VISIBILITY = YES;
+				SWIFT_VERSION = 5.0;
+			};
+			name = Release;
+		};
+		0C6A3B4A2EB55E0E003F89B9 /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				BUNDLE_LOADER = "$(TEST_HOST)";
+				CODE_SIGN_STYLE = Automatic;
+				CURRENT_PROJECT_VERSION = 1;
+				DEVELOPMENT_TEAM = L5774582ZK;
+				GENERATE_INFOPLIST_FILE = YES;
+				MACOSX_DEPLOYMENT_TARGET = 15.6;
+				MARKETING_VERSION = 1.0;
+				PRODUCT_BUNDLE_IDENTIFIER = MIT.thinqsyncTests;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				STRING_CATALOG_GENERATE_SYMBOLS = NO;
+				SWIFT_APPROACHABLE_CONCURRENCY = YES;
+				SWIFT_EMIT_LOC_STRINGS = NO;
+				SWIFT_UPCOMING_FEATURE_MEMBER_IMPORT_VISIBILITY = YES;
+				SWIFT_VERSION = 5.0;
+				TEST_HOST = "$(BUILT_PRODUCTS_DIR)/thinqsync.app/$(BUNDLE_EXECUTABLE_FOLDER_PATH)/thinqsync";
+			};
+			name = Debug;
+		};
+		0C6A3B4B2EB55E0E003F89B9 /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				BUNDLE_LOADER = "$(TEST_HOST)";
+				CODE_SIGN_STYLE = Automatic;
+				CURRENT_PROJECT_VERSION = 1;
+				DEVELOPMENT_TEAM = L5774582ZK;
+				GENERATE_INFOPLIST_FILE = YES;
+				MACOSX_DEPLOYMENT_TARGET = 15.6;
+				MARKETING_VERSION = 1.0;
+				PRODUCT_BUNDLE_IDENTIFIER = MIT.thinqsyncTests;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				STRING_CATALOG_GENERATE_SYMBOLS = NO;
+				SWIFT_APPROACHABLE_CONCURRENCY = YES;
+				SWIFT_EMIT_LOC_STRINGS = NO;
+				SWIFT_UPCOMING_FEATURE_MEMBER_IMPORT_VISIBILITY = YES;
+				SWIFT_VERSION = 5.0;
+				TEST_HOST = "$(BUILT_PRODUCTS_DIR)/thinqsync.app/$(BUNDLE_EXECUTABLE_FOLDER_PATH)/thinqsync";
+			};
+			name = Release;
+		};
+		0C6A3B4D2EB55E0E003F89B9 /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				CODE_SIGN_STYLE = Automatic;
+				CURRENT_PROJECT_VERSION = 1;
+				DEVELOPMENT_TEAM = L5774582ZK;
+				GENERATE_INFOPLIST_FILE = YES;
+				MARKETING_VERSION = 1.0;
+				PRODUCT_BUNDLE_IDENTIFIER = MIT.thinqsyncUITests;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				STRING_CATALOG_GENERATE_SYMBOLS = NO;
+				SWIFT_APPROACHABLE_CONCURRENCY = YES;
+				SWIFT_EMIT_LOC_STRINGS = NO;
+				SWIFT_UPCOMING_FEATURE_MEMBER_IMPORT_VISIBILITY = YES;
+				SWIFT_VERSION = 5.0;
+				TEST_TARGET_NAME = thinqsync;
+			};
+			name = Debug;
+		};
+		0C6A3B4E2EB55E0E003F89B9 /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				CODE_SIGN_STYLE = Automatic;
+				CURRENT_PROJECT_VERSION = 1;
+				DEVELOPMENT_TEAM = L5774582ZK;
+				GENERATE_INFOPLIST_FILE = YES;
+				MARKETING_VERSION = 1.0;
+				PRODUCT_BUNDLE_IDENTIFIER = MIT.thinqsyncUITests;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				STRING_CATALOG_GENERATE_SYMBOLS = NO;
+				SWIFT_APPROACHABLE_CONCURRENCY = YES;
+				SWIFT_EMIT_LOC_STRINGS = NO;
+				SWIFT_UPCOMING_FEATURE_MEMBER_IMPORT_VISIBILITY = YES;
+				SWIFT_VERSION = 5.0;
+				TEST_TARGET_NAME = thinqsync;
+			};
+			name = Release;
+		};
+/* End XCBuildConfiguration section */
+
+/* Begin XCConfigurationList section */
+		0C6A3B202EB55E0E003F89B9 /* Build configuration list for PBXProject "thinqsync" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				0C6A3B442EB55E0E003F89B9 /* Debug */,
+				0C6A3B452EB55E0E003F89B9 /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
+		0C6A3B462EB55E0E003F89B9 /* Build configuration list for PBXNativeTarget "thinqsync" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				0C6A3B472EB55E0E003F89B9 /* Debug */,
+				0C6A3B482EB55E0E003F89B9 /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
+		0C6A3B492EB55E0E003F89B9 /* Build configuration list for PBXNativeTarget "thinqsyncTests" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				0C6A3B4A2EB55E0E003F89B9 /* Debug */,
+				0C6A3B4B2EB55E0E003F89B9 /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
+		0C6A3B4C2EB55E0E003F89B9 /* Build configuration list for PBXNativeTarget "thinqsyncUITests" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				0C6A3B4D2EB55E0E003F89B9 /* Debug */,
+				0C6A3B4E2EB55E0E003F89B9 /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
+/* End XCConfigurationList section */
+	};
+	rootObject = 0C6A3B1D2EB55E0E003F89B9 /* Project object */;
+}
