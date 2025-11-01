@@ -209,15 +209,16 @@ struct CustomTitleBar: View {
                 } label: {
                     ZStack {
                         Circle()
-                            .stroke(Color.white.opacity(0.6), lineWidth: 1.5)
-                            .frame(width: 32, height: 32)
+                            .stroke(Color.white, lineWidth: 2)
+                            .frame(width: 34, height: 34)
 
                         Image(systemName: "list.bullet")
-                            .font(.system(size: 14, weight: .medium))
+                            .font(.system(size: 15, weight: .medium))
                             .foregroundColor(.white)
                     }
                 }
                 .menuStyle(.borderlessButton)
+                .buttonStyle(.plain)
 
                 // Text formatting button (A)
                 Menu {
@@ -262,15 +263,16 @@ struct CustomTitleBar: View {
                 } label: {
                     ZStack {
                         Circle()
-                            .stroke(Color.white.opacity(0.6), lineWidth: 1.5)
-                            .frame(width: 32, height: 32)
+                            .stroke(Color.white, lineWidth: 2)
+                            .frame(width: 34, height: 34)
 
                         Text("A")
-                            .font(.system(size: 15, weight: .semibold))
+                            .font(.system(size: 16, weight: .semibold))
                             .foregroundColor(.white)
                     }
                 }
                 .menuStyle(.borderlessButton)
+                .buttonStyle(.plain)
 
                 // More options (three dots)
                 Menu {
@@ -299,15 +301,16 @@ struct CustomTitleBar: View {
                 } label: {
                     ZStack {
                         Circle()
-                            .stroke(Color.white.opacity(0.6), lineWidth: 1.5)
-                            .frame(width: 32, height: 32)
+                            .stroke(Color.white, lineWidth: 2)
+                            .frame(width: 34, height: 34)
 
                         Image(systemName: "ellipsis")
-                            .font(.system(size: 14, weight: .medium))
+                            .font(.system(size: 15, weight: .medium))
                             .foregroundColor(.white)
                     }
                 }
                 .menuStyle(.borderlessButton)
+                .buttonStyle(.plain)
             }
             .padding(.trailing, 16)
         }
