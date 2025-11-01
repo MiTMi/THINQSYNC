@@ -23,10 +23,10 @@ struct GettingStartedView: View {
                 HStack(spacing: 12) {
                     Image(systemName: "square.and.pencil")
                         .font(.system(size: 16))
-                        .foregroundColor(.white)
+                        .foregroundColor(Color.white.opacity(1.0))
                     Text("New Note")
                         .font(.system(size: 14, weight: .medium))
-                        .foregroundColor(.white)
+                        .foregroundColor(Color.white.opacity(1.0))
                     Spacer()
                 }
                 .padding(.horizontal, 16)
@@ -67,10 +67,10 @@ struct GettingStartedView: View {
                 HStack(spacing: 12) {
                     Image(systemName: "doc.on.doc")
                         .font(.system(size: 16))
-                        .foregroundColor(.white)
+                        .foregroundColor(Color.white.opacity(1.0))
                     Text("Show all Notes")
                         .font(.system(size: 14, weight: .medium))
-                        .foregroundColor(.white)
+                        .foregroundColor(Color.white.opacity(1.0))
                     Spacer()
                 }
                 .padding(.horizontal, 16)
@@ -92,14 +92,14 @@ struct GettingStartedView: View {
                 HStack(spacing: 12) {
                     Image(systemName: "ellipsis")
                         .font(.system(size: 16))
-                        .foregroundColor(.white)
+                        .foregroundColor(Color.white.opacity(1.0))
                     Text("More")
                         .font(.system(size: 14, weight: .medium))
-                        .foregroundColor(.white)
+                        .foregroundColor(Color.white.opacity(1.0))
                     Spacer()
                     Image(systemName: "chevron.right")
                         .font(.system(size: 12))
-                        .foregroundColor(.white)
+                        .foregroundColor(Color.white.opacity(1.0))
                 }
                 .padding(.horizontal, 16)
                 .padding(.vertical, 12)
@@ -136,7 +136,7 @@ struct NoteRow: View {
 
                 Text(note.title)
                     .font(.system(size: 14))
-                    .foregroundColor(.white)
+                    .foregroundColor(Color.white.opacity(1.0))
                     .lineLimit(1)
 
                 Spacer()
