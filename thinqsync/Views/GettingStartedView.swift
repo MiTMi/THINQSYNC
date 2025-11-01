@@ -25,7 +25,7 @@ struct GettingStartedView: View {
                         .font(.system(size: 16))
                         .foregroundStyle(.white)
                     Text("New Note")
-                        .font(.system(size: 14, weight: .medium))
+                        .font(.system(size: 14, weight: .semibold))
                         .foregroundStyle(.white)
                     Spacer()
                 }
@@ -34,7 +34,6 @@ struct GettingStartedView: View {
                 .contentShape(Rectangle())
             }
             .buttonStyle(.plain)
-            .background(Color.white.opacity(0))
             .onHover { hovering in
                 // Add hover effect if needed
             }
@@ -69,7 +68,7 @@ struct GettingStartedView: View {
                         .font(.system(size: 16))
                         .foregroundStyle(.white)
                     Text("Show all Notes")
-                        .font(.system(size: 14, weight: .medium))
+                        .font(.system(size: 14, weight: .semibold))
                         .foregroundStyle(.white)
                     Spacer()
                 }
@@ -94,7 +93,7 @@ struct GettingStartedView: View {
                         .font(.system(size: 16))
                         .foregroundStyle(.white)
                     Text("More")
-                        .font(.system(size: 14, weight: .medium))
+                        .font(.system(size: 14, weight: .semibold))
                         .foregroundStyle(.white)
                     Spacer()
                     Image(systemName: "chevron.right")
@@ -135,7 +134,7 @@ struct NoteRow: View {
                     )
 
                 Text(note.title)
-                    .font(.system(size: 14))
+                    .font(.system(size: 14, weight: .medium))
                     .foregroundStyle(.white)
                     .lineLimit(1)
 
@@ -146,7 +145,6 @@ struct NoteRow: View {
             .contentShape(Rectangle())
         }
         .buttonStyle(.plain)
-        .background(Color.white.opacity(0))
         .onHover { hovering in
             // Add hover effect if needed
         }
