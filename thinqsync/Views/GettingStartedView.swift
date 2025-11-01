@@ -11,7 +11,10 @@ import SwiftUI
 struct GettingStartedView: View {
     @Environment(NotesManager.self) private var notesManager
     @Environment(\.openWindow) private var openWindow
-    @Environment(\.colorScheme) var colorScheme
+
+    // Define explicit white color to bypass any system interference
+    private let explicitWhite = Color(red: 1.0, green: 1.0, blue: 1.0)
+    private let darkBackground = Color(red: 0.15, green: 0.15, blue: 0.15)
 
     var body: some View {
         VStack(spacing: 0) {
@@ -22,32 +25,30 @@ struct GettingStartedView: View {
             }) {
                 HStack(spacing: 12) {
                     Image(systemName: "square.and.pencil")
-                        .font(.system(size: 16))
-                        .foregroundStyle(.white)
+                        .font(.system(size: 16, weight: .semibold))
+                        .foregroundColor(explicitWhite)
                     Text("New Note")
                         .font(.system(size: 14, weight: .semibold))
-                        .foregroundStyle(.white)
+                        .foregroundColor(explicitWhite)
                     Spacer()
                 }
                 .padding(.horizontal, 16)
                 .padding(.vertical, 12)
                 .contentShape(Rectangle())
             }
-            .buttonStyle(.plain)
-            .onHover { hovering in
-                // Add hover effect if needed
-            }
+            .buttonStyle(PlainButtonStyle())
 
             // Divider
-            Divider()
-                .background(Color.gray.opacity(0.3))
+            Rectangle()
+                .fill(Color.gray.opacity(0.3))
+                .frame(height: 1)
                 .padding(.horizontal, 16)
 
             // Notes list
             ScrollView {
                 VStack(spacing: 0) {
                     ForEach(notesManager.notes) { note in
-                        NoteRow(note: note)
+                        NoteRow(note: note, textColor: explicitWhite)
                     }
                 }
                 .padding(.vertical, 8)
@@ -55,8 +56,9 @@ struct GettingStartedView: View {
             .frame(maxHeight: 300)
 
             // Divider before bottom buttons
-            Divider()
-                .background(Color.gray.opacity(0.3))
+            Rectangle()
+                .fill(Color.gray.opacity(0.3))
+                .frame(height: 1)
                 .padding(.horizontal, 16)
 
             // Show all Notes button
@@ -65,18 +67,18 @@ struct GettingStartedView: View {
             }) {
                 HStack(spacing: 12) {
                     Image(systemName: "doc.on.doc")
-                        .font(.system(size: 16))
-                        .foregroundStyle(.white)
+                        .font(.system(size: 16, weight: .semibold))
+                        .foregroundColor(explicitWhite)
                     Text("Show all Notes")
                         .font(.system(size: 14, weight: .semibold))
-                        .foregroundStyle(.white)
+                        .foregroundColor(explicitWhite)
                     Spacer()
                 }
                 .padding(.horizontal, 16)
                 .padding(.vertical, 12)
                 .contentShape(Rectangle())
             }
-            .buttonStyle(.plain)
+            .buttonStyle(PlainButtonStyle())
 
             // More button with arrow
             Menu {
@@ -90,30 +92,31 @@ struct GettingStartedView: View {
             } label: {
                 HStack(spacing: 12) {
                     Image(systemName: "ellipsis")
-                        .font(.system(size: 16))
-                        .foregroundStyle(.white)
+                        .font(.system(size: 16, weight: .semibold))
+                        .foregroundColor(explicitWhite)
                     Text("More")
                         .font(.system(size: 14, weight: .semibold))
-                        .foregroundStyle(.white)
+                        .foregroundColor(explicitWhite)
                     Spacer()
                     Image(systemName: "chevron.right")
-                        .font(.system(size: 12))
-                        .foregroundStyle(.white)
+                        .font(.system(size: 12, weight: .semibold))
+                        .foregroundColor(explicitWhite)
                 }
                 .padding(.horizontal, 16)
                 .padding(.vertical, 12)
                 .contentShape(Rectangle())
             }
-            .menuStyle(.borderlessButton)
-            .buttonStyle(.plain)
+            .menuStyle(BorderlessButtonMenuStyle())
+            .buttonStyle(PlainButtonStyle())
         }
         .frame(width: 280)
-        .background(Color(red: 0.15, green: 0.15, blue: 0.15))
+        .background(darkBackground)
     }
 }
 
 struct NoteRow: View {
     let note: Note
+    let textColor: Color
     @Environment(NotesManager.self) private var notesManager
     @Environment(\.openWindow) private var openWindow
 
@@ -129,12 +132,12 @@ struct NoteRow: View {
                     .frame(width: 16, height: 16)
                     .overlay(
                         RoundedRectangle(cornerRadius: 3)
-                            .stroke(Color.white.opacity(0.2), lineWidth: 0.5)
+                            .stroke(Color(red: 1.0, green: 1.0, blue: 1.0, opacity: 0.2), lineWidth: 0.5)
                     )
 
                 Text(note.title)
                     .font(.system(size: 14, weight: .medium))
-                    .foregroundStyle(.white)
+                    .foregroundColor(textColor)
                     .lineLimit(1)
 
                 Spacer()
@@ -143,10 +146,7 @@ struct NoteRow: View {
             .padding(.vertical, 8)
             .contentShape(Rectangle())
         }
-        .buttonStyle(.plain)
-        .onHover { hovering in
-            // Add hover effect if needed
-        }
+        .buttonStyle(PlainButtonStyle())
     }
 }
 
