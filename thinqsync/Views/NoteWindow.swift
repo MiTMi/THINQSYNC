@@ -170,8 +170,8 @@ struct CustomTitleBar: View {
 
             Spacer()
 
-            // Right side: Menu buttons (cleaner design like screenshot 2)
-            HStack(spacing: 16) {
+            // Right side: Menu buttons with circular backgrounds
+            HStack(spacing: 12) {
                 // Hamburger menu
                 Menu {
                     Button(action: {
@@ -207,9 +207,15 @@ struct CustomTitleBar: View {
                         onDelete()
                     }
                 } label: {
-                    Image(systemName: "line.3.horizontal")
-                        .font(.system(size: 16, weight: .medium))
-                        .foregroundColor(.white.opacity(0.85))
+                    ZStack {
+                        Circle()
+                            .stroke(Color.white.opacity(0.6), lineWidth: 1.5)
+                            .frame(width: 32, height: 32)
+
+                        Image(systemName: "list.bullet")
+                            .font(.system(size: 14, weight: .medium))
+                            .foregroundColor(.white)
+                    }
                 }
                 .menuStyle(.borderlessButton)
 
@@ -254,9 +260,15 @@ struct CustomTitleBar: View {
                         }
                     }
                 } label: {
-                    Text("A")
-                        .font(.system(size: 16, weight: .semibold))
-                        .foregroundColor(.white.opacity(0.85))
+                    ZStack {
+                        Circle()
+                            .stroke(Color.white.opacity(0.6), lineWidth: 1.5)
+                            .frame(width: 32, height: 32)
+
+                        Text("A")
+                            .font(.system(size: 15, weight: .semibold))
+                            .foregroundColor(.white)
+                    }
                 }
                 .menuStyle(.borderlessButton)
 
@@ -285,9 +297,15 @@ struct CustomTitleBar: View {
                         Label("Duplicate", systemImage: "doc.on.doc")
                     }
                 } label: {
-                    Image(systemName: "ellipsis")
-                        .font(.system(size: 16, weight: .medium))
-                        .foregroundColor(.white.opacity(0.85))
+                    ZStack {
+                        Circle()
+                            .stroke(Color.white.opacity(0.6), lineWidth: 1.5)
+                            .frame(width: 32, height: 32)
+
+                        Image(systemName: "ellipsis")
+                            .font(.system(size: 14, weight: .medium))
+                            .foregroundColor(.white)
+                    }
                 }
                 .menuStyle(.borderlessButton)
             }
