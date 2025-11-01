@@ -1,0 +1,24 @@
+{
+  "source": "/Users/michaeltouboul/Claude/thinqsync/thinqsync/Views/FormattingToolbar.swift",
+  "tables": {
+    "Localizable": [
+      {
+        "comment": "",
+        "key": "%lld pt",
+        "location": {
+          "startingColumn": 28,
+          "startingLine": 53
+        }
+      },
+      {
+        "comment": "",
+        "key": "aA",
+        "location": {
+          "startingColumn": 22,
+          "startingLine": 58
+        }
+      }
+    ]
+  },
+  "version": 1
+}

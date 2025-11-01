@@ -1,0 +1,129 @@
+{
+  "" : {
+    "diagnostics" : "/Users/michaeltouboul/Claude/thinqsync/DerivedData/Build/Intermediates.noindex/thinqsync.build/Debug/thinqsync.build/Objects-normal/arm64/thinqsync-primary.dia",
+    "emit-module-dependencies" : "/Users/michaeltouboul/Claude/thinqsync/DerivedData/Build/Intermediates.noindex/thinqsync.build/Debug/thinqsync.build/Objects-normal/arm64/thinqsync-primary-emit-module.d",
+    "emit-module-diagnostics" : "/Users/michaeltouboul/Claude/thinqsync/DerivedData/Build/Intermediates.noindex/thinqsync.build/Debug/thinqsync.build/Objects-normal/arm64/thinqsync-primary-emit-module.dia",
+    "pch" : "/Users/michaeltouboul/Claude/thinqsync/DerivedData/Build/Intermediates.noindex/thinqsync.build/Debug/thinqsync.build/Objects-normal/arm64/thinqsync-primary-Bridging-header.pch",
+    "swift-dependencies" : "/Users/michaeltouboul/Claude/thinqsync/DerivedData/Build/Intermediates.noindex/thinqsync.build/Debug/thinqsync.build/Objects-normal/arm64/thinqsync-primary.swiftdeps"
+  },
+  "/Users/michaeltouboul/Claude/thinqsync/DerivedData/Build/Intermediates.noindex/thinqsync.build/Debug/thinqsync.build/DerivedSources/GeneratedAssetSymbols.swift" : {
+    "const-values" : "/Users/michaeltouboul/Claude/thinqsync/DerivedData/Build/Intermediates.noindex/thinqsync.build/Debug/thinqsync.build/Objects-normal/arm64/GeneratedAssetSymbols.swiftconstvalues",
+    "dependencies" : "/Users/michaeltouboul/Claude/thinqsync/DerivedData/Build/Intermediates.noindex/thinqsync.build/Debug/thinqsync.build/Objects-normal/arm64/GeneratedAssetSymbols.d",
+    "diagnostics" : "/Users/michaeltouboul/Claude/thinqsync/DerivedData/Build/Intermediates.noindex/thinqsync.build/Debug/thinqsync.build/Objects-normal/arm64/GeneratedAssetSymbols.dia",
+    "index-unit-output-path" : "/thinqsync.build/Debug/thinqsync.build/Objects-normal/arm64/GeneratedAssetSymbols.o",
+    "llvm-bc" : "/Users/michaeltouboul/Claude/thinqsync/DerivedData/Build/Intermediates.noindex/thinqsync.build/Debug/thinqsync.build/Objects-normal/arm64/GeneratedAssetSymbols.bc",
+    "object" : "/Users/michaeltouboul/Claude/thinqsync/DerivedData/Build/Intermediates.noindex/thinqsync.build/Debug/thinqsync.build/Objects-normal/arm64/GeneratedAssetSymbols.o",
+    "swift-dependencies" : "/Users/michaeltouboul/Claude/thinqsync/DerivedData/Build/Intermediates.noindex/thinqsync.build/Debug/thinqsync.build/Objects-normal/arm64/GeneratedAssetSymbols.swiftdeps",
+    "swiftmodule" : "/Users/michaeltouboul/Claude/thinqsync/DerivedData/Build/Intermediates.noindex/thinqsync.build/Debug/thinqsync.build/Objects-normal/arm64/GeneratedAssetSymbols~partial.swiftmodule"
+  },
+  "/Users/michaeltouboul/Claude/thinqsync/thinqsync/ContentView.swift" : {
+    "const-values" : "/Users/michaeltouboul/Claude/thinqsync/DerivedData/Build/Intermediates.noindex/thinqsync.build/Debug/thinqsync.build/Objects-normal/arm64/ContentView.swiftconstvalues",
+    "dependencies" : "/Users/michaeltouboul/Claude/thinqsync/DerivedData/Build/Intermediates.noindex/thinqsync.build/Debug/thinqsync.build/Objects-normal/arm64/ContentView.d",
+    "diagnostics" : "/Users/michaeltouboul/Claude/thinqsync/DerivedData/Build/Intermediates.noindex/thinqsync.build/Debug/thinqsync.build/Objects-normal/arm64/ContentView.dia",
+    "index-unit-output-path" : "/thinqsync.build/Debug/thinqsync.build/Objects-normal/arm64/ContentView.o",
+    "llvm-bc" : "/Users/michaeltouboul/Claude/thinqsync/DerivedData/Build/Intermediates.noindex/thinqsync.build/Debug/thinqsync.build/Objects-normal/arm64/ContentView.bc",
+    "object" : "/Users/michaeltouboul/Claude/thinqsync/DerivedData/Build/Intermediates.noindex/thinqsync.build/Debug/thinqsync.build/Objects-normal/arm64/ContentView.o",
+    "swift-dependencies" : "/Users/michaeltouboul/Claude/thinqsync/DerivedData/Build/Intermediates.noindex/thinqsync.build/Debug/thinqsync.build/Objects-normal/arm64/ContentView.swiftdeps",
+    "swiftmodule" : "/Users/michaeltouboul/Claude/thinqsync/DerivedData/Build/Intermediates.noindex/thinqsync.build/Debug/thinqsync.build/Objects-normal/arm64/ContentView~partial.swiftmodule"
+  },
+  "/Users/michaeltouboul/Claude/thinqsync/thinqsync/Models/AttributedStringCodable.swift" : {
+    "const-values" : "/Users/michaeltouboul/Claude/thinqsync/DerivedData/Build/Intermediates.noindex/thinqsync.build/Debug/thinqsync.build/Objects-normal/arm64/AttributedStringCodable.swiftconstvalues",
+    "dependencies" : "/Users/michaeltouboul/Claude/thinqsync/DerivedData/Build/Intermediates.noindex/thinqsync.build/Debug/thinqsync.build/Objects-normal/arm64/AttributedStringCodable.d",
+    "diagnostics" : "/Users/michaeltouboul/Claude/thinqsync/DerivedData/Build/Intermediates.noindex/thinqsync.build/Debug/thinqsync.build/Objects-normal/arm64/AttributedStringCodable.dia",
+    "index-unit-output-path" : "/thinqsync.build/Debug/thinqsync.build/Objects-normal/arm64/AttributedStringCodable.o",
+    "llvm-bc" : "/Users/michaeltouboul/Claude/thinqsync/DerivedData/Build/Intermediates.noindex/thinqsync.build/Debug/thinqsync.build/Objects-normal/arm64/AttributedStringCodable.bc",
+    "object" : "/Users/michaeltouboul/Claude/thinqsync/DerivedData/Build/Intermediates.noindex/thinqsync.build/Debug/thinqsync.build/Objects-normal/arm64/AttributedStringCodable.o",
+    "swift-dependencies" : "/Users/michaeltouboul/Claude/thinqsync/DerivedData/Build/Intermediates.noindex/thinqsync.build/Debug/thinqsync.build/Objects-normal/arm64/AttributedStringCodable.swiftdeps",
+    "swiftmodule" : "/Users/michaeltouboul/Claude/thinqsync/DerivedData/Build/Intermediates.noindex/thinqsync.build/Debug/thinqsync.build/Objects-normal/arm64/AttributedStringCodable~partial.swiftmodule"
+  },
+  "/Users/michaeltouboul/Claude/thinqsync/thinqsync/Models/Note.swift" : {
+    "const-values" : "/Users/michaeltouboul/Claude/thinqsync/DerivedData/Build/Intermediates.noindex/thinqsync.build/Debug/thinqsync.build/Objects-normal/arm64/Note.swiftconstvalues",
+    "dependencies" : "/Users/michaeltouboul/Claude/thinqsync/DerivedData/Build/Intermediates.noindex/thinqsync.build/Debug/thinqsync.build/Objects-normal/arm64/Note.d",
+    "diagnostics" : "/Users/michaeltouboul/Claude/thinqsync/DerivedData/Build/Intermediates.noindex/thinqsync.build/Debug/thinqsync.build/Objects-normal/arm64/Note.dia",
+    "index-unit-output-path" : "/thinqsync.build/Debug/thinqsync.build/Objects-normal/arm64/Note.o",
+    "llvm-bc" : "/Users/michaeltouboul/Claude/thinqsync/DerivedData/Build/Intermediates.noindex/thinqsync.build/Debug/thinqsync.build/Objects-normal/arm64/Note.bc",
+    "object" : "/Users/michaeltouboul/Claude/thinqsync/DerivedData/Build/Intermediates.noindex/thinqsync.build/Debug/thinqsync.build/Objects-normal/arm64/Note.o",
+    "swift-dependencies" : "/Users/michaeltouboul/Claude/thinqsync/DerivedData/Build/Intermediates.noindex/thinqsync.build/Debug/thinqsync.build/Objects-normal/arm64/Note.swiftdeps",
+    "swiftmodule" : "/Users/michaeltouboul/Claude/thinqsync/DerivedData/Build/Intermediates.noindex/thinqsync.build/Debug/thinqsync.build/Objects-normal/arm64/Note~partial.swiftmodule"
+  },
+  "/Users/michaeltouboul/Claude/thinqsync/thinqsync/Models/NoteColor.swift" : {
+    "const-values" : "/Users/michaeltouboul/Claude/thinqsync/DerivedData/Build/Intermediates.noindex/thinqsync.build/Debug/thinqsync.build/Objects-normal/arm64/NoteColor.swiftconstvalues",
+    "dependencies" : "/Users/michaeltouboul/Claude/thinqsync/DerivedData/Build/Intermediates.noindex/thinqsync.build/Debug/thinqsync.build/Objects-normal/arm64/NoteColor.d",
+    "diagnostics" : "/Users/michaeltouboul/Claude/thinqsync/DerivedData/Build/Intermediates.noindex/thinqsync.build/Debug/thinqsync.build/Objects-normal/arm64/NoteColor.dia",
+    "index-unit-output-path" : "/thinqsync.build/Debug/thinqsync.build/Objects-normal/arm64/NoteColor.o",
+    "llvm-bc" : "/Users/michaeltouboul/Claude/thinqsync/DerivedData/Build/Intermediates.noindex/thinqsync.build/Debug/thinqsync.build/Objects-normal/arm64/NoteColor.bc",
+    "object" : "/Users/michaeltouboul/Claude/thinqsync/DerivedData/Build/Intermediates.noindex/thinqsync.build/Debug/thinqsync.build/Objects-normal/arm64/NoteColor.o",
+    "swift-dependencies" : "/Users/michaeltouboul/Claude/thinqsync/DerivedData/Build/Intermediates.noindex/thinqsync.build/Debug/thinqsync.build/Objects-normal/arm64/NoteColor.swiftdeps",
+    "swiftmodule" : "/Users/michaeltouboul/Claude/thinqsync/DerivedData/Build/Intermediates.noindex/thinqsync.build/Debug/thinqsync.build/Objects-normal/arm64/NoteColor~partial.swiftmodule"
+  },
+  "/Users/michaeltouboul/Claude/thinqsync/thinqsync/Models/NotesManager.swift" : {
+    "const-values" : "/Users/michaeltouboul/Claude/thinqsync/DerivedData/Build/Intermediates.noindex/thinqsync.build/Debug/thinqsync.build/Objects-normal/arm64/NotesManager.swiftconstvalues",
+    "dependencies" : "/Users/michaeltouboul/Claude/thinqsync/DerivedData/Build/Intermediates.noindex/thinqsync.build/Debug/thinqsync.build/Objects-normal/arm64/NotesManager.d",
+    "diagnostics" : "/Users/michaeltouboul/Claude/thinqsync/DerivedData/Build/Intermediates.noindex/thinqsync.build/Debug/thinqsync.build/Objects-normal/arm64/NotesManager.dia",
+    "index-unit-output-path" : "/thinqsync.build/Debug/thinqsync.build/Objects-normal/arm64/NotesManager.o",
+    "llvm-bc" : "/Users/michaeltouboul/Claude/thinqsync/DerivedData/Build/Intermediates.noindex/thinqsync.build/Debug/thinqsync.build/Objects-normal/arm64/NotesManager.bc",
+    "object" : "/Users/michaeltouboul/Claude/thinqsync/DerivedData/Build/Intermediates.noindex/thinqsync.build/Debug/thinqsync.build/Objects-normal/arm64/NotesManager.o",
+    "swift-dependencies" : "/Users/michaeltouboul/Claude/thinqsync/DerivedData/Build/Intermediates.noindex/thinqsync.build/Debug/thinqsync.build/Objects-normal/arm64/NotesManager.swiftdeps",
+    "swiftmodule" : "/Users/michaeltouboul/Claude/thinqsync/DerivedData/Build/Intermediates.noindex/thinqsync.build/Debug/thinqsync.build/Objects-normal/arm64/NotesManager~partial.swiftmodule"
+  },
+  "/Users/michaeltouboul/Claude/thinqsync/thinqsync/Services/CloudKitSyncManager.swift" : {
+    "const-values" : "/Users/michaeltouboul/Claude/thinqsync/DerivedData/Build/Intermediates.noindex/thinqsync.build/Debug/thinqsync.build/Objects-normal/arm64/CloudKitSyncManager.swiftconstvalues",
+    "dependencies" : "/Users/michaeltouboul/Claude/thinqsync/DerivedData/Build/Intermediates.noindex/thinqsync.build/Debug/thinqsync.build/Objects-normal/arm64/CloudKitSyncManager.d",
+    "diagnostics" : "/Users/michaeltouboul/Claude/thinqsync/DerivedData/Build/Intermediates.noindex/thinqsync.build/Debug/thinqsync.build/Objects-normal/arm64/CloudKitSyncManager.dia",
+    "index-unit-output-path" : "/thinqsync.build/Debug/thinqsync.build/Objects-normal/arm64/CloudKitSyncManager.o",
+    "llvm-bc" : "/Users/michaeltouboul/Claude/thinqsync/DerivedData/Build/Intermediates.noindex/thinqsync.build/Debug/thinqsync.build/Objects-normal/arm64/CloudKitSyncManager.bc",
+    "object" : "/Users/michaeltouboul/Claude/thinqsync/DerivedData/Build/Intermediates.noindex/thinqsync.build/Debug/thinqsync.build/Objects-normal/arm64/CloudKitSyncManager.o",
+    "swift-dependencies" : "/Users/michaeltouboul/Claude/thinqsync/DerivedData/Build/Intermediates.noindex/thinqsync.build/Debug/thinqsync.build/Objects-normal/arm64/CloudKitSyncManager.swiftdeps",
+    "swiftmodule" : "/Users/michaeltouboul/Claude/thinqsync/DerivedData/Build/Intermediates.noindex/thinqsync.build/Debug/thinqsync.build/Objects-normal/arm64/CloudKitSyncManager~partial.swiftmodule"
+  },
+  "/Users/michaeltouboul/Claude/thinqsync/thinqsync/Views/FormattingToolbar.swift" : {
+    "const-values" : "/Users/michaeltouboul/Claude/thinqsync/DerivedData/Build/Intermediates.noindex/thinqsync.build/Debug/thinqsync.build/Objects-normal/arm64/FormattingToolbar.swiftconstvalues",
+    "dependencies" : "/Users/michaeltouboul/Claude/thinqsync/DerivedData/Build/Intermediates.noindex/thinqsync.build/Debug/thinqsync.build/Objects-normal/arm64/FormattingToolbar.d",
+    "diagnostics" : "/Users/michaeltouboul/Claude/thinqsync/DerivedData/Build/Intermediates.noindex/thinqsync.build/Debug/thinqsync.build/Objects-normal/arm64/FormattingToolbar.dia",
+    "index-unit-output-path" : "/thinqsync.build/Debug/thinqsync.build/Objects-normal/arm64/FormattingToolbar.o",
+    "llvm-bc" : "/Users/michaeltouboul/Claude/thinqsync/DerivedData/Build/Intermediates.noindex/thinqsync.build/Debug/thinqsync.build/Objects-normal/arm64/FormattingToolbar.bc",
+    "object" : "/Users/michaeltouboul/Claude/thinqsync/DerivedData/Build/Intermediates.noindex/thinqsync.build/Debug/thinqsync.build/Objects-normal/arm64/FormattingToolbar.o",
+    "swift-dependencies" : "/Users/michaeltouboul/Claude/thinqsync/DerivedData/Build/Intermediates.noindex/thinqsync.build/Debug/thinqsync.build/Objects-normal/arm64/FormattingToolbar.swiftdeps",
+    "swiftmodule" : "/Users/michaeltouboul/Claude/thinqsync/DerivedData/Build/Intermediates.noindex/thinqsync.build/Debug/thinqsync.build/Objects-normal/arm64/FormattingToolbar~partial.swiftmodule"
+  },
+  "/Users/michaeltouboul/Claude/thinqsync/thinqsync/Views/GettingStartedView.swift" : {
+    "const-values" : "/Users/michaeltouboul/Claude/thinqsync/DerivedData/Build/Intermediates.noindex/thinqsync.build/Debug/thinqsync.build/Objects-normal/arm64/GettingStartedView.swiftconstvalues",
+    "dependencies" : "/Users/michaeltouboul/Claude/thinqsync/DerivedData/Build/Intermediates.noindex/thinqsync.build/Debug/thinqsync.build/Objects-normal/arm64/GettingStartedView.d",
+    "diagnostics" : "/Users/michaeltouboul/Claude/thinqsync/DerivedData/Build/Intermediates.noindex/thinqsync.build/Debug/thinqsync.build/Objects-normal/arm64/GettingStartedView.dia",
+    "index-unit-output-path" : "/thinqsync.build/Debug/thinqsync.build/Objects-normal/arm64/GettingStartedView.o",
+    "llvm-bc" : "/Users/michaeltouboul/Claude/thinqsync/DerivedData/Build/Intermediates.noindex/thinqsync.build/Debug/thinqsync.build/Objects-normal/arm64/GettingStartedView.bc",
+    "object" : "/Users/michaeltouboul/Claude/thinqsync/DerivedData/Build/Intermediates.noindex/thinqsync.build/Debug/thinqsync.build/Objects-normal/arm64/GettingStartedView.o",
+    "swift-dependencies" : "/Users/michaeltouboul/Claude/thinqsync/DerivedData/Build/Intermediates.noindex/thinqsync.build/Debug/thinqsync.build/Objects-normal/arm64/GettingStartedView.swiftdeps",
+    "swiftmodule" : "/Users/michaeltouboul/Claude/thinqsync/DerivedData/Build/Intermediates.noindex/thinqsync.build/Debug/thinqsync.build/Objects-normal/arm64/GettingStartedView~partial.swiftmodule"
+  },
+  "/Users/michaeltouboul/Claude/thinqsync/thinqsync/Views/NoteWindow.swift" : {
+    "const-values" : "/Users/michaeltouboul/Claude/thinqsync/DerivedData/Build/Intermediates.noindex/thinqsync.build/Debug/thinqsync.build/Objects-normal/arm64/NoteWindow.swiftconstvalues",
+    "dependencies" : "/Users/michaeltouboul/Claude/thinqsync/DerivedData/Build/Intermediates.noindex/thinqsync.build/Debug/thinqsync.build/Objects-normal/arm64/NoteWindow.d",
+    "diagnostics" : "/Users/michaeltouboul/Claude/thinqsync/DerivedData/Build/Intermediates.noindex/thinqsync.build/Debug/thinqsync.build/Objects-normal/arm64/NoteWindow.dia",
+    "index-unit-output-path" : "/thinqsync.build/Debug/thinqsync.build/Objects-normal/arm64/NoteWindow.o",
+    "llvm-bc" : "/Users/michaeltouboul/Claude/thinqsync/DerivedData/Build/Intermediates.noindex/thinqsync.build/Debug/thinqsync.build/Objects-normal/arm64/NoteWindow.bc",
+    "object" : "/Users/michaeltouboul/Claude/thinqsync/DerivedData/Build/Intermediates.noindex/thinqsync.build/Debug/thinqsync.build/Objects-normal/arm64/NoteWindow.o",
+    "swift-dependencies" : "/Users/michaeltouboul/Claude/thinqsync/DerivedData/Build/Intermediates.noindex/thinqsync.build/Debug/thinqsync.build/Objects-normal/arm64/NoteWindow.swiftdeps",
+    "swiftmodule" : "/Users/michaeltouboul/Claude/thinqsync/DerivedData/Build/Intermediates.noindex/thinqsync.build/Debug/thinqsync.build/Objects-normal/arm64/NoteWindow~partial.swiftmodule"
+  },
+  "/Users/michaeltouboul/Claude/thinqsync/thinqsync/Views/RichTextEditor.swift" : {
+    "const-values" : "/Users/michaeltouboul/Claude/thinqsync/DerivedData/Build/Intermediates.noindex/thinqsync.build/Debug/thinqsync.build/Objects-normal/arm64/RichTextEditor.swiftconstvalues",
+    "dependencies" : "/Users/michaeltouboul/Claude/thinqsync/DerivedData/Build/Intermediates.noindex/thinqsync.build/Debug/thinqsync.build/Objects-normal/arm64/RichTextEditor.d",
+    "diagnostics" : "/Users/michaeltouboul/Claude/thinqsync/DerivedData/Build/Intermediates.noindex/thinqsync.build/Debug/thinqsync.build/Objects-normal/arm64/RichTextEditor.dia",
+    "index-unit-output-path" : "/thinqsync.build/Debug/thinqsync.build/Objects-normal/arm64/RichTextEditor.o",
+    "llvm-bc" : "/Users/michaeltouboul/Claude/thinqsync/DerivedData/Build/Intermediates.noindex/thinqsync.build/Debug/thinqsync.build/Objects-normal/arm64/RichTextEditor.bc",
+    "object" : "/Users/michaeltouboul/Claude/thinqsync/DerivedData/Build/Intermediates.noindex/thinqsync.build/Debug/thinqsync.build/Objects-normal/arm64/RichTextEditor.o",
+    "swift-dependencies" : "/Users/michaeltouboul/Claude/thinqsync/DerivedData/Build/Intermediates.noindex/thinqsync.build/Debug/thinqsync.build/Objects-normal/arm64/RichTextEditor.swiftdeps",
+    "swiftmodule" : "/Users/michaeltouboul/Claude/thinqsync/DerivedData/Build/Intermediates.noindex/thinqsync.build/Debug/thinqsync.build/Objects-normal/arm64/RichTextEditor~partial.swiftmodule"
+  },
+  "/Users/michaeltouboul/Claude/thinqsync/thinqsync/thinqsyncApp.swift" : {
+    "const-values" : "/Users/michaeltouboul/Claude/thinqsync/DerivedData/Build/Intermediates.noindex/thinqsync.build/Debug/thinqsync.build/Objects-normal/arm64/thinqsyncApp.swiftconstvalues",
+    "dependencies" : "/Users/michaeltouboul/Claude/thinqsync/DerivedData/Build/Intermediates.noindex/thinqsync.build/Debug/thinqsync.build/Objects-normal/arm64/thinqsyncApp.d",
+    "diagnostics" : "/Users/michaeltouboul/Claude/thinqsync/DerivedData/Build/Intermediates.noindex/thinqsync.build/Debug/thinqsync.build/Objects-normal/arm64/thinqsyncApp.dia",
+    "index-unit-output-path" : "/thinqsync.build/Debug/thinqsync.build/Objects-normal/arm64/thinqsyncApp.o",
+    "llvm-bc" : "/Users/michaeltouboul/Claude/thinqsync/DerivedData/Build/Intermediates.noindex/thinqsync.build/Debug/thinqsync.build/Objects-normal/arm64/thinqsyncApp.bc",
+    "object" : "/Users/michaeltouboul/Claude/thinqsync/DerivedData/Build/Intermediates.noindex/thinqsync.build/Debug/thinqsync.build/Objects-normal/arm64/thinqsyncApp.o",
+    "swift-dependencies" : "/Users/michaeltouboul/Claude/thinqsync/DerivedData/Build/Intermediates.noindex/thinqsync.build/Debug/thinqsync.build/Objects-normal/arm64/thinqsyncApp.swiftdeps",
+    "swiftmodule" : "/Users/michaeltouboul/Claude/thinqsync/DerivedData/Build/Intermediates.noindex/thinqsync.build/Debug/thinqsync.build/Objects-normal/arm64/thinqsyncApp~partial.swiftmodule"
+  }
+}
