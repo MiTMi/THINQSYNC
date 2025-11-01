@@ -109,7 +109,6 @@ struct GettingStartedView: View {
         }
         .frame(width: 280)
         .background(Color(red: 0.15, green: 0.15, blue: 0.15))
-        .preferredColorScheme(.dark)
     }
 }
 
