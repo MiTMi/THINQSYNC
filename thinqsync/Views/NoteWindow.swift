@@ -170,8 +170,8 @@ struct CustomTitleBar: View {
 
             Spacer()
 
-            // Right side: Menu buttons
-            HStack(spacing: 8) {
+            // Right side: Menu buttons (cleaner design like screenshot 2)
+            HStack(spacing: 16) {
                 // Hamburger menu
                 Menu {
                     Button(action: {
@@ -207,15 +207,9 @@ struct CustomTitleBar: View {
                         onDelete()
                     }
                 } label: {
-                    ZStack {
-                        Circle()
-                            .fill(Color.white.opacity(0.15))
-                            .frame(width: 28, height: 28)
-
-                        Image(systemName: "line.3.horizontal")
-                            .font(.system(size: 12, weight: .medium))
-                            .foregroundColor(.white.opacity(0.9))
-                    }
+                    Image(systemName: "line.3.horizontal")
+                        .font(.system(size: 16, weight: .medium))
+                        .foregroundColor(.white.opacity(0.85))
                 }
                 .menuStyle(.borderlessButton)
 
@@ -260,15 +254,9 @@ struct CustomTitleBar: View {
                         }
                     }
                 } label: {
-                    ZStack {
-                        Circle()
-                            .fill(Color.white.opacity(0.15))
-                            .frame(width: 28, height: 28)
-
-                        Text("A")
-                            .font(.system(size: 13, weight: .semibold))
-                            .foregroundColor(.white.opacity(0.9))
-                    }
+                    Text("A")
+                        .font(.system(size: 16, weight: .semibold))
+                        .foregroundColor(.white.opacity(0.85))
                 }
                 .menuStyle(.borderlessButton)
 
@@ -297,19 +285,13 @@ struct CustomTitleBar: View {
                         Label("Duplicate", systemImage: "doc.on.doc")
                     }
                 } label: {
-                    ZStack {
-                        Circle()
-                            .fill(Color.white.opacity(0.15))
-                            .frame(width: 28, height: 28)
-
-                        Image(systemName: "ellipsis")
-                            .font(.system(size: 12, weight: .medium))
-                            .foregroundColor(.white.opacity(0.9))
-                    }
+                    Image(systemName: "ellipsis")
+                        .font(.system(size: 16, weight: .medium))
+                        .foregroundColor(.white.opacity(0.85))
                 }
                 .menuStyle(.borderlessButton)
             }
-            .padding(.trailing, 12)
+            .padding(.trailing, 16)
         }
         .frame(height: 44)
         .background(note.color.backgroundColor)
