@@ -209,13 +209,18 @@ struct CustomTitleBar: View {
                 } label: {
                     ZStack {
                         Circle()
-                            .stroke(Color.white, lineWidth: 2)
-                            .frame(width: 34, height: 34)
+                            .fill(Color.white.opacity(0.2))
+                            .frame(width: 36, height: 36)
+
+                        Circle()
+                            .stroke(Color.white, lineWidth: 1.5)
+                            .frame(width: 36, height: 36)
 
                         Image(systemName: "list.bullet")
                             .font(.system(size: 15, weight: .medium))
                             .foregroundColor(.white)
                     }
+                    .frame(width: 40, height: 40)
                 }
                 .menuStyle(.borderlessButton)
                 .buttonStyle(.plain)
@@ -263,13 +268,18 @@ struct CustomTitleBar: View {
                 } label: {
                     ZStack {
                         Circle()
-                            .stroke(Color.white, lineWidth: 2)
-                            .frame(width: 34, height: 34)
+                            .fill(Color.white.opacity(0.2))
+                            .frame(width: 36, height: 36)
+
+                        Circle()
+                            .stroke(Color.white, lineWidth: 1.5)
+                            .frame(width: 36, height: 36)
 
                         Text("A")
                             .font(.system(size: 16, weight: .semibold))
                             .foregroundColor(.white)
                     }
+                    .frame(width: 40, height: 40)
                 }
                 .menuStyle(.borderlessButton)
                 .buttonStyle(.plain)
@@ -301,13 +311,18 @@ struct CustomTitleBar: View {
                 } label: {
                     ZStack {
                         Circle()
-                            .stroke(Color.white, lineWidth: 2)
-                            .frame(width: 34, height: 34)
+                            .fill(Color.white.opacity(0.2))
+                            .frame(width: 36, height: 36)
+
+                        Circle()
+                            .stroke(Color.white, lineWidth: 1.5)
+                            .frame(width: 36, height: 36)
 
                         Image(systemName: "ellipsis")
                             .font(.system(size: 15, weight: .medium))
                             .foregroundColor(.white)
                     }
+                    .frame(width: 40, height: 40)
                 }
                 .menuStyle(.borderlessButton)
                 .buttonStyle(.plain)
