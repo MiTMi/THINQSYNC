@@ -18,7 +18,7 @@ enum NoteColor: String, Codable, CaseIterable, Sendable {
     var backgroundColor: Color {
         switch self {
         case .green:
-            return Color(red: 0.15, green: 0.45, blue: 0.28)
+            return Color(red: 19/255, green: 81/255, blue: 44/255)
         case .yellow:
             return Color(red: 0.95, green: 0.85, blue: 0.4)
         case .orange:
