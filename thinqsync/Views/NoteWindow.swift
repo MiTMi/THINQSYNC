@@ -57,6 +57,7 @@ struct NoteWindow: View {
                 .stroke(note.color.backgroundColor.opacity(0.3), lineWidth: 1)
         )
         .shadow(color: .black.opacity(0.3), radius: 15, x: 0, y: 8)
+        .ignoresSafeArea(.all, edges: .top)
         .background(WindowAccessor(onWindowReady: { window in
             configureWindow(window)
         }))

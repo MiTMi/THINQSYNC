@@ -38,6 +38,7 @@ struct thinqsyncApp: App {
                 NoteWindow(note: $notesManager.notes[index])
                     .environment(notesManager)
                     .frame(minWidth: 300, minHeight: 200)
+                    .ignoresSafeArea(.all)
             }
         }
         .windowStyle(.hiddenTitleBar)
