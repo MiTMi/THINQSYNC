@@ -44,5 +44,12 @@ struct thinqsyncApp: App {
         .windowStyle(.hiddenTitleBar)
         .windowResizability(.automatic)
         .defaultSize(width: 400, height: 300)
+
+        // Window for Show all Notes view
+        WindowGroup(id: "show-all-notes") {
+            ShowAllNotesView()
+                .environment(notesManager)
+        }
+        .defaultSize(width: 900, height: 600)
     }
 }

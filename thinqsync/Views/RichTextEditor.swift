@@ -26,7 +26,7 @@ struct RichTextEditor: NSViewRepresentable {
         textView.isRichText = true
         textView.allowsUndo = true
         textView.font = .systemFont(ofSize: 16)
-        textView.textColor = NSColor.white  // Always white
+        textView.textColor = NSColor(textColor)
         textView.backgroundColor = .clear
         textView.drawsBackground = false
         textView.textContainerInset = NSSize(width: 16, height: 14)
@@ -43,8 +43,8 @@ struct RichTextEditor: NSViewRepresentable {
     func updateNSView(_ scrollView: NSScrollView, context: Context) {
         guard let textView = scrollView.documentView as? NSTextView else { return }
 
-        // Always use white text color
-        textView.textColor = NSColor.white
+        // Update text color based on current note color
+        textView.textColor = NSColor(textColor)
 
         // Only update if the text is different to avoid cursor jumping
         if textView.attributedString() != attributedText {

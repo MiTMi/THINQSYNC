@@ -52,7 +52,9 @@ struct GettingStartedView: View {
             MenuButton(
                 icon: "doc.on.doc",
                 title: "Show all Notes",
-                action: { }
+                action: {
+                    openWindow(id: "show-all-notes")
+                }
             )
 
             // More menu
