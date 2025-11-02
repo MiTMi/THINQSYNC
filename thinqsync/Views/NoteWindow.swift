@@ -72,12 +72,16 @@ struct NoteWindow: View {
         window.level = .floating
         window.collectionBehavior = [.canJoinAllSpaces, .fullScreenAuxiliary]
 
+        // Use fullSizeContentView instead of borderless to maintain key/main status
+        // This is the correct approach according to Apple's documentation
+        window.styleMask.insert(.fullSizeContentView)
+
         // Remove standard window buttons
         window.standardWindowButton(.closeButton)?.isHidden = true
         window.standardWindowButton(.miniaturizeButton)?.isHidden = true
         window.standardWindowButton(.zoomButton)?.isHidden = true
 
-        // Configure window appearance
+        // Configure window appearance - titlebar becomes transparent and content extends underneath
         window.titlebarAppearsTransparent = true
         window.titleVisibility = .hidden
         window.isMovableByWindowBackground = true
@@ -118,6 +122,9 @@ struct CustomTitleBar: View {
 
     @State private var isHoveringClose = false
     @State private var isHoveringMinimize = false
+    @State private var showingOptionsMenu = false
+    @State private var showingFormatMenu = false
+    @State private var showingMoreMenu = false
 
     var body: some View {
         HStack(spacing: 0) {
@@ -173,160 +180,274 @@ struct CustomTitleBar: View {
 
             // Right side: Menu buttons with circular backgrounds
             HStack(spacing: 12) {
-                // Hamburger menu
-                Menu {
-                    Button(action: {
-                        note.isFavorite.toggle()
-                    }) {
-                        Label(
-                            note.isFavorite ? "Remove from Favorites" : "Add to Favorites",
-                            systemImage: note.isFavorite ? "star.fill" : "star"
-                        )
-                    }
-
-                    Divider()
-
-                    // Color menu
-                    Menu("Change Color") {
-                        ForEach(NoteColor.allCases, id: \.self) { color in
-                            Button(action: {
-                                note.color = color
-                            }) {
-                                HStack {
-                                    Circle()
-                                        .fill(color.backgroundColor)
-                                        .frame(width: 12, height: 12)
-                                    Text(color.rawValue.capitalized)
-                                }
-                            }
-                        }
-                    }
-
-                    Divider()
-
-                    Button("Delete Note", role: .destructive) {
-                        onDelete()
-                    }
-                } label: {
+                // Hamburger menu - Using Button with popover instead of Menu
+                Button(action: {
+                    showingOptionsMenu.toggle()
+                }) {
                     ZStack {
                         Circle()
                             .fill(Color.white.opacity(0.2))
-                            .frame(width: 36, height: 36)
+                            .frame(width: 20, height: 20)
 
                         Circle()
-                            .stroke(Color.white, lineWidth: 1.5)
-                            .frame(width: 36, height: 36)
+                            .stroke(Color.white, lineWidth: 1.0)
+                            .frame(width: 20, height: 20)
 
                         Image(systemName: "list.bullet")
-                            .font(.system(size: 15, weight: .medium))
+                            .font(.system(size: 9, weight: .medium))
                             .foregroundColor(.white)
                     }
-                    .frame(width: 40, height: 40)
+                    .frame(width: 24, height: 24)
                 }
-                .menuStyle(.borderlessButton)
                 .buttonStyle(.plain)
+                .popover(isPresented: $showingOptionsMenu, arrowEdge: .bottom) {
+                    VStack(alignment: .leading, spacing: 0) {
+                        Button(action: {
+                            note.isFavorite.toggle()
+                            showingOptionsMenu = false
+                        }) {
+                            Label(
+                                note.isFavorite ? "Remove from Favorites" : "Add to Favorites",
+                                systemImage: note.isFavorite ? "star.fill" : "star"
+                            )
+                            .frame(maxWidth: .infinity, alignment: .leading)
+                            .padding(.horizontal, 12)
+                            .padding(.vertical, 8)
+                        }
+                        .buttonStyle(.plain)
 
-                // Text formatting button (A)
-                Menu {
-                    Button(action: { toggleBold() }) {
-                        Label("Bold", systemImage: "bold")
-                    }
-                    .keyboardShortcut("b", modifiers: .command)
+                        Divider()
 
-                    Button(action: { toggleItalic() }) {
-                        Label("Italic", systemImage: "italic")
-                    }
-                    .keyboardShortcut("i", modifiers: .command)
+                        // Color submenu
+                        VStack(alignment: .leading, spacing: 4) {
+                            Text("Change Color")
+                                .font(.caption)
+                                .foregroundColor(.secondary)
+                                .padding(.horizontal, 12)
+                                .padding(.top, 8)
 
-                    Button(action: { toggleUnderline() }) {
-                        Label("Underline", systemImage: "underline")
-                    }
-                    .keyboardShortcut("u", modifiers: .command)
-
-                    Divider()
-
-                    Menu("Font Size") {
-                        ForEach([10, 12, 14, 16, 18, 20, 24], id: \.self) { size in
-                            Button("\(size) pt") {
-                                setFontSize(CGFloat(size))
+                            ForEach(NoteColor.allCases, id: \.self) { color in
+                                Button(action: {
+                                    note.color = color
+                                    showingOptionsMenu = false
+                                }) {
+                                    HStack {
+                                        Circle()
+                                            .fill(color.backgroundColor)
+                                            .frame(width: 12, height: 12)
+                                        Text(color.rawValue.capitalized)
+                                    }
+                                    .frame(maxWidth: .infinity, alignment: .leading)
+                                    .padding(.horizontal, 12)
+                                    .padding(.vertical, 6)
+                                }
+                                .buttonStyle(.plain)
                             }
                         }
-                    }
 
-                    Divider()
+                        Divider()
 
-                    Menu("Alignment") {
-                        Button(action: { setAlignment(.left) }) {
-                            Label("Left", systemImage: "text.alignleft")
+                        Button(action: {
+                            showingOptionsMenu = false
+                            onDelete()
+                        }) {
+                            Label("Delete Note", systemImage: "trash")
+                                .foregroundColor(.red)
+                                .frame(maxWidth: .infinity, alignment: .leading)
+                                .padding(.horizontal, 12)
+                                .padding(.vertical, 8)
                         }
-                        Button(action: { setAlignment(.center) }) {
-                            Label("Center", systemImage: "text.aligncenter")
-                        }
-                        Button(action: { setAlignment(.right) }) {
-                            Label("Right", systemImage: "text.alignright")
-                        }
+                        .buttonStyle(.plain)
                     }
-                } label: {
+                    .frame(width: 220)
+                    .padding(.vertical, 8)
+                }
+
+                // Text formatting button (A) - Using Button with popover
+                Button(action: {
+                    showingFormatMenu.toggle()
+                }) {
                     ZStack {
                         Circle()
                             .fill(Color.white.opacity(0.2))
-                            .frame(width: 36, height: 36)
+                            .frame(width: 20, height: 20)
 
                         Circle()
-                            .stroke(Color.white, lineWidth: 1.5)
-                            .frame(width: 36, height: 36)
+                            .stroke(Color.white, lineWidth: 1.0)
+                            .frame(width: 20, height: 20)
 
                         Text("A")
-                            .font(.system(size: 16, weight: .semibold))
+                            .font(.system(size: 11, weight: .semibold))
                             .foregroundColor(.white)
                     }
-                    .frame(width: 40, height: 40)
+                    .frame(width: 24, height: 24)
                 }
-                .menuStyle(.borderlessButton)
                 .buttonStyle(.plain)
+                .popover(isPresented: $showingFormatMenu, arrowEdge: .bottom) {
+                    VStack(alignment: .leading, spacing: 0) {
+                        Button(action: {
+                            toggleBold()
+                            showingFormatMenu = false
+                        }) {
+                            Label("Bold", systemImage: "bold")
+                                .frame(maxWidth: .infinity, alignment: .leading)
+                                .padding(.horizontal, 12)
+                                .padding(.vertical, 8)
+                        }
+                        .buttonStyle(.plain)
 
-                // More options (three dots)
-                Menu {
-                    Button(action: {
-                        // Export functionality
-                        exportAsText()
-                    }) {
-                        Label("Export as Text", systemImage: "square.and.arrow.up")
+                        Button(action: {
+                            toggleItalic()
+                            showingFormatMenu = false
+                        }) {
+                            Label("Italic", systemImage: "italic")
+                                .frame(maxWidth: .infinity, alignment: .leading)
+                                .padding(.horizontal, 12)
+                                .padding(.vertical, 8)
+                        }
+                        .buttonStyle(.plain)
+
+                        Button(action: {
+                            toggleUnderline()
+                            showingFormatMenu = false
+                        }) {
+                            Label("Underline", systemImage: "underline")
+                                .frame(maxWidth: .infinity, alignment: .leading)
+                                .padding(.horizontal, 12)
+                                .padding(.vertical, 8)
+                        }
+                        .buttonStyle(.plain)
+
+                        Divider()
+
+                        // Font sizes
+                        VStack(alignment: .leading, spacing: 4) {
+                            Text("Font Size")
+                                .font(.caption)
+                                .foregroundColor(.secondary)
+                                .padding(.horizontal, 12)
+                                .padding(.top, 8)
+
+                            ForEach([10, 12, 14, 16, 18, 20, 24], id: \.self) { size in
+                                Button("\(size) pt") {
+                                    setFontSize(CGFloat(size))
+                                    showingFormatMenu = false
+                                }
+                                .frame(maxWidth: .infinity, alignment: .leading)
+                                .padding(.horizontal, 12)
+                                .padding(.vertical, 6)
+                                .buttonStyle(.plain)
+                            }
+                        }
+
+                        Divider()
+
+                        // Alignment
+                        VStack(alignment: .leading, spacing: 4) {
+                            Text("Alignment")
+                                .font(.caption)
+                                .foregroundColor(.secondary)
+                                .padding(.horizontal, 12)
+                                .padding(.top, 8)
+
+                            Button(action: {
+                                setAlignment(.left)
+                                showingFormatMenu = false
+                            }) {
+                                Label("Left", systemImage: "text.alignleft")
+                                    .frame(maxWidth: .infinity, alignment: .leading)
+                                    .padding(.horizontal, 12)
+                                    .padding(.vertical, 6)
+                            }
+                            .buttonStyle(.plain)
+
+                            Button(action: {
+                                setAlignment(.center)
+                                showingFormatMenu = false
+                            }) {
+                                Label("Center", systemImage: "text.aligncenter")
+                                    .frame(maxWidth: .infinity, alignment: .leading)
+                                    .padding(.horizontal, 12)
+                                    .padding(.vertical, 6)
+                            }
+                            .buttonStyle(.plain)
+
+                            Button(action: {
+                                setAlignment(.right)
+                                showingFormatMenu = false
+                            }) {
+                                Label("Right", systemImage: "text.alignright")
+                                    .frame(maxWidth: .infinity, alignment: .leading)
+                                    .padding(.horizontal, 12)
+                                    .padding(.vertical, 6)
+                            }
+                            .buttonStyle(.plain)
+                        }
                     }
+                    .frame(width: 200)
+                    .padding(.vertical, 8)
+                }
 
-                    Button(action: {
-                        // Print functionality
-                        printNote()
-                    }) {
-                        Label("Print", systemImage: "printer")
-                    }
-
-                    Divider()
-
-                    Button(action: {
-                        // Duplicate note
-                        duplicateNote()
-                    }) {
-                        Label("Duplicate", systemImage: "doc.on.doc")
-                    }
-                } label: {
+                // More options (three dots) - Using Button with popover
+                Button(action: {
+                    showingMoreMenu.toggle()
+                }) {
                     ZStack {
                         Circle()
                             .fill(Color.white.opacity(0.2))
-                            .frame(width: 36, height: 36)
+                            .frame(width: 20, height: 20)
 
                         Circle()
-                            .stroke(Color.white, lineWidth: 1.5)
-                            .frame(width: 36, height: 36)
+                            .stroke(Color.white, lineWidth: 1.0)
+                            .frame(width: 20, height: 20)
 
                         Image(systemName: "ellipsis")
-                            .font(.system(size: 15, weight: .medium))
+                            .font(.system(size: 9, weight: .medium))
                             .foregroundColor(.white)
                     }
-                    .frame(width: 40, height: 40)
+                    .frame(width: 24, height: 24)
                 }
-                .menuStyle(.borderlessButton)
                 .buttonStyle(.plain)
+                .popover(isPresented: $showingMoreMenu, arrowEdge: .bottom) {
+                    VStack(alignment: .leading, spacing: 0) {
+                        Button(action: {
+                            exportAsText()
+                            showingMoreMenu = false
+                        }) {
+                            Label("Export as Text", systemImage: "square.and.arrow.up")
+                                .frame(maxWidth: .infinity, alignment: .leading)
+                                .padding(.horizontal, 12)
+                                .padding(.vertical, 8)
+                        }
+                        .buttonStyle(.plain)
+
+                        Button(action: {
+                            printNote()
+                            showingMoreMenu = false
+                        }) {
+                            Label("Print", systemImage: "printer")
+                                .frame(maxWidth: .infinity, alignment: .leading)
+                                .padding(.horizontal, 12)
+                                .padding(.vertical, 8)
+                        }
+                        .buttonStyle(.plain)
+
+                        Divider()
+
+                        Button(action: {
+                            duplicateNote()
+                            showingMoreMenu = false
+                        }) {
+                            Label("Duplicate", systemImage: "doc.on.doc")
+                                .frame(maxWidth: .infinity, alignment: .leading)
+                                .padding(.horizontal, 12)
+                                .padding(.vertical, 8)
+                        }
+                        .buttonStyle(.plain)
+                    }
+                    .frame(width: 200)
+                    .padding(.vertical, 8)
+                }
             }
             .padding(.trailing, 16)
         }
