@@ -120,6 +120,8 @@ struct CustomTitleBar: View {
     var onMinimize: () -> Void
     var onDelete: () -> Void
 
+    @Environment(NotesManager.self) private var notesManager
+
     @State private var isHoveringClose = false
     @State private var isHoveringMinimize = false
     @State private var showingOptionsMenu = false
@@ -134,12 +136,12 @@ struct CustomTitleBar: View {
                 Button(action: onClose) {
                     ZStack {
                         Circle()
-                            .fill(Color.white.opacity(0.15))
+                            .fill(note.color.textColor.opacity(0.15))
                             .frame(width: 28, height: 28)
 
                         Image(systemName: "xmark")
                             .font(.system(size: 12, weight: .medium))
-                            .foregroundColor(.white.opacity(0.9))
+                            .foregroundColor(note.color.textColor.opacity(0.9))
                     }
                 }
                 .buttonStyle(.plain)
@@ -151,12 +153,12 @@ struct CustomTitleBar: View {
                 Button(action: onMinimize) {
                     ZStack {
                         Circle()
-                            .fill(Color.white.opacity(0.15))
+                            .fill(note.color.textColor.opacity(0.15))
                             .frame(width: 28, height: 28)
 
                         Image(systemName: "chevron.down")
                             .font(.system(size: 12, weight: .medium))
-                            .foregroundColor(.white.opacity(0.9))
+                            .foregroundColor(note.color.textColor.opacity(0.9))
                     }
                 }
                 .buttonStyle(.plain)
@@ -169,10 +171,10 @@ struct CustomTitleBar: View {
             Spacer()
 
             // Center: Title
-            TextField("", text: $note.title, prompt: Text("New Note").foregroundColor(.white.opacity(0.5)))
+            TextField("", text: $note.title, prompt: Text("New Note").foregroundColor(note.color.textColor.opacity(0.5)))
                 .textFieldStyle(.plain)
                 .font(.system(size: 18, weight: .semibold))
-                .foregroundColor(.white)
+                .foregroundColor(note.color.textColor)
                 .multilineTextAlignment(.center)
                 .frame(maxWidth: 200)
 
@@ -186,16 +188,16 @@ struct CustomTitleBar: View {
                 }) {
                     ZStack {
                         Circle()
-                            .fill(Color.white.opacity(0.2))
+                            .fill(note.color.textColor.opacity(0.2))
                             .frame(width: 20, height: 20)
 
                         Circle()
-                            .stroke(Color.white, lineWidth: 1.0)
+                            .stroke(note.color.textColor, lineWidth: 1.0)
                             .frame(width: 20, height: 20)
 
                         Image(systemName: "list.bullet")
                             .font(.system(size: 9, weight: .medium))
-                            .foregroundColor(.white)
+                            .foregroundColor(note.color.textColor)
                     }
                     .frame(width: 24, height: 24)
                 }
@@ -204,6 +206,7 @@ struct CustomTitleBar: View {
                     VStack(alignment: .leading, spacing: 0) {
                         Button(action: {
                             note.isFavorite.toggle()
+                            notesManager.updateNote(note)
                             showingOptionsMenu = false
                         }) {
                             Label(
@@ -229,6 +232,7 @@ struct CustomTitleBar: View {
                             ForEach(NoteColor.allCases, id: \.self) { color in
                                 Button(action: {
                                     note.color = color
+                                    notesManager.updateNote(note)
                                     showingOptionsMenu = false
                                 }) {
                                     HStack {
@@ -269,16 +273,16 @@ struct CustomTitleBar: View {
                 }) {
                     ZStack {
                         Circle()
-                            .fill(Color.white.opacity(0.2))
+                            .fill(note.color.textColor.opacity(0.2))
                             .frame(width: 20, height: 20)
 
                         Circle()
-                            .stroke(Color.white, lineWidth: 1.0)
+                            .stroke(note.color.textColor, lineWidth: 1.0)
                             .frame(width: 20, height: 20)
 
                         Text("A")
                             .font(.system(size: 11, weight: .semibold))
-                            .foregroundColor(.white)
+                            .foregroundColor(note.color.textColor)
                     }
                     .frame(width: 24, height: 24)
                 }
@@ -394,16 +398,16 @@ struct CustomTitleBar: View {
                 }) {
                     ZStack {
                         Circle()
-                            .fill(Color.white.opacity(0.2))
+                            .fill(note.color.textColor.opacity(0.2))
                             .frame(width: 20, height: 20)
 
                         Circle()
-                            .stroke(Color.white, lineWidth: 1.0)
+                            .stroke(note.color.textColor, lineWidth: 1.0)
                             .frame(width: 20, height: 20)
 
                         Image(systemName: "ellipsis")
                             .font(.system(size: 9, weight: .medium))
-                            .foregroundColor(.white)
+                            .foregroundColor(note.color.textColor)
                     }
                     .frame(width: 24, height: 24)
                 }
@@ -600,7 +604,7 @@ struct NoteContentArea: View {
                     textView = createdTextView
                     // Customize text view appearance
                     createdTextView.font = .systemFont(ofSize: 16)
-                    createdTextView.textColor = .white  // Always white
+                    createdTextView.textColor = NSColor(note.color.textColor)
                     createdTextView.textContainerInset = NSSize(width: 20, height: 20)
                 }
             }

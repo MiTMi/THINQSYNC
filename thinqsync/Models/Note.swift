@@ -29,9 +29,9 @@ struct Note: Identifiable, Codable, Sendable {
     var content: String {
         get { contentWrapper.attributedString.string }
         set {
+            // Only set font, let the view handle text color based on note.color
             let attributes: [NSAttributedString.Key: Any] = [
-                .font: NSFont.systemFont(ofSize: 16),
-                .foregroundColor: NSColor.white
+                .font: NSFont.systemFont(ofSize: 16)
             ]
             contentWrapper = AttributedStringWrapper(NSAttributedString(string: newValue, attributes: attributes))
         }
@@ -49,9 +49,9 @@ struct Note: Identifiable, Codable, Sendable {
     ) {
         self.id = id
         self.title = title
+        // Only set font, let the view handle text color based on note.color
         let attributes: [NSAttributedString.Key: Any] = [
-            .font: NSFont.systemFont(ofSize: 16),
-            .foregroundColor: NSColor.white
+            .font: NSFont.systemFont(ofSize: 16)
         ]
         self.contentWrapper = AttributedStringWrapper(NSAttributedString(string: content, attributes: attributes))
         self.color = color

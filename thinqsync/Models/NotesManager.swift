@@ -21,12 +21,13 @@ class NotesManager {
     private let cloudSync = CloudKitSyncManager.shared
 
     init() {
-        // Always start fresh with demo notes
-        // Comment out loadNotes() to always show demo notes
-        // loadNotes()
+        // Load saved notes from UserDefaults
+        loadNotes()
 
-        // Always create sample notes for demo
-        createSampleNotes()
+        // If no saved notes exist, create sample notes
+        if notes.isEmpty {
+            createSampleNotes()
+        }
 
         // iCloud disabled for now - focusing on local storage
         // Task {

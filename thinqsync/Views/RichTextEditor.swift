@@ -75,7 +75,7 @@ extension NSAttributedString {
     convenience init(string: String, color: NSColor) {
         let attributes: [NSAttributedString.Key: Any] = [
             .font: NSFont.systemFont(ofSize: 16),
-            .foregroundColor: NSColor.white  // Always white
+            .foregroundColor: color  // Use the provided color
         ]
         self.init(string: string, attributes: attributes)
     }
