@@ -6,6 +6,21 @@
 //
 
 import SwiftUI
+import AppKit
+
+// Helper to create colored square images for menu items
+func createColoredSquareImage(color: NSColor, size: CGSize) -> NSImage {
+    let image = NSImage(size: size)
+    image.lockFocus()
+
+    color.setFill()
+    let rect = NSRect(origin: .zero, size: size)
+    let path = NSBezierPath(roundedRect: rect, xRadius: 3, yRadius: 3)
+    path.fill()
+
+    image.unlockFocus()
+    return image
+}
 
 struct GettingStartedView: View {
     @Environment(NotesManager.self) private var notesManager
@@ -33,7 +48,7 @@ struct GettingStartedView: View {
                         MenuButton(
                             icon: nil,
                             title: note.title,
-                            color: note.color.backgroundColor,
+                            nsColor: note.color.nsBackgroundColor,
                             action: {
                                 notesManager.openNote(note.id)
                                 openWindow(value: note.id)
@@ -89,7 +104,7 @@ struct GettingStartedView: View {
 struct MenuButton: View {
     let icon: String?
     let title: String
-    var color: Color?
+    var nsColor: NSColor? = nil
     let action: () -> Void
 
     @State private var isHovering = false
@@ -97,14 +112,15 @@ struct MenuButton: View {
     var body: some View {
         Button(action: action) {
             HStack(spacing: 12) {
-                if let iconName = icon {
+                if let noteNSColor = nsColor {
+                    // Use NSImage-based colored square for menu compatibility
+                    Image(nsImage: createColoredSquareImage(color: noteNSColor, size: CGSize(width: 18, height: 18)))
+                        .frame(width: 18, height: 18)
+                } else if let iconName = icon {
+                    // Regular icon without color
                     Image(systemName: iconName)
                         .font(.system(size: 16))
                         .foregroundColor(Color(nsColor: .labelColor))
-                } else if let noteColor = color {
-                    RoundedRectangle(cornerRadius: 3)
-                        .fill(noteColor)
-                        .frame(width: 16, height: 16)
                 }
 
                 Text(title)

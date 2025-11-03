@@ -206,3 +206,4 @@ When adding tests:
 - Commit messages include Claude co-authorship footer
 - Stable points tagged (e.g., `v1.0-menubar-styling-fix`)
 - See `RESTORE_POINTS.md` for revert instructions
+- Always ask me before updating GitHub, push, pull and more, need my confirmation!

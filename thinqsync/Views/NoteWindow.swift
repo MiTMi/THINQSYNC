@@ -583,7 +583,7 @@ struct NoteContentArea: View {
     @Environment(NotesManager.self) private var notesManager
 
     var body: some View {
-        RichTextEditor(
+        RichTextEditorWithSlashMenu(
             attributedText: Binding(
                 get: { note.attributedContent },
                 set: { newValue in
@@ -597,16 +597,6 @@ struct NoteContentArea: View {
                 note.attributedContent = newText
                 note.modifiedAt = Date()
                 notesManager.updateNote(note)
-            },
-            onTextViewCreated: { createdTextView in
-                // Store the textView reference
-                DispatchQueue.main.async {
-                    textView = createdTextView
-                    // Customize text view appearance
-                    createdTextView.font = .systemFont(ofSize: 16)
-                    createdTextView.textColor = NSColor(note.color.textColor)
-                    createdTextView.textContainerInset = NSSize(width: 20, height: 20)
-                }
             }
         )
         .frame(minHeight: 200)

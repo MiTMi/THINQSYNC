@@ -6,27 +6,62 @@
 //
 
 import SwiftUI
+import AppKit
 
 struct ShowAllNotesView: View {
     @Environment(NotesManager.self) private var notesManager
     @State private var selectedNoteID: UUID?
     @State private var searchText = ""
+    @State private var selectedSection: SidebarSection? = .allNotes
+    @State private var showingNewFolderAlert = false
+    @State private var newFolderName = ""
     @Environment(\.openWindow) var openWindow
 
+    enum SidebarSection: Hashable {
+        case favorites
+        case folder(String)
+        case allNotes
+        case trash
+    }
+
+    var folders: [String] {
+        let folderSet = Set(notesManager.notes.compactMap { $0.folder })
+        return folderSet.sorted()
+    }
+
     var filteredNotes: [Note] {
-        if searchText.isEmpty {
-            return notesManager.notes.sorted { $0.modifiedAt > $1.modifiedAt }
-        } else {
-            return notesManager.notes.filter { note in
+        var notes: [Note]
+
+        // Filter by section
+        switch selectedSection {
+        case .favorites:
+            notes = notesManager.notes.filter { $0.isFavorite }
+        case .folder(let folderName):
+            notes = notesManager.notes.filter { $0.folder == folderName }
+        case .trash:
+            notes = notesManager.deletedNotes
+        case .allNotes, .none:
+            notes = notesManager.notes
+        }
+
+        // Apply search filter
+        if !searchText.isEmpty {
+            notes = notes.filter { note in
                 note.title.localizedCaseInsensitiveContains(searchText) ||
                 note.content.localizedCaseInsensitiveContains(searchText)
-            }.sorted { $0.modifiedAt > $1.modifiedAt }
+            }
         }
+
+        // Sort: trash is already sorted by deletedAt, others by modifiedAt
+        if selectedSection != .trash {
+            return notes.sorted { $0.modifiedAt > $1.modifiedAt }
+        }
+        return notes
     }
 
     var body: some View {
         NavigationSplitView {
-            // Sidebar with note list
+            // Sidebar with organized sections
             VStack(spacing: 0) {
                 // Search bar
                 HStack {
@@ -40,32 +75,82 @@ struct ShowAllNotesView: View {
                 .cornerRadius(6)
                 .padding()
 
-                // Notes list
-                List(selection: $selectedNoteID) {
-                    ForEach(filteredNotes) { note in
-                        NoteListItem(note: note)
-                            .tag(note.id)
-                            .contextMenu {
-                                Button("Open in Window") {
-                                    openWindow(value: note.id)
-                                    notesManager.openNote(note.id)
-                                }
+                // Organized list with sections
+                List(selection: $selectedSection) {
+                    // Favorites Section
+                    Section {
+                        HStack {
+                            Image(systemName: "star.fill")
+                                .foregroundColor(.yellow)
+                                .frame(width: 18)
+                            Text("Favorites")
+                            Spacer()
+                            Text("\(notesManager.notes.filter { $0.isFavorite }.count)")
+                                .foregroundColor(.secondary)
+                                .font(.caption)
+                        }
+                        .tag(SidebarSection.favorites)
+                    }
 
-                                Button("Toggle Favorite") {
-                                    notesManager.toggleFavorite(note)
-                                }
-
-                                Divider()
-
-                                Button("Delete", role: .destructive) {
-                                    withAnimation {
-                                        notesManager.deleteNote(note)
-                                        if selectedNoteID == note.id {
-                                            selectedNoteID = nil
-                                        }
-                                    }
-                                }
+                    // Folders Section
+                    Section("Folders") {
+                        ForEach(folders, id: \.self) { folder in
+                            HStack {
+                                Image(systemName: "folder.fill")
+                                    .foregroundColor(.blue)
+                                    .frame(width: 18)
+                                Text(folder)
+                                Spacer()
+                                Text("\(notesManager.notes.filter { $0.folder == folder }.count)")
+                                    .foregroundColor(.secondary)
+                                    .font(.caption)
                             }
+                            .tag(SidebarSection.folder(folder))
+                        }
+
+                        // Create Folder button
+                        Button(action: {
+                            showingNewFolderAlert = true
+                        }) {
+                            HStack {
+                                Image(systemName: "plus.circle.fill")
+                                    .foregroundColor(.green)
+                                    .frame(width: 18)
+                                Text("New Folder")
+                                    .foregroundColor(.secondary)
+                            }
+                        }
+                        .buttonStyle(.plain)
+                    }
+
+                    // All Notes Section
+                    Section {
+                        HStack {
+                            Image(systemName: "doc.text.fill")
+                                .foregroundColor(.gray)
+                                .frame(width: 18)
+                            Text("All Notes")
+                            Spacer()
+                            Text("\(notesManager.notes.count)")
+                                .foregroundColor(.secondary)
+                                .font(.caption)
+                        }
+                        .tag(SidebarSection.allNotes)
+                    }
+
+                    // Trash Section
+                    Section {
+                        HStack {
+                            Image(systemName: "trash.fill")
+                                .foregroundColor(.red)
+                                .frame(width: 18)
+                            Text("Trash")
+                            Spacer()
+                            Text("\(notesManager.deletedNotes.count)")
+                                .foregroundColor(.secondary)
+                                .font(.caption)
+                        }
+                        .tag(SidebarSection.trash)
                     }
                 }
                 .listStyle(.sidebar)
@@ -81,10 +166,119 @@ struct ShowAllNotesView: View {
                     }
                 }
             }
+            .alert("New Folder", isPresented: $showingNewFolderAlert) {
+                TextField("Folder Name", text: $newFolderName)
+                Button("Cancel", role: .cancel) {
+                    newFolderName = ""
+                }
+                Button("Create") {
+                    if !newFolderName.isEmpty {
+                        // Create a note in the new folder to make it appear
+                        var newNote = notesManager.createNote()
+                        newNote.folder = newFolderName
+                        notesManager.updateNote(newNote)
+                        selectedSection = .folder(newFolderName)
+                        selectedNoteID = newNote.id
+                        newFolderName = ""
+                    }
+                }
+            } message: {
+                Text("Enter a name for the new folder")
+            }
+        } content: {
+            // Middle column: Notes list for selected section
+            List(selection: $selectedNoteID) {
+                ForEach(filteredNotes) { note in
+                    NoteListItemWithIcon(note: note)
+                        .tag(note.id)
+                        .contextMenu {
+                            if selectedSection == .trash {
+                                // Trash context menu
+                                Button("Restore") {
+                                    withAnimation {
+                                        notesManager.restoreNote(note)
+                                        if selectedNoteID == note.id {
+                                            selectedNoteID = nil
+                                        }
+                                    }
+                                }
+
+                                Divider()
+
+                                Button("Delete Permanently", role: .destructive) {
+                                    withAnimation {
+                                        notesManager.permanentlyDeleteNote(note)
+                                        if selectedNoteID == note.id {
+                                            selectedNoteID = nil
+                                        }
+                                    }
+                                }
+                            } else {
+                                // Normal context menu
+                                Button("Open in Window") {
+                                    openWindow(value: note.id)
+                                    notesManager.openNote(note.id)
+                                }
+
+                                Button("Toggle Favorite") {
+                                    notesManager.toggleFavorite(note)
+                                }
+
+                                Menu("Move to Folder") {
+                                    Button("None") {
+                                        var updatedNote = note
+                                        updatedNote.folder = nil
+                                        notesManager.updateNote(updatedNote)
+                                    }
+
+                                    Divider()
+
+                                    ForEach(folders, id: \.self) { folder in
+                                        Button(folder) {
+                                            var updatedNote = note
+                                            updatedNote.folder = folder
+                                            notesManager.updateNote(updatedNote)
+                                        }
+                                    }
+
+                                    Divider()
+
+                                    Button("New Folder...") {
+                                        showingNewFolderAlert = true
+                                    }
+                                }
+
+                                Divider()
+
+                                Button("Delete", role: .destructive) {
+                                    withAnimation {
+                                        notesManager.deleteNote(note)
+                                        if selectedNoteID == note.id {
+                                            selectedNoteID = nil
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                }
+            }
+            .listStyle(.plain)
+            .navigationSplitViewColumnWidth(min: 250, ideal: 300, max: 400)
+            .toolbar {
+                // Add "Empty Trash" button when viewing trash
+                if selectedSection == .trash && !notesManager.deletedNotes.isEmpty {
+                    ToolbarItem(placement: .automatic) {
+                        Button("Empty Trash", role: .destructive) {
+                            notesManager.emptyTrash()
+                            selectedNoteID = nil
+                        }
+                    }
+                }
+            }
         } detail: {
             // Detail view
             if let noteID = selectedNoteID,
-               let note = notesManager.notes.first(where: { $0.id == noteID }) {
+               let _ = notesManager.getNote(by: noteID) {
                 NoteDetailView(noteID: noteID, notesManager: notesManager)
             } else {
                 VStack(spacing: 16) {
@@ -101,6 +295,7 @@ struct ShowAllNotesView: View {
                 .frame(maxWidth: .infinity, maxHeight: .infinity)
             }
         }
+        .navigationSplitViewStyle(.balanced)
         .onAppear {
             // Select first note if available
             if selectedNoteID == nil && !filteredNotes.isEmpty {
@@ -110,6 +305,52 @@ struct ShowAllNotesView: View {
     }
 }
 
+// New note list item with colored icon (like menubar)
+struct NoteListItemWithIcon: View {
+    let note: Note
+
+    var body: some View {
+        HStack(spacing: 12) {
+            // Colored icon (using NSImage like in menubar)
+            Image(nsImage: createColoredSquareImage(
+                color: note.color.nsBackgroundColor,
+                size: CGSize(width: 18, height: 18)
+            ))
+            .frame(width: 18, height: 18)
+
+            VStack(alignment: .leading, spacing: 4) {
+                HStack {
+                    Text(note.title)
+                        .font(.system(size: 14, weight: .medium))
+                        .lineLimit(1)
+
+                    if note.isFavorite {
+                        Image(systemName: "star.fill")
+                            .font(.system(size: 10))
+                            .foregroundColor(.yellow)
+                    }
+
+                    if let folder = note.folder {
+                        Text("• \(folder)")
+                            .font(.system(size: 10))
+                            .foregroundColor(.secondary)
+                    }
+                }
+
+                Text(note.content)
+                    .font(.system(size: 12))
+                    .foregroundColor(.secondary)
+                    .lineLimit(2)
+            }
+
+            Spacer()
+        }
+        .padding(.vertical, 6)
+        .contentShape(Rectangle())
+    }
+}
+
+// Keep old note list item for compatibility
 struct NoteListItem: View {
     let note: Note
 
@@ -156,7 +397,7 @@ struct NoteDetailView: View {
     @State private var editedAttributedContent: NSAttributedString?
 
     var note: Note? {
-        notesManager.notes.first(where: { $0.id == noteID })
+        notesManager.getNote(by: noteID)
     }
 
     var body: some View {
@@ -203,6 +444,39 @@ struct NoteDetailView: View {
                         }) {
                             Image(systemName: currentNote.isFavorite ? "star.fill" : "star")
                                 .foregroundColor(currentNote.isFavorite ? .yellow : currentNote.color.iconColor)
+                        }
+                        .buttonStyle(.plain)
+
+                        Menu {
+                            Button(action: {
+                                var updatedNote = currentNote
+                                updatedNote.folder = nil
+                                notesManager.updateNote(updatedNote)
+                            }) {
+                                HStack {
+                                    Image(systemName: currentNote.folder == nil ? "checkmark" : "")
+                                    Text("None")
+                                }
+                            }
+
+                            Divider()
+
+                            let folders = Set(notesManager.notes.compactMap { $0.folder }).sorted()
+                            ForEach(folders, id: \.self) { folder in
+                                Button(action: {
+                                    var updatedNote = currentNote
+                                    updatedNote.folder = folder
+                                    notesManager.updateNote(updatedNote)
+                                }) {
+                                    HStack {
+                                        Image(systemName: currentNote.folder == folder ? "checkmark" : "")
+                                        Text(folder)
+                                    }
+                                }
+                            }
+                        } label: {
+                            Image(systemName: "folder")
+                                .foregroundColor(currentNote.color.iconColor)
                         }
                         .buttonStyle(.plain)
 
@@ -254,27 +528,25 @@ struct NoteDetailView: View {
                     currentNote.color.backgroundColor
                         .ignoresSafeArea()
 
-                    ScrollView {
-                        RichTextEditor(
-                            attributedText: Binding(
-                                get: { editedAttributedContent ?? currentNote.attributedContent },
-                                set: { newValue in
-                                    editedAttributedContent = newValue
-                                }
-                            ),
-                            textColor: Color(currentNote.color.textColor),
-                            onTextChange: { newValue in
+                    RichTextEditorWithSlashMenu(
+                        attributedText: Binding(
+                            get: { editedAttributedContent ?? currentNote.attributedContent },
+                            set: { newValue in
                                 editedAttributedContent = newValue
-                                var updatedNote = currentNote
-                                updatedNote.attributedContent = newValue
-                                updatedNote.modifiedAt = Date()
-                                notesManager.updateNote(updatedNote)
                             }
-                        )
-                        .frame(minHeight: 400)
-                        .padding(16)
-                    }
+                        ),
+                        textColor: Color(currentNote.color.textColor),
+                        onTextChange: { newValue in
+                            editedAttributedContent = newValue
+                            var updatedNote = currentNote
+                            updatedNote.attributedContent = newValue
+                            updatedNote.modifiedAt = Date()
+                            notesManager.updateNote(updatedNote)
+                        }
+                    )
+                    .padding(16)
                 }
+                .frame(maxWidth: .infinity, maxHeight: .infinity)
 
                 Divider()
 

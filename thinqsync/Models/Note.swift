@@ -18,6 +18,7 @@ struct Note: Identifiable, Codable, Sendable {
     var folder: String?
     var createdAt: Date
     var modifiedAt: Date
+    var deletedAt: Date?
 
     // Computed property for easy access to attributed string
     var attributedContent: NSAttributedString {
@@ -45,7 +46,8 @@ struct Note: Identifiable, Codable, Sendable {
         isFavorite: Bool = false,
         folder: String? = nil,
         createdAt: Date = Date(),
-        modifiedAt: Date = Date()
+        modifiedAt: Date = Date(),
+        deletedAt: Date? = nil
     ) {
         self.id = id
         self.title = title
@@ -59,10 +61,11 @@ struct Note: Identifiable, Codable, Sendable {
         self.folder = folder
         self.createdAt = createdAt
         self.modifiedAt = modifiedAt
+        self.deletedAt = deletedAt
     }
 
     // Custom coding keys
     enum CodingKeys: String, CodingKey {
-        case id, title, contentWrapper, color, isFavorite, folder, createdAt, modifiedAt
+        case id, title, contentWrapper, color, isFavorite, folder, createdAt, modifiedAt, deletedAt
     }
 }

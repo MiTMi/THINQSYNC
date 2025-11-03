@@ -12,7 +12,7 @@ import Observation
 @MainActor
 @Observable
 class NotesManager {
-    var notes: [Note] = []
+    private var _allNotes: [Note] = []
     var openNotes: [UUID: Bool] = [:]
     var iCloudEnabled: Bool = false
     var isSyncing: Bool = false
@@ -20,12 +20,22 @@ class NotesManager {
     private let saveKey = "SavedNotes"
     private let cloudSync = CloudKitSyncManager.shared
 
+    // Public computed property that filters out deleted notes
+    var notes: [Note] {
+        _allNotes.filter { $0.deletedAt == nil }
+    }
+
+    // Trash: deleted notes
+    var deletedNotes: [Note] {
+        _allNotes.filter { $0.deletedAt != nil }.sorted { ($0.deletedAt ?? Date()) > ($1.deletedAt ?? Date()) }
+    }
+
     init() {
         // Load saved notes from UserDefaults
         loadNotes()
 
         // If no saved notes exist, create sample notes
-        if notes.isEmpty {
+        if _allNotes.isEmpty {
             createSampleNotes()
         }
 
@@ -51,28 +61,52 @@ class NotesManager {
 
     func createNote(title: String = "NewDemo", color: NoteColor = .green) -> Note {
         let note = Note(title: title, color: color)
-        notes.append(note)
+        _allNotes.append(note)
         openNotes[note.id] = true
         saveNotes()
         return note
     }
 
     func updateNote(_ note: Note) {
-        if let index = notes.firstIndex(where: { $0.id == note.id }) {
-            notes[index] = note
+        if let index = _allNotes.firstIndex(where: { $0.id == note.id }) {
+            _allNotes[index] = note
             saveNotes()
         }
     }
 
+    // Soft delete: move to trash
     func deleteNote(_ note: Note) {
-        notes.removeAll { $0.id == note.id }
+        if let index = _allNotes.firstIndex(where: { $0.id == note.id }) {
+            _allNotes[index].deletedAt = Date()
+            openNotes.removeValue(forKey: note.id)
+            saveNotes()
+        }
+    }
+
+    // Restore note from trash
+    func restoreNote(_ note: Note) {
+        if let index = _allNotes.firstIndex(where: { $0.id == note.id }) {
+            _allNotes[index].deletedAt = nil
+            saveNotes()
+        }
+    }
+
+    // Permanently delete note
+    func permanentlyDeleteNote(_ note: Note) {
+        _allNotes.removeAll { $0.id == note.id }
         openNotes.removeValue(forKey: note.id)
         saveNotes()
     }
 
+    // Empty trash - permanently delete all deleted notes
+    func emptyTrash() {
+        _allNotes.removeAll { $0.deletedAt != nil }
+        saveNotes()
+    }
+
     func toggleFavorite(_ note: Note) {
-        if let index = notes.firstIndex(where: { $0.id == note.id }) {
-            notes[index].isFavorite.toggle()
+        if let index = _allNotes.firstIndex(where: { $0.id == note.id }) {
+            _allNotes[index].isFavorite.toggle()
             saveNotes()
         }
     }
@@ -89,8 +123,30 @@ class NotesManager {
         openNotes[id] = false
     }
 
+    // Get note by ID (including deleted notes)
+    func getNote(by id: UUID) -> Note? {
+        _allNotes.first(where: { $0.id == id })
+    }
+
+    // Get binding to note by ID
+    func binding(for id: UUID) -> Binding<Note>? {
+        guard let index = _allNotes.firstIndex(where: { $0.id == id }) else {
+            return nil
+        }
+        return Binding(
+            get: { [weak self] in self?._allNotes[index] ?? Note() },
+            set: { [weak self] newValue in
+                guard let self = self else { return }
+                if index < self._allNotes.count {
+                    self._allNotes[index] = newValue
+                    self.saveNotes()
+                }
+            }
+        )
+    }
+
     private func saveNotes() {
-        if let encoded = try? JSONEncoder().encode(notes) {
+        if let encoded = try? JSONEncoder().encode(_allNotes) {
             UserDefaults.standard.set(encoded, forKey: saveKey)
         }
 
@@ -105,7 +161,7 @@ class NotesManager {
     private func loadNotes() {
         if let savedNotes = UserDefaults.standard.data(forKey: saveKey),
            let decodedNotes = try? JSONDecoder().decode([Note].self, from: savedNotes) {
-            notes = decodedNotes
+            _allNotes = decodedNotes
         }
     }
 
@@ -132,7 +188,7 @@ class NotesManager {
             isFavorite: false
         )
 
-        notes = [note1, note2, note3]
+        _allNotes = [note1, note2, note3]
         saveNotes()
     }
 
@@ -171,7 +227,7 @@ class NotesManager {
         do {
             let cloudNotes = try await cloudSync.fetchAllNotes()
             if !cloudNotes.isEmpty {
-                notes = cloudNotes
+                _allNotes = cloudNotes
                 saveNotes()
                 print("Loaded \(cloudNotes.count) notes from iCloud")
             }

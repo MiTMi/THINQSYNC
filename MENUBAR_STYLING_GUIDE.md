@@ -230,6 +230,119 @@ git checkout d67b519
 
 ---
 
+## Custom Colored Icons/Shapes in MenuBarExtra
+
+**Date**: November 2, 2025
+**Issue**: Custom colored shapes (rectangles, circles) don't render in MenuBarExtra
+**Solution**: Use NSImage with rendered colors
+
+### The Problem with Custom Shapes
+
+MenuBarExtra's native rendering system **cannot display** SwiftUI shapes with custom colors:
+
+```swift
+// ❌ DOES NOT WORK - Will not appear
+RoundedRectangle(cornerRadius: 4)
+    .fill(Color.red)
+    .frame(width: 18, height: 18)
+
+// ❌ DOES NOT WORK - Even with NSColor
+RoundedRectangle(cornerRadius: 4)
+    .fill(Color(nsColor: .systemRed))
+    .frame(width: 18, height: 18)
+
+// ❌ DOES NOT WORK - NSView wrapping
+struct ColoredRect: NSViewRepresentable { /* custom drawing */ }
+```
+
+**None of these approaches work** because MenuBarExtra menus use NSMenu's rendering pipeline, which only supports:
+- SF Symbols (system icons)
+- NSImage objects
+- Text with NSColor
+
+### ✅ The Solution: NSImage with Drawn Content
+
+The only way to display custom colored shapes is to **create an NSImage and draw into it**:
+
+```swift
+// Helper function to create colored square images
+func createColoredSquareImage(color: NSColor, size: CGSize) -> NSImage {
+    let image = NSImage(size: size)
+    image.lockFocus()
+
+    color.setFill()
+    let rect = NSRect(origin: .zero, size: size)
+    let path = NSBezierPath(roundedRect: rect, xRadius: 3, yRadius: 3)
+    path.fill()
+
+    image.unlockFocus()
+    return image
+}
+
+// Usage in SwiftUI
+Image(nsImage: createColoredSquareImage(
+    color: .systemGreen,
+    size: CGSize(width: 18, height: 18)
+))
+```
+
+### Implementation Example
+
+```swift
+struct MenuButton: View {
+    let icon: String?
+    let title: String
+    var nsColor: NSColor? = nil
+    let action: () -> Void
+
+    var body: some View {
+        Button(action: action) {
+            HStack(spacing: 12) {
+                if let noteNSColor = nsColor {
+                    // ✅ Use NSImage for custom colored shapes
+                    Image(nsImage: createColoredSquareImage(
+                        color: noteNSColor,
+                        size: CGSize(width: 18, height: 18)
+                    ))
+                    .frame(width: 18, height: 18)
+                } else if let iconName = icon {
+                    // SF Symbols work normally
+                    Image(systemName: iconName)
+                        .foregroundColor(Color(nsColor: .labelColor))
+                }
+
+                Text(title)
+                    .foregroundColor(Color(nsColor: .labelColor))
+
+                Spacer()
+            }
+        }
+    }
+}
+```
+
+### Why This Works
+
+1. **NSImage is natively supported** by NSMenu rendering
+2. **Drawing happens before rendering** - colors are "baked in" to the image
+3. **No dynamic SwiftUI rendering** required at menu display time
+4. **Works with any AppKit drawing** - shapes, gradients, patterns, etc.
+
+### Performance Considerations
+
+- Images are lightweight (18×18 px = 1.3KB uncompressed)
+- Create images once and reuse if possible
+- For dynamic colors, recreate on demand (acceptable performance)
+
+### Alternative: Pre-rendered Assets
+
+For fixed colors, you can also use asset catalog images:
+```swift
+Image("GreenSquare")  // From Assets.xcassets
+```
+
+---
+
 ## Summary
 
-**Key Takeaway**: MenuBarExtra applications must use `Color(nsColor:)` with macOS semantic colors like `.labelColor` instead of standard SwiftUI color customizations. This ensures proper rendering in both light and dark modes.
+**Key Takeaway**: MenuBarExtra applications must use `Color(nsColor:)` with macOS semantic colors like `.labelColor` instead of standard SwiftUI color customizations. For custom colored shapes, create NSImage objects with drawn content rather than using SwiftUI shapes. This ensures proper rendering in both light and dark modes.

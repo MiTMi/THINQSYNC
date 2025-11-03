@@ -13,6 +13,9 @@ struct RichTextEditor: NSViewRepresentable {
     var textColor: Color
     var onTextChange: (NSAttributedString) -> Void
     var onTextViewCreated: ((NSTextView) -> Void)?
+    @Binding var showSlashMenu: Bool
+    @Binding var slashMenuPosition: CGPoint
+    @Binding var slashSearchText: String
 
     func makeCoordinator() -> Coordinator {
         Coordinator(self)
@@ -58,6 +61,7 @@ struct RichTextEditor: NSViewRepresentable {
 
     class Coordinator: NSObject, NSTextViewDelegate {
         var parent: RichTextEditor
+        var slashRange: NSRange?
 
         init(_ parent: RichTextEditor) {
             self.parent = parent
@@ -65,7 +69,65 @@ struct RichTextEditor: NSViewRepresentable {
 
         func textDidChange(_ notification: Notification) {
             guard let textView = notification.object as? NSTextView else { return }
+
+            // Check for slash command
+            detectSlashCommand(in: textView)
+
             parent.onTextChange(textView.attributedString())
+        }
+
+        private func detectSlashCommand(in textView: NSTextView) {
+            let text = textView.string
+            let cursorPosition = textView.selectedRange().location
+
+            // Look backwards from cursor to find "/"
+            if cursorPosition > 0 {
+                var searchIndex = cursorPosition - 1
+                var foundSpace = false
+
+                while searchIndex >= 0 {
+                    let char = text[text.index(text.startIndex, offsetBy: searchIndex)]
+
+                    if char == "/" {
+                        // Found slash, get the text after it
+                        let slashLocation = searchIndex
+                        let searchText = String(text[text.index(text.startIndex, offsetBy: slashLocation + 1)..<text.index(text.startIndex, offsetBy: cursorPosition)])
+
+                        // Show slash menu
+                        slashRange = NSRange(location: slashLocation, length: cursorPosition - slashLocation)
+                        parent.slashSearchText = searchText
+                        parent.showSlashMenu = true
+
+                        // Get cursor position for menu placement
+                        if let rect = textView.layoutManager?.boundingRect(
+                            forGlyphRange: NSRange(location: slashLocation, length: 1),
+                            in: textView.textContainer!
+                        ) {
+                            parent.slashMenuPosition = CGPoint(
+                                x: rect.origin.x,
+                                y: rect.origin.y + rect.height
+                            )
+                        }
+                        return
+                    } else if char.isWhitespace || char.isNewline {
+                        foundSpace = true
+                        break
+                    }
+
+                    searchIndex -= 1
+                }
+            }
+
+            // No slash found or invalid context, hide menu
+            parent.showSlashMenu = false
+            slashRange = nil
+        }
+
+        func replaceSlashWithCommand(_ textView: NSTextView) {
+            guard let range = slashRange else { return }
+            textView.setSelectedRange(range)
+            textView.delete(nil)
+            slashRange = nil
         }
     }
 }

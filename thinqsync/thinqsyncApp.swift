@@ -34,8 +34,8 @@ struct thinqsyncApp: App {
         // Window group for individual notes
         WindowGroup(for: UUID.self) { $noteID in
             if let noteID = noteID,
-               let index = notesManager.notes.firstIndex(where: { $0.id == noteID }) {
-                NoteWindow(note: $notesManager.notes[index])
+               let noteBinding = notesManager.binding(for: noteID) {
+                NoteWindow(note: noteBinding)
                     .environment(notesManager)
                     .frame(minWidth: 300, minHeight: 200)
                     .ignoresSafeArea(.all)
