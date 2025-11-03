@@ -62,6 +62,7 @@ struct RichTextEditor: NSViewRepresentable {
     class Coordinator: NSObject, NSTextViewDelegate {
         var parent: RichTextEditor
         var slashRange: NSRange?
+        var isExecutingSlashCommand = false
 
         init(_ parent: RichTextEditor) {
             self.parent = parent
@@ -69,6 +70,25 @@ struct RichTextEditor: NSViewRepresentable {
 
         func textDidChange(_ notification: Notification) {
             guard let textView = notification.object as? NSTextView else { return }
+
+            // Check if user just entered a newline, and reset formatting if so
+            // Skip if we're executing a slash command
+            if !isExecutingSlashCommand {
+                let cursorPosition = textView.selectedRange().location
+                if cursorPosition > 0 {
+                    let text = textView.string
+                    let previousCharIndex = text.index(text.startIndex, offsetBy: cursorPosition - 1)
+                    let previousChar = text[previousCharIndex]
+
+                    if previousChar.isNewline {
+                        // Reset typing attributes to default
+                        textView.typingAttributes = [
+                            .font: NSFont.systemFont(ofSize: 16),
+                            .foregroundColor: NSColor(parent.textColor)
+                        ]
+                    }
+                }
+            }
 
             // Check for slash command
             detectSlashCommand(in: textView)
@@ -125,9 +145,16 @@ struct RichTextEditor: NSViewRepresentable {
 
         func replaceSlashWithCommand(_ textView: NSTextView) {
             guard let range = slashRange else { return }
+            // Set flag to skip format reset during command execution
+            isExecutingSlashCommand = true
             textView.setSelectedRange(range)
             textView.delete(nil)
             slashRange = nil
+        }
+
+        func finishSlashCommand() {
+            // Reset flag after command execution is complete
+            isExecutingSlashCommand = false
         }
     }
 }

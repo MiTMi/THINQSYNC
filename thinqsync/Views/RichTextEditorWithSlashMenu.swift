@@ -131,6 +131,9 @@ struct RichTextEditorWithSlashMenu: View {
             clearFormatting(textView: textView)
         }
 
+        // Mark command execution as complete
+        coordinator.finishSlashCommand()
+
         showSlashMenu = false
 
         // Trigger text change to update the binding

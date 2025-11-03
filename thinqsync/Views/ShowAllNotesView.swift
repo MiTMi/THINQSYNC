@@ -12,15 +12,16 @@ struct ShowAllNotesView: View {
     @Environment(NotesManager.self) private var notesManager
     @State private var selectedNoteID: UUID?
     @State private var searchText = ""
-    @State private var selectedSection: SidebarSection? = .allNotes
+    @State private var selectedSection: SidebarSection? = .mySpace
     @State private var showingNewFolderAlert = false
+    @State private var showingSearch = false
     @State private var newFolderName = ""
     @Environment(\.openWindow) var openWindow
 
     enum SidebarSection: Hashable {
-        case favorites
+        case mySpace
+        case starred
         case folder(String)
-        case allNotes
         case trash
     }
 
@@ -34,13 +35,13 @@ struct ShowAllNotesView: View {
 
         // Filter by section
         switch selectedSection {
-        case .favorites:
+        case .starred:
             notes = notesManager.notes.filter { $0.isFavorite }
         case .folder(let folderName):
             notes = notesManager.notes.filter { $0.folder == folderName }
         case .trash:
             notes = notesManager.deletedNotes
-        case .allNotes, .none:
+        case .mySpace, .none:
             notes = notesManager.notes
         }
 
@@ -52,7 +53,7 @@ struct ShowAllNotesView: View {
             }
         }
 
-        // Sort: trash is already sorted by deletedAt, others by modifiedAt
+        // Sort
         if selectedSection != .trash {
             return notes.sorted { $0.modifiedAt > $1.modifiedAt }
         }
@@ -60,530 +61,475 @@ struct ShowAllNotesView: View {
     }
 
     var body: some View {
-        NavigationSplitView {
-            // Sidebar with organized sections
+        HStack(spacing: 0) {
+            // Left Sidebar
             VStack(spacing: 0) {
-                // Search bar
-                HStack {
-                    Image(systemName: "magnifyingglass")
-                        .foregroundColor(.secondary)
-                    TextField("Search all Notes", text: $searchText)
-                        .textFieldStyle(.plain)
+                // New Note Button
+                Button(action: {
+                    let newNote = notesManager.createNote()
+                    selectedNoteID = newNote.id
+                }) {
+                    HStack {
+                        Image(systemName: "plus.circle.fill")
+                            .font(.system(size: 16))
+                        Text("New Note")
+                            .font(.system(size: 14, weight: .medium))
+                    }
+                    .frame(maxWidth: .infinity)
+                    .padding(.vertical, 10)
+                    .background(Color.accentColor)
+                    .foregroundColor(.white)
+                    .cornerRadius(8)
                 }
-                .padding(8)
-                .background(Color(NSColor.controlBackgroundColor))
-                .cornerRadius(6)
-                .padding()
+                .buttonStyle(.plain)
+                .padding(.horizontal, 16)
+                .padding(.top, 16)
+                .padding(.bottom, 12)
 
-                // Organized list with sections
+                Divider()
+
+                // Sidebar List
                 List(selection: $selectedSection) {
-                    // Favorites Section
+                    // Michael's Space
                     Section {
-                        HStack {
-                            Image(systemName: "star.fill")
-                                .foregroundColor(.yellow)
-                                .frame(width: 18)
-                            Text("Favorites")
-                            Spacer()
-                            Text("\(notesManager.notes.filter { $0.isFavorite }.count)")
-                                .foregroundColor(.secondary)
-                                .font(.caption)
-                        }
-                        .tag(SidebarSection.favorites)
+                        SidebarRow(
+                            icon: "person.crop.circle.fill",
+                            title: "Michael's Space",
+                            count: notesManager.notes.count
+                        )
+                        .tag(SidebarSection.mySpace)
                     }
 
-                    // Folders Section
+                    // Starred
+                    Section {
+                        SidebarRow(
+                            icon: "star.fill",
+                            title: "Starred",
+                            count: notesManager.notes.filter { $0.isFavorite }.count,
+                            iconColor: .yellow
+                        )
+                        .tag(SidebarSection.starred)
+                    }
+
+                    // Folders
                     Section("Folders") {
                         ForEach(folders, id: \.self) { folder in
-                            HStack {
-                                Image(systemName: "folder.fill")
-                                    .foregroundColor(.blue)
-                                    .frame(width: 18)
-                                Text(folder)
-                                Spacer()
-                                Text("\(notesManager.notes.filter { $0.folder == folder }.count)")
-                                    .foregroundColor(.secondary)
-                                    .font(.caption)
-                            }
+                            SidebarRow(
+                                icon: "folder.fill",
+                                title: folder,
+                                count: notesManager.notes.filter { $0.folder == folder }.count,
+                                iconColor: .blue
+                            )
                             .tag(SidebarSection.folder(folder))
                         }
 
-                        // Create Folder button
+                        // New Folder
                         Button(action: {
                             showingNewFolderAlert = true
                         }) {
-                            HStack {
-                                Image(systemName: "plus.circle.fill")
-                                    .foregroundColor(.green)
-                                    .frame(width: 18)
+                            HStack(spacing: 8) {
+                                Image(systemName: "plus.circle")
+                                    .font(.system(size: 14))
+                                    .foregroundColor(.secondary)
                                 Text("New Folder")
+                                    .font(.system(size: 13))
                                     .foregroundColor(.secondary)
                             }
                         }
                         .buttonStyle(.plain)
                     }
 
-                    // All Notes Section
+                    // Trash
                     Section {
-                        HStack {
-                            Image(systemName: "doc.text.fill")
-                                .foregroundColor(.gray)
-                                .frame(width: 18)
-                            Text("All Notes")
-                            Spacer()
-                            Text("\(notesManager.notes.count)")
-                                .foregroundColor(.secondary)
-                                .font(.caption)
-                        }
-                        .tag(SidebarSection.allNotes)
-                    }
-
-                    // Trash Section
-                    Section {
-                        HStack {
-                            Image(systemName: "trash.fill")
-                                .foregroundColor(.red)
-                                .frame(width: 18)
-                            Text("Trash")
-                            Spacer()
-                            Text("\(notesManager.deletedNotes.count)")
-                                .foregroundColor(.secondary)
-                                .font(.caption)
-                        }
+                        SidebarRow(
+                            icon: "trash",
+                            title: "Trash",
+                            count: notesManager.deletedNotes.count,
+                            iconColor: .red
+                        )
                         .tag(SidebarSection.trash)
                     }
                 }
                 .listStyle(.sidebar)
+                .scrollContentBackground(.hidden)
             }
-            .navigationSplitViewColumnWidth(min: 200, ideal: 250, max: 300)
-            .toolbar {
-                ToolbarItem(placement: .primaryAction) {
-                    Button(action: {
-                        let newNote = notesManager.createNote()
-                        selectedNoteID = newNote.id
-                    }) {
-                        Label("New Note", systemImage: "square.and.pencil")
-                    }
-                }
-            }
-            .alert("New Folder", isPresented: $showingNewFolderAlert) {
-                TextField("Folder Name", text: $newFolderName)
-                Button("Cancel", role: .cancel) {
-                    newFolderName = ""
-                }
-                Button("Create") {
-                    if !newFolderName.isEmpty {
-                        // Create a note in the new folder to make it appear
-                        var newNote = notesManager.createNote()
-                        newNote.folder = newFolderName
-                        notesManager.updateNote(newNote)
-                        selectedSection = .folder(newFolderName)
-                        selectedNoteID = newNote.id
-                        newFolderName = ""
-                    }
-                }
-            } message: {
-                Text("Enter a name for the new folder")
-            }
-        } content: {
-            // Middle column: Notes list for selected section
-            List(selection: $selectedNoteID) {
-                ForEach(filteredNotes) { note in
-                    NoteListItemWithIcon(note: note)
-                        .tag(note.id)
-                        .contextMenu {
-                            if selectedSection == .trash {
-                                // Trash context menu
-                                Button("Restore") {
-                                    withAnimation {
-                                        notesManager.restoreNote(note)
-                                        if selectedNoteID == note.id {
-                                            selectedNoteID = nil
-                                        }
-                                    }
-                                }
+            .frame(width: 240)
+            .background(Color(nsColor: .windowBackgroundColor))
 
-                                Divider()
+            Divider()
 
-                                Button("Delete Permanently", role: .destructive) {
-                                    withAnimation {
-                                        notesManager.permanentlyDeleteNote(note)
-                                        if selectedNoteID == note.id {
-                                            selectedNoteID = nil
-                                        }
-                                    }
-                                }
-                            } else {
-                                // Normal context menu
-                                Button("Open in Window") {
-                                    openWindow(value: note.id)
-                                    notesManager.openNote(note.id)
-                                }
-
-                                Button("Toggle Favorite") {
-                                    notesManager.toggleFavorite(note)
-                                }
-
-                                Menu("Move to Folder") {
-                                    Button("None") {
-                                        var updatedNote = note
-                                        updatedNote.folder = nil
-                                        notesManager.updateNote(updatedNote)
-                                    }
-
-                                    Divider()
-
-                                    ForEach(folders, id: \.self) { folder in
-                                        Button(folder) {
-                                            var updatedNote = note
-                                            updatedNote.folder = folder
-                                            notesManager.updateNote(updatedNote)
-                                        }
-                                    }
-
-                                    Divider()
-
-                                    Button("New Folder...") {
-                                        showingNewFolderAlert = true
-                                    }
-                                }
-
-                                Divider()
-
-                                Button("Delete", role: .destructive) {
-                                    withAnimation {
-                                        notesManager.deleteNote(note)
-                                        if selectedNoteID == note.id {
-                                            selectedNoteID = nil
-                                        }
-                                    }
-                                }
-                            }
-                        }
-                }
-            }
-            .listStyle(.plain)
-            .navigationSplitViewColumnWidth(min: 250, ideal: 300, max: 400)
-            .toolbar {
-                // Add "Empty Trash" button when viewing trash
-                if selectedSection == .trash && !notesManager.deletedNotes.isEmpty {
-                    ToolbarItem(placement: .automatic) {
-                        Button("Empty Trash", role: .destructive) {
-                            notesManager.emptyTrash()
-                            selectedNoteID = nil
-                        }
-                    }
-                }
-            }
-        } detail: {
-            // Detail view
-            if let noteID = selectedNoteID,
-               let _ = notesManager.getNote(by: noteID) {
-                NoteDetailView(noteID: noteID, notesManager: notesManager)
-            } else {
-                VStack(spacing: 16) {
-                    Image(systemName: "note.text")
-                        .font(.system(size: 48))
-                        .foregroundColor(.secondary)
-                    Text("Select a note to view")
-                        .font(.title2)
-                        .foregroundColor(.secondary)
-                    Text("or create a new one")
-                        .font(.body)
-                        .foregroundColor(.secondary)
-                }
-                .frame(maxWidth: .infinity, maxHeight: .infinity)
-            }
-        }
-        .navigationSplitViewStyle(.balanced)
-        .onAppear {
-            // Select first note if available
-            if selectedNoteID == nil && !filteredNotes.isEmpty {
-                selectedNoteID = filteredNotes.first?.id
-            }
-        }
-    }
-}
-
-// New note list item with colored icon (like menubar)
-struct NoteListItemWithIcon: View {
-    let note: Note
-
-    var body: some View {
-        HStack(spacing: 12) {
-            // Colored icon (using NSImage like in menubar)
-            Image(nsImage: createColoredSquareImage(
-                color: note.color.nsBackgroundColor,
-                size: CGSize(width: 18, height: 18)
-            ))
-            .frame(width: 18, height: 18)
-
-            VStack(alignment: .leading, spacing: 4) {
-                HStack {
-                    Text(note.title)
-                        .font(.system(size: 14, weight: .medium))
-                        .lineLimit(1)
-
-                    if note.isFavorite {
-                        Image(systemName: "star.fill")
-                            .font(.system(size: 10))
-                            .foregroundColor(.yellow)
-                    }
-
-                    if let folder = note.folder {
-                        Text("• \(folder)")
-                            .font(.system(size: 10))
-                            .foregroundColor(.secondary)
-                    }
-                }
-
-                Text(note.content)
-                    .font(.system(size: 12))
-                    .foregroundColor(.secondary)
-                    .lineLimit(2)
-            }
-
-            Spacer()
-        }
-        .padding(.vertical, 6)
-        .contentShape(Rectangle())
-    }
-}
-
-// Keep old note list item for compatibility
-struct NoteListItem: View {
-    let note: Note
-
-    var body: some View {
-        HStack(spacing: 12) {
-            // Color indicator
-            RoundedRectangle(cornerRadius: 4)
-                .fill(note.color.backgroundColor)
-                .frame(width: 4, height: 44)
-
-            VStack(alignment: .leading, spacing: 4) {
-                HStack {
-                    Text(note.title)
-                        .font(.system(size: 14, weight: .medium))
-                        .lineLimit(1)
-
-                    if note.isFavorite {
-                        Image(systemName: "star.fill")
-                            .font(.system(size: 10))
-                            .foregroundColor(.yellow)
-                    }
-                }
-
-                Text(note.content)
-                    .font(.system(size: 12))
-                    .foregroundColor(.secondary)
-                    .lineLimit(1)
-            }
-
-            Spacer()
-        }
-        .padding(.vertical, 4)
-        .contentShape(Rectangle())
-    }
-}
-
-struct NoteDetailView: View {
-    let noteID: UUID
-    var notesManager: NotesManager
-    @Environment(\.openWindow) var openWindow
-    @State private var isEditingTitle = false
-    @FocusState private var titleFieldFocused: Bool
-    @State private var editedTitle = ""
-    @State private var editedAttributedContent: NSAttributedString?
-
-    var note: Note? {
-        notesManager.getNote(by: noteID)
-    }
-
-    var body: some View {
-        if let currentNote = note {
+            // Main Content Area
             VStack(spacing: 0) {
-                // Header with title and actions
-                HStack(spacing: 16) {
-                    // Color indicator
-                    Circle()
-                        .fill(currentNote.color.backgroundColor)
-                        .frame(width: 12, height: 12)
-
-                    if isEditingTitle {
-                        TextField("Note Title", text: $editedTitle)
-                            .textFieldStyle(.plain)
-                            .font(.title2.weight(.semibold))
-                            .foregroundColor(currentNote.color.textColor)
-                            .focused($titleFieldFocused)
-                            .onSubmit {
-                                isEditingTitle = false
-                                var updatedNote = currentNote
-                                updatedNote.title = editedTitle
-                                notesManager.updateNote(updatedNote)
-                            }
-                    } else {
-                        Text(currentNote.title)
-                            .font(.title2.weight(.semibold))
-                            .foregroundColor(currentNote.color.textColor)
-                            .onTapGesture(count: 2) {
-                                editedTitle = currentNote.title
-                                isEditingTitle = true
-                                titleFieldFocused = true
-                            }
-                    }
+                // Top Bar
+                HStack {
+                    Text(sectionTitle)
+                        .font(.system(size: 24, weight: .bold))
+                        .foregroundColor(Color(nsColor: .labelColor))
 
                     Spacer()
 
-                    // Action buttons
-                    HStack(spacing: 12) {
-                        Button(action: {
-                            var updatedNote = currentNote
-                            updatedNote.isFavorite.toggle()
-                            notesManager.updateNote(updatedNote)
-                        }) {
-                            Image(systemName: currentNote.isFavorite ? "star.fill" : "star")
-                                .foregroundColor(currentNote.isFavorite ? .yellow : currentNote.color.iconColor)
-                        }
-                        .buttonStyle(.plain)
-
-                        Menu {
-                            Button(action: {
-                                var updatedNote = currentNote
-                                updatedNote.folder = nil
-                                notesManager.updateNote(updatedNote)
-                            }) {
-                                HStack {
-                                    Image(systemName: currentNote.folder == nil ? "checkmark" : "")
-                                    Text("None")
-                                }
-                            }
-
-                            Divider()
-
-                            let folders = Set(notesManager.notes.compactMap { $0.folder }).sorted()
-                            ForEach(folders, id: \.self) { folder in
-                                Button(action: {
-                                    var updatedNote = currentNote
-                                    updatedNote.folder = folder
-                                    notesManager.updateNote(updatedNote)
-                                }) {
-                                    HStack {
-                                        Image(systemName: currentNote.folder == folder ? "checkmark" : "")
-                                        Text(folder)
-                                    }
-                                }
-                            }
-                        } label: {
-                            Image(systemName: "folder")
-                                .foregroundColor(currentNote.color.iconColor)
-                        }
-                        .buttonStyle(.plain)
-
-                        Menu {
-                            ForEach(NoteColor.allCases, id: \.self) { color in
-                                Button(action: {
-                                    var updatedNote = currentNote
-                                    updatedNote.color = color
-                                    notesManager.updateNote(updatedNote)
-                                }) {
-                                    HStack {
-                                        Circle()
-                                            .fill(color.backgroundColor)
-                                            .frame(width: 12, height: 12)
-                                        Text(color.rawValue.capitalized)
-                                    }
-                                }
-                            }
-                        } label: {
-                            Image(systemName: "paintpalette")
-                                .foregroundColor(currentNote.color.iconColor)
-                        }
-                        .buttonStyle(.plain)
-
-                        Button(action: {
-                            openWindow(value: currentNote.id)
-                            notesManager.openNote(currentNote.id)
-                        }) {
-                            Image(systemName: "arrow.up.forward.square")
-                                .foregroundColor(currentNote.color.iconColor)
-                        }
-                        .buttonStyle(.plain)
-                        .help("Open in separate window")
-
-                        Button(action: {
-                            notesManager.deleteNote(currentNote)
-                        }) {
-                            Image(systemName: "trash")
-                                .foregroundColor(.red)
-                        }
-                        .buttonStyle(.plain)
+                    // Search Button
+                    Button(action: {
+                        showingSearch.toggle()
+                    }) {
+                        Image(systemName: "magnifyingglass")
+                            .font(.system(size: 16))
+                            .foregroundColor(Color(nsColor: .labelColor))
+                            .frame(width: 32, height: 32)
+                            .background(Color(nsColor: .controlBackgroundColor))
+                            .cornerRadius(6)
                     }
+                    .buttonStyle(.plain)
                 }
-                .padding()
-                .background(currentNote.color.backgroundColor)
+                .padding(.horizontal, 24)
+                .padding(.vertical, 16)
 
-                // Note content with color background
-                ZStack {
-                    currentNote.color.backgroundColor
-                        .ignoresSafeArea()
-
-                    RichTextEditorWithSlashMenu(
-                        attributedText: Binding(
-                            get: { editedAttributedContent ?? currentNote.attributedContent },
-                            set: { newValue in
-                                editedAttributedContent = newValue
+                // Search Field (conditional)
+                if showingSearch {
+                    HStack {
+                        Image(systemName: "magnifyingglass")
+                            .foregroundColor(.secondary)
+                        TextField("Search notes...", text: $searchText)
+                            .textFieldStyle(.plain)
+                        if !searchText.isEmpty {
+                            Button(action: {
+                                searchText = ""
+                            }) {
+                                Image(systemName: "xmark.circle.fill")
+                                    .foregroundColor(.secondary)
                             }
-                        ),
-                        textColor: Color(currentNote.color.textColor),
-                        onTextChange: { newValue in
-                            editedAttributedContent = newValue
-                            var updatedNote = currentNote
-                            updatedNote.attributedContent = newValue
-                            updatedNote.modifiedAt = Date()
-                            notesManager.updateNote(updatedNote)
+                            .buttonStyle(.plain)
                         }
-                    )
-                    .padding(16)
+                    }
+                    .padding(10)
+                    .background(Color(nsColor: .controlBackgroundColor))
+                    .cornerRadius(8)
+                    .padding(.horizontal, 24)
+                    .padding(.bottom, 12)
                 }
-                .frame(maxWidth: .infinity, maxHeight: .infinity)
 
                 Divider()
 
-                // Footer with metadata
-                HStack {
-                    Text("Created: \(currentNote.createdAt.formatted(date: .abbreviated, time: .shortened))")
-                        .font(.caption)
-                        .foregroundColor(currentNote.color.textColor.opacity(0.7))
-
-                    Spacer()
-
-                    Text("Modified: \(currentNote.modifiedAt.formatted(date: .abbreviated, time: .shortened))")
-                        .font(.caption)
-                        .foregroundColor(currentNote.color.textColor.opacity(0.7))
+                // Notes Grid
+                if filteredNotes.isEmpty {
+                    VStack(spacing: 16) {
+                        Image(systemName: "note.text")
+                            .font(.system(size: 48))
+                            .foregroundColor(.secondary)
+                        Text("No Notes")
+                            .font(.system(size: 18, weight: .medium))
+                            .foregroundColor(.secondary)
+                        if selectedSection == .trash {
+                            Text("Your trash is empty")
+                                .font(.system(size: 14))
+                                .foregroundColor(.secondary)
+                        }
+                    }
+                    .frame(maxWidth: .infinity, maxHeight: .infinity)
+                } else {
+                    ScrollView {
+                        LazyVGrid(columns: [
+                            GridItem(.flexible(), spacing: 16),
+                            GridItem(.flexible(), spacing: 16),
+                            GridItem(.flexible(), spacing: 16)
+                        ], spacing: 16) {
+                            ForEach(filteredNotes) { note in
+                                NoteCard(
+                                    note: note,
+                                    isSelected: selectedNoteID == note.id,
+                                    isTrash: selectedSection == .trash,
+                                    onTap: {
+                                        selectedNoteID = note.id
+                                    },
+                                    onDelete: {
+                                        notesManager.deleteNote(note)
+                                    },
+                                    onRestore: {
+                                        notesManager.restoreNote(note)
+                                    }
+                                )
+                            }
+                        }
+                        .padding(24)
+                    }
                 }
-                .padding()
-                .background(currentNote.color.backgroundColor)
             }
-            .onAppear {
-                editedAttributedContent = currentNote.attributedContent
+            .frame(maxWidth: .infinity, maxHeight: .infinity)
+            .background(Color(nsColor: .windowBackgroundColor))
+        }
+        .alert("New Folder", isPresented: $showingNewFolderAlert) {
+            TextField("Folder Name", text: $newFolderName)
+            Button("Cancel", role: .cancel) {
+                newFolderName = ""
             }
-            .onChange(of: noteID) { oldValue, newValue in
-                // Reset edited content when note changes
-                if let newNote = notesManager.notes.first(where: { $0.id == newValue }) {
-                    editedAttributedContent = newNote.attributedContent
-                    editedTitle = newNote.title
+            Button("Create") {
+                if !newFolderName.isEmpty {
+                    var newNote = notesManager.createNote()
+                    newNote.folder = newFolderName
+                    notesManager.updateNote(newNote)
+                    selectedSection = .folder(newFolderName)
+                    selectedNoteID = newNote.id
+                    newFolderName = ""
                 }
             }
-        } else {
-            Text("Note not found")
+        } message: {
+            Text("Enter a name for the new folder")
+        }
+        .sheet(isPresented: Binding(
+            get: { selectedNoteID != nil },
+            set: { if !$0 { selectedNoteID = nil } }
+        )) {
+            if let noteID = selectedNoteID,
+               let noteBinding = notesManager.binding(for: noteID) {
+                NoteEditorSheet(note: noteBinding)
+                    .environment(notesManager)
+            }
+        }
+    }
+
+    var sectionTitle: String {
+        switch selectedSection {
+        case .mySpace:
+            return "All Documents"
+        case .starred:
+            return "Starred"
+        case .folder(let name):
+            return name
+        case .trash:
+            return "Trash"
+        case .none:
+            return "All Documents"
+        }
+    }
+}
+
+// Sidebar Row Component
+struct SidebarRow: View {
+    let icon: String
+    let title: String
+    let count: Int
+    var iconColor: Color = Color(nsColor: .labelColor)
+
+    var body: some View {
+        HStack(spacing: 10) {
+            Image(systemName: icon)
+                .font(.system(size: 14))
+                .foregroundColor(iconColor)
+                .frame(width: 18)
+
+            Text(title)
+                .font(.system(size: 13))
+                .foregroundColor(Color(nsColor: .labelColor))
+
+            Spacer()
+
+            Text("\(count)")
+                .font(.system(size: 11))
                 .foregroundColor(.secondary)
         }
+        .padding(.vertical, 4)
+    }
+}
+
+// Note Card Component
+struct NoteCard: View {
+    let note: Note
+    let isSelected: Bool
+    let isTrash: Bool
+    let onTap: () -> Void
+    let onDelete: () -> Void
+    let onRestore: () -> Void
+
+    var body: some View {
+        VStack(alignment: .leading, spacing: 8) {
+            // Title
+            Text(note.title.isEmpty ? "Untitled" : note.title)
+                .font(.system(size: 16, weight: .semibold))
+                .foregroundColor(Color(nsColor: .labelColor))
+                .lineLimit(2)
+
+            // Content Preview
+            Text(note.content)
+                .font(.system(size: 13))
+                .foregroundColor(.secondary)
+                .lineLimit(4)
+                .frame(maxWidth: .infinity, alignment: .leading)
+
+            Spacer()
+
+            // Footer
+            HStack {
+                Text(note.modifiedAt.formatted(date: .abbreviated, time: .omitted))
+                    .font(.system(size: 11))
+                    .foregroundColor(.secondary)
+
+                Spacer()
+
+                if note.isFavorite {
+                    Image(systemName: "star.fill")
+                        .font(.system(size: 10))
+                        .foregroundColor(.yellow)
+                }
+            }
+        }
+        .padding(16)
+        .frame(height: 200)
+        .background(Color(nsColor: .controlBackgroundColor))
+        .cornerRadius(12)
+        .overlay(
+            RoundedRectangle(cornerRadius: 12)
+                .strokeBorder(isSelected ? Color.accentColor : Color.clear, lineWidth: 2)
+        )
+        .contentShape(Rectangle())
+        .onTapGesture {
+            onTap()
+        }
+        .contextMenu {
+            if isTrash {
+                Button("Restore") {
+                    onRestore()
+                }
+                Button("Delete Permanently", role: .destructive) {
+                    onDelete()
+                }
+            } else {
+                Button("Delete") {
+                    onDelete()
+                }
+            }
+        }
+    }
+}
+
+// Note Editor Sheet
+struct NoteEditorSheet: View {
+    @Binding var note: Note
+    @Environment(NotesManager.self) private var notesManager
+    @Environment(\.dismiss) private var dismiss
+
+    var body: some View {
+        VStack(spacing: 0) {
+            // Header
+            HStack {
+                Button(action: {
+                    dismiss()
+                }) {
+                    Image(systemName: "xmark.circle.fill")
+                        .font(.system(size: 20))
+                        .foregroundColor(.secondary)
+                }
+                .buttonStyle(.plain)
+
+                Spacer()
+
+                // Favorite button
+                Button(action: {
+                    note.isFavorite.toggle()
+                    notesManager.updateNote(note)
+                }) {
+                    Image(systemName: note.isFavorite ? "star.fill" : "star")
+                        .font(.system(size: 18))
+                        .foregroundColor(note.isFavorite ? .yellow : .secondary)
+                }
+                .buttonStyle(.plain)
+
+                // Folder menu
+                Menu {
+                    Button("None") {
+                        note.folder = nil
+                        notesManager.updateNote(note)
+                    }
+
+                    Divider()
+
+                    let folders = Set(notesManager.notes.compactMap { $0.folder }).sorted()
+                    ForEach(folders, id: \.self) { folder in
+                        Button(folder) {
+                            note.folder = folder
+                            notesManager.updateNote(note)
+                        }
+                    }
+                } label: {
+                    Image(systemName: "folder")
+                        .font(.system(size: 18))
+                        .foregroundColor(.secondary)
+                }
+                .buttonStyle(.plain)
+            }
+            .padding(16)
+
+            Divider()
+
+            // Title
+            TextField("Title", text: $note.title)
+                .textFieldStyle(.plain)
+                .font(.system(size: 28, weight: .bold))
+                .padding(.horizontal, 20)
+                .padding(.top, 20)
+                .padding(.bottom, 12)
+
+            Divider()
+
+            // Editor
+            RichTextEditorWithSlashMenu(
+                attributedText: Binding(
+                    get: {
+                        // Always use fixed colors for display in Show All Notes
+                        fixAttributedStringColors(note.attributedContent)
+                    },
+                    set: { newValue in
+                        // Save with note's original color scheme (for menubar compatibility)
+                        let contentWithNoteColors = applyNoteColors(newValue)
+                        note.attributedContent = contentWithNoteColors
+                        note.modifiedAt = Date()
+                        notesManager.updateNote(note)
+                    }
+                ),
+                textColor: Color(nsColor: .labelColor),
+                onTextChange: { newText in
+                    // Save with note's original color scheme (for menubar compatibility)
+                    let contentWithNoteColors = applyNoteColors(newText)
+                    note.attributedContent = contentWithNoteColors
+                    note.modifiedAt = Date()
+                    notesManager.updateNote(note)
+                }
+            )
+            .padding(20)
+        }
+        .frame(minWidth: 700, minHeight: 500)
+        .background(Color(nsColor: .windowBackgroundColor))
+    }
+
+    // Fix colors to system colors for display in Show All Notes
+    private func fixAttributedStringColors(_ attributedString: NSAttributedString) -> NSAttributedString {
+        let mutableString = NSMutableAttributedString(attributedString: attributedString)
+        let range = NSRange(location: 0, length: mutableString.length)
+
+        // Replace all foreground colors with system label color
+        mutableString.enumerateAttribute(.foregroundColor, in: range) { value, range, _ in
+            mutableString.addAttribute(.foregroundColor, value: NSColor.labelColor, range: range)
+        }
+
+        return mutableString
+    }
+
+    // Apply note's color scheme when saving (for menubar notes)
+    private func applyNoteColors(_ attributedString: NSAttributedString) -> NSAttributedString {
+        let mutableString = NSMutableAttributedString(attributedString: attributedString)
+        let range = NSRange(location: 0, length: mutableString.length)
+
+        // Apply the note's text color
+        let noteTextColor = NSColor(note.color.textColor)
+        mutableString.enumerateAttribute(.foregroundColor, in: range) { value, range, _ in
+            mutableString.addAttribute(.foregroundColor, value: noteTextColor, range: range)
+        }
+
+        return mutableString
     }
 }
 
 #Preview {
     ShowAllNotesView()
         .environment(NotesManager())
-        .frame(width: 800, height: 600)
+        .frame(width: 1200, height: 800)
 }
