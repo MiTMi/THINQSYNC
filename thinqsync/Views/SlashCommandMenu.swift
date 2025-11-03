@@ -89,9 +89,9 @@ struct SlashCommandMenu: View {
 
     var body: some View {
         VStack(spacing: 0) {
-            // Commands list
+            // Commands list with scrolling
             ScrollView {
-                VStack(spacing: 2) {
+                VStack(spacing: 0) {
                     ForEach(Array(filteredCommands.enumerated()), id: \.element.id) { index, command in
                         SlashCommandRow(
                             command: command,
@@ -108,20 +108,20 @@ struct SlashCommandMenu: View {
                         }
                     }
                 }
-                .padding(.vertical, 6)
+                .padding(.vertical, 4)
             }
-            .frame(maxHeight: 280)
+            .frame(maxHeight: 200)
         }
-        .frame(width: 300)
+        .frame(width: 200)
         .background(
-            RoundedRectangle(cornerRadius: 12)
-                .fill(Color(nsColor: .controlBackgroundColor))
+            RoundedRectangle(cornerRadius: 14)
+                .fill(Color(nsColor: .windowBackgroundColor).opacity(0.95))
         )
         .overlay(
-            RoundedRectangle(cornerRadius: 12)
-                .strokeBorder(Color(nsColor: .separatorColor).opacity(0.5), lineWidth: 0.5)
+            RoundedRectangle(cornerRadius: 14)
+                .strokeBorder(Color.white.opacity(0.1), lineWidth: 1)
         )
-        .shadow(color: Color.black.opacity(0.25), radius: 20, x: 0, y: 8)
+        .shadow(color: Color.black.opacity(0.3), radius: 24, x: 0, y: 10)
         .onChange(of: searchText) { _, _ in
             selectedIndex = 0
         }
@@ -147,34 +147,30 @@ struct SlashCommandRow: View {
     let isHovered: Bool
 
     var body: some View {
-        HStack(spacing: 14) {
+        HStack(spacing: 8) {
             // Icon on the left
             Image(systemName: command.icon)
-                .font(.system(size: 16, weight: .medium))
-                .foregroundColor(.primary)
-                .frame(width: 24, height: 24)
+                .font(.system(size: 11))
+                .foregroundColor(Color(nsColor: .secondaryLabelColor))
+                .frame(width: 14)
 
             // Title
             Text(command.title)
-                .font(.system(size: 15, weight: .regular))
-                .foregroundColor(.primary)
+                .font(.system(size: 11.5))
+                .foregroundColor(Color(nsColor: .labelColor))
 
             Spacer()
 
             // Chevron on the right
             Image(systemName: "chevron.right")
-                .font(.system(size: 13, weight: .semibold))
-                .foregroundColor(.secondary.opacity(0.6))
+                .font(.system(size: 8, weight: .semibold))
+                .foregroundColor(Color(nsColor: .tertiaryLabelColor))
         }
-        .padding(.horizontal, 16)
-        .padding(.vertical, 12)
+        .padding(.horizontal, 10)
+        .padding(.vertical, 6)
         .background(
-            RoundedRectangle(cornerRadius: 8)
-                .fill(isHovered ? Color(nsColor: .controlAccentColor).opacity(0.12) :
-                      isSelected ? Color(nsColor: .controlAccentColor).opacity(0.08) :
-                      Color.clear)
+            isHovered ? Color(nsColor: .controlAccentColor).opacity(0.2) : Color.clear
         )
-        .padding(.horizontal, 6)
     }
 }
 
