@@ -74,6 +74,7 @@ struct SlashCommandMenu: View {
     let onCommandSelected: (SlashCommand) -> Void
 
     @State private var selectedIndex = 0
+    @State private var hoveredIndex: Int?
 
     var filteredCommands: [SlashCommand] {
         if searchText.isEmpty {
@@ -88,53 +89,39 @@ struct SlashCommandMenu: View {
 
     var body: some View {
         VStack(spacing: 0) {
-            // Search hint
-            if !searchText.isEmpty {
-                HStack {
-                    Image(systemName: "magnifyingglass")
-                        .font(.system(size: 10))
-                        .foregroundColor(.secondary)
-                    Text("Searching for: \(searchText)")
-                        .font(.system(size: 11))
-                        .foregroundColor(.secondary)
-                }
-                .padding(.horizontal, 12)
-                .padding(.vertical, 6)
-                .background(Color(nsColor: .controlBackgroundColor))
-            }
-
             // Commands list
             ScrollView {
-                VStack(spacing: 0) {
+                VStack(spacing: 2) {
                     ForEach(Array(filteredCommands.enumerated()), id: \.element.id) { index, command in
                         SlashCommandRow(
                             command: command,
-                            isSelected: index == selectedIndex
+                            isSelected: index == selectedIndex,
+                            isHovered: index == hoveredIndex
                         )
                         .contentShape(Rectangle())
                         .onTapGesture {
                             onCommandSelected(command)
                             isPresented = false
                         }
-                        .background(index == selectedIndex ? Color.accentColor.opacity(0.15) : Color.clear)
-
-                        if index < filteredCommands.count - 1 {
-                            Divider()
-                                .padding(.leading, 40)
+                        .onHover { hovering in
+                            hoveredIndex = hovering ? index : nil
                         }
                     }
                 }
+                .padding(.vertical, 6)
             }
-            .frame(maxHeight: 250)
+            .frame(maxHeight: 280)
         }
-        .frame(width: 280)
-        .background(Color(nsColor: .windowBackgroundColor))
-        .cornerRadius(8)
-        .shadow(color: Color.black.opacity(0.15), radius: 10, x: 0, y: 5)
-        .overlay(
-            RoundedRectangle(cornerRadius: 8)
-                .stroke(Color(nsColor: .separatorColor), lineWidth: 1)
+        .frame(width: 300)
+        .background(
+            RoundedRectangle(cornerRadius: 12)
+                .fill(Color(nsColor: .controlBackgroundColor))
         )
+        .overlay(
+            RoundedRectangle(cornerRadius: 12)
+                .strokeBorder(Color(nsColor: .separatorColor).opacity(0.5), lineWidth: 0.5)
+        )
+        .shadow(color: Color.black.opacity(0.25), radius: 20, x: 0, y: 8)
         .onChange(of: searchText) { _, _ in
             selectedIndex = 0
         }
@@ -157,28 +144,37 @@ struct SlashCommandMenu: View {
 struct SlashCommandRow: View {
     let command: SlashCommand
     let isSelected: Bool
+    let isHovered: Bool
 
     var body: some View {
-        HStack(spacing: 12) {
+        HStack(spacing: 14) {
+            // Icon on the left
             Image(systemName: command.icon)
-                .font(.system(size: 14))
-                .foregroundColor(isSelected ? .accentColor : .secondary)
-                .frame(width: 16)
+                .font(.system(size: 16, weight: .medium))
+                .foregroundColor(.primary)
+                .frame(width: 24, height: 24)
 
-            VStack(alignment: .leading, spacing: 2) {
-                Text(command.title)
-                    .font(.system(size: 13, weight: isSelected ? .medium : .regular))
-                    .foregroundColor(.primary)
-
-                Text(command.description)
-                    .font(.system(size: 11))
-                    .foregroundColor(.secondary)
-            }
+            // Title
+            Text(command.title)
+                .font(.system(size: 15, weight: .regular))
+                .foregroundColor(.primary)
 
             Spacer()
+
+            // Chevron on the right
+            Image(systemName: "chevron.right")
+                .font(.system(size: 13, weight: .semibold))
+                .foregroundColor(.secondary.opacity(0.6))
         }
-        .padding(.horizontal, 12)
-        .padding(.vertical, 8)
+        .padding(.horizontal, 16)
+        .padding(.vertical, 12)
+        .background(
+            RoundedRectangle(cornerRadius: 8)
+                .fill(isHovered ? Color(nsColor: .controlAccentColor).opacity(0.12) :
+                      isSelected ? Color(nsColor: .controlAccentColor).opacity(0.08) :
+                      Color.clear)
+        )
+        .padding(.horizontal, 6)
     }
 }
 
