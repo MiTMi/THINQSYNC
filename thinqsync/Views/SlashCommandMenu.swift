@@ -93,16 +93,17 @@ struct SlashCommandMenu: View {
             ScrollView {
                 VStack(spacing: 0) {
                     ForEach(Array(filteredCommands.enumerated()), id: \.element.id) { index, command in
-                        SlashCommandRow(
-                            command: command,
-                            isSelected: index == selectedIndex,
-                            isHovered: index == hoveredIndex
-                        )
-                        .contentShape(Rectangle())
-                        .onTapGesture {
+                        Button(action: {
                             onCommandSelected(command)
                             isPresented = false
+                        }) {
+                            SlashCommandRow(
+                                command: command,
+                                isSelected: index == selectedIndex,
+                                isHovered: index == hoveredIndex
+                            )
                         }
+                        .buttonStyle(.plain)
                         .onHover { hovering in
                             hoveredIndex = hovering ? index : nil
                         }
@@ -110,9 +111,9 @@ struct SlashCommandMenu: View {
                 }
                 .padding(.vertical, 4)
             }
-            .frame(maxHeight: 200)
+            .frame(maxHeight: 220)
         }
-        .frame(width: 200)
+        .frame(width: 220)
         .background(
             RoundedRectangle(cornerRadius: 14)
                 .fill(Color(nsColor: .windowBackgroundColor).opacity(0.95))
@@ -147,27 +148,27 @@ struct SlashCommandRow: View {
     let isHovered: Bool
 
     var body: some View {
-        HStack(spacing: 8) {
+        HStack(spacing: 9) {
             // Icon on the left
             Image(systemName: command.icon)
-                .font(.system(size: 11))
+                .font(.system(size: 12))
                 .foregroundColor(Color(nsColor: .secondaryLabelColor))
-                .frame(width: 14)
+                .frame(width: 15)
 
             // Title
             Text(command.title)
-                .font(.system(size: 11.5))
+                .font(.system(size: 12.5))
                 .foregroundColor(Color(nsColor: .labelColor))
 
             Spacer()
 
             // Chevron on the right
             Image(systemName: "chevron.right")
-                .font(.system(size: 8, weight: .semibold))
+                .font(.system(size: 9, weight: .semibold))
                 .foregroundColor(Color(nsColor: .tertiaryLabelColor))
         }
-        .padding(.horizontal, 10)
-        .padding(.vertical, 6)
+        .padding(.horizontal, 11)
+        .padding(.vertical, 7)
         .background(
             isHovered ? Color(nsColor: .controlAccentColor).opacity(0.2) : Color.clear
         )

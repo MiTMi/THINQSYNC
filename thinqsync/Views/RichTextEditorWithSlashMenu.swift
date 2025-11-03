@@ -54,18 +54,19 @@ struct RichTextEditorWithSlashMenu: View {
                         viewHeight = height
                     }
                 }
+            }
 
-                // Slash command menu overlay with smart positioning
-                if showSlashMenu {
-                    SlashCommandMenu(
-                        isPresented: $showSlashMenu,
-                        searchText: $slashSearchText,
-                        onCommandSelected: { command in
-                            executeCommand(command)
-                        }
-                    )
-                    .offset(x: slashMenuPosition.x, y: calculateMenuYPosition())
-                }
+            // Slash command menu overlay with smart positioning - OUTSIDE GeometryReader
+            if showSlashMenu {
+                SlashCommandMenu(
+                    isPresented: $showSlashMenu,
+                    searchText: $slashSearchText,
+                    onCommandSelected: { command in
+                        executeCommand(command)
+                    }
+                )
+                .offset(x: slashMenuPosition.x, y: calculateMenuYPosition())
+                .zIndex(1000)
             }
         }
     }
