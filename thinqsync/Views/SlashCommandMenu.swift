@@ -15,10 +15,15 @@ enum SlashCommand: Identifiable, CaseIterable {
     case bold
     case italic
     case underline
+    case strikethrough
     case bulletList
     case numberList
     case divider
     case clearFormatting
+    case aiImproveWriting
+    case aiSummarize
+    case aiExpand
+    case aiFixGrammar
 
     var id: String { title }
 
@@ -30,10 +35,15 @@ enum SlashCommand: Identifiable, CaseIterable {
         case .bold: return "Bold"
         case .italic: return "Italic"
         case .underline: return "Underline"
+        case .strikethrough: return "Strikethrough"
         case .bulletList: return "Bullet List"
         case .numberList: return "Numbered List"
         case .divider: return "Divider"
         case .clearFormatting: return "Clear Formatting"
+        case .aiImproveWriting: return "AI: Improve Writing"
+        case .aiSummarize: return "AI: Summarize"
+        case .aiExpand: return "AI: Expand"
+        case .aiFixGrammar: return "AI: Fix Grammar"
         }
     }
 
@@ -45,10 +55,15 @@ enum SlashCommand: Identifiable, CaseIterable {
         case .bold: return "bold"
         case .italic: return "italic"
         case .underline: return "underline"
+        case .strikethrough: return "strikethrough"
         case .bulletList: return "list.bullet"
         case .numberList: return "list.number"
         case .divider: return "minus.rectangle"
         case .clearFormatting: return "trash"
+        case .aiImproveWriting: return "wand.and.stars"
+        case .aiSummarize: return "doc.text.magnifyingglass"
+        case .aiExpand: return "arrow.up.left.and.arrow.down.right"
+        case .aiFixGrammar: return "checkmark.seal"
         }
     }
 
@@ -60,10 +75,15 @@ enum SlashCommand: Identifiable, CaseIterable {
         case .bold: return "Make text bold"
         case .italic: return "Make text italic"
         case .underline: return "Underline text"
+        case .strikethrough: return "Strikethrough text"
         case .bulletList: return "Create a bulleted list"
         case .numberList: return "Create a numbered list"
         case .divider: return "Insert a horizontal line"
         case .clearFormatting: return "Remove all formatting"
+        case .aiImproveWriting: return "Enhance clarity and style"
+        case .aiSummarize: return "Create a concise summary"
+        case .aiExpand: return "Add more detail and context"
+        case .aiFixGrammar: return "Correct grammar and spelling"
         }
     }
 }

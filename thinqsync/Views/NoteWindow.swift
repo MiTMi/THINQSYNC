@@ -8,12 +8,23 @@
 import SwiftUI
 import Combine
 
+// Reference holder that doesn't trigger view updates
+@MainActor
+class TextViewReference: ObservableObject {
+    var textView: NSTextView?
+    var isFormatting = false
+
+    var isReady: Bool {
+        textView != nil
+    }
+}
+
 struct NoteWindow: View {
     @Binding var note: Note
     @Environment(NotesManager.self) private var notesManager
     @Environment(\.dismiss) private var dismiss
     @State private var showingColorPicker = false
-    @State private var textView: NSTextView?
+    @StateObject private var textViewRef = TextViewReference()
     @State private var windowConfigured = false
 
     var body: some View {
@@ -21,7 +32,7 @@ struct NoteWindow: View {
             // Custom title bar that matches the screenshot
             CustomTitleBar(
                 note: $note,
-                textView: $textView,  // Pass as binding so it updates
+                textViewRef: textViewRef,
                 onClose: {
                     // Defer state changes to avoid modifying state during view update
                     DispatchQueue.main.async {
@@ -47,7 +58,7 @@ struct NoteWindow: View {
             )
 
             // Main content area with text
-            NoteContentArea(note: $note, textView: $textView)
+            NoteContentArea(note: $note, textViewRef: textViewRef)
                 .background(note.color.backgroundColor)
         }
         .background(note.color.backgroundColor)
@@ -115,12 +126,13 @@ struct WindowAccessor: NSViewRepresentable {
 
 struct CustomTitleBar: View {
     @Binding var note: Note
-    @Binding var textView: NSTextView?  // Changed to Binding
+    let textViewRef: TextViewReference
     var onClose: () -> Void
     var onMinimize: () -> Void
     var onDelete: () -> Void
 
     @Environment(NotesManager.self) private var notesManager
+    @Environment(\.openWindow) private var openWindow
 
     @State private var isHoveringClose = false
     @State private var isHoveringMinimize = false
@@ -168,15 +180,14 @@ struct CustomTitleBar: View {
             }
             .padding(.leading, 12)
 
-            Spacer()
-
-            // Center: Title
+            // Title (left-aligned)
             TextField("", text: $note.title, prompt: Text("New Note").foregroundColor(note.color.textColor.opacity(0.5)))
                 .textFieldStyle(.plain)
                 .font(.system(size: 18, weight: .semibold))
                 .foregroundColor(note.color.textColor)
-                .multilineTextAlignment(.center)
-                .frame(maxWidth: 200)
+                .multilineTextAlignment(.leading)
+                .frame(maxWidth: .infinity, alignment: .leading)
+                .padding(.leading, 12)
 
             Spacer()
 
@@ -322,6 +333,17 @@ struct CustomTitleBar: View {
                         }
                         .buttonStyle(.plain)
 
+                        Button(action: {
+                            toggleStrikethrough()
+                            showingFormatMenu = false
+                        }) {
+                            Label("Strikethrough", systemImage: "strikethrough")
+                                .frame(maxWidth: .infinity, alignment: .leading)
+                                .padding(.horizontal, 12)
+                                .padding(.vertical, 8)
+                        }
+                        .buttonStyle(.plain)
+
                         Divider()
 
                         // Font sizes
@@ -448,6 +470,19 @@ struct CustomTitleBar: View {
                                 .padding(.vertical, 8)
                         }
                         .buttonStyle(.plain)
+
+                        Divider()
+
+                        Button(action: {
+                            showingMoreMenu = false
+                            openWindow(id: "ai-settings")
+                        }) {
+                            Label("AI Settings", systemImage: "brain")
+                                .frame(maxWidth: .infinity, alignment: .leading)
+                                .padding(.horizontal, 12)
+                                .padding(.vertical, 8)
+                        }
+                        .buttonStyle(.plain)
                     }
                     .frame(width: 200)
                     .padding(.vertical, 8)
@@ -461,11 +496,15 @@ struct CustomTitleBar: View {
 
     // Text formatting functions
     private func toggleBold() {
-        guard let textView = textView,
+        guard let textView = textViewRef.textView,
               let textStorage = textView.textStorage else {
-            print("TextVie is nil in toggleBold")
+            print("TextView is nil in toggleBold")
             return
         }
+
+        // Set formatting flag to prevent updateNSView from overwriting
+        textViewRef.isFormatting = true
+        defer { textViewRef.isFormatting = false }
 
         textView.window?.makeFirstResponder(textView)
         let selectedRange = textView.selectedRange()
@@ -475,23 +514,31 @@ struct CustomTitleBar: View {
 
         textStorage.beginEditing()
         textStorage.enumerateAttribute(.font, in: rangeToFormat) { value, range, _ in
-            if let font = value as? NSFont {
-                let isBold = font.fontDescriptor.symbolicTraits.contains(.bold)
-                let newFont = isBold ?
-                    NSFontManager.shared.convert(font, toNotHaveTrait: .boldFontMask) :
-                    NSFontManager.shared.convert(font, toHaveTrait: .boldFontMask)
-                textStorage.addAttribute(.font, value: newFont, range: range)
-            }
+            let font = value as? NSFont ?? NSFont.systemFont(ofSize: 16)
+            let isBold = font.fontDescriptor.symbolicTraits.contains(.bold)
+            let newFont = isBold ?
+                NSFontManager.shared.convert(font, toNotHaveTrait: .boldFontMask) :
+                NSFontManager.shared.convert(font, toHaveTrait: .boldFontMask)
+            textStorage.addAttribute(.font, value: newFont, range: range)
         }
         textStorage.endEditing()
+
+        // Update the note with formatted content
+        note.attributedContent = textView.attributedString()
+        note.modifiedAt = Date()
+        notesManager.updateNote(note)
     }
 
     private func toggleItalic() {
-        guard let textView = textView,
+        guard let textView = textViewRef.textView,
               let textStorage = textView.textStorage else {
             print("TextView is nil in toggleItalic")
             return
         }
+
+        // Set formatting flag to prevent updateNSView from overwriting
+        textViewRef.isFormatting = true
+        defer { textViewRef.isFormatting = false }
 
         textView.window?.makeFirstResponder(textView)
         let selectedRange = textView.selectedRange()
@@ -499,23 +546,31 @@ struct CustomTitleBar: View {
 
         textStorage.beginEditing()
         textStorage.enumerateAttribute(.font, in: rangeToFormat) { value, range, _ in
-            if let font = value as? NSFont {
-                let isItalic = font.fontDescriptor.symbolicTraits.contains(.italic)
-                let newFont = isItalic ?
-                    NSFontManager.shared.convert(font, toNotHaveTrait: .italicFontMask) :
-                    NSFontManager.shared.convert(font, toHaveTrait: .italicFontMask)
-                textStorage.addAttribute(.font, value: newFont, range: range)
-            }
+            let font = value as? NSFont ?? NSFont.systemFont(ofSize: 16)
+            let isItalic = font.fontDescriptor.symbolicTraits.contains(.italic)
+            let newFont = isItalic ?
+                NSFontManager.shared.convert(font, toNotHaveTrait: .italicFontMask) :
+                NSFontManager.shared.convert(font, toHaveTrait: .italicFontMask)
+            textStorage.addAttribute(.font, value: newFont, range: range)
         }
         textStorage.endEditing()
+
+        // Update the note with formatted content
+        note.attributedContent = textView.attributedString()
+        note.modifiedAt = Date()
+        notesManager.updateNote(note)
     }
 
     private func toggleUnderline() {
-        guard let textView = textView,
+        guard let textView = textViewRef.textView,
               let textStorage = textView.textStorage else {
             print("TextView is nil in toggleUnderline")
             return
         }
+
+        // Set formatting flag to prevent updateNSView from overwriting
+        textViewRef.isFormatting = true
+        defer { textViewRef.isFormatting = false }
 
         textView.window?.makeFirstResponder(textView)
         let selectedRange = textView.selectedRange()
@@ -528,14 +583,52 @@ struct CustomTitleBar: View {
             textStorage.addAttribute(.underlineStyle, value: newStyle, range: range)
         }
         textStorage.endEditing()
+
+        // Update the note with formatted content
+        note.attributedContent = textView.attributedString()
+        note.modifiedAt = Date()
+        notesManager.updateNote(note)
+    }
+
+    private func toggleStrikethrough() {
+        guard let textView = textViewRef.textView,
+              let textStorage = textView.textStorage else {
+            print("TextView is nil in toggleStrikethrough")
+            return
+        }
+
+        // Set formatting flag to prevent updateNSView from overwriting
+        textViewRef.isFormatting = true
+        defer { textViewRef.isFormatting = false }
+
+        textView.window?.makeFirstResponder(textView)
+        let selectedRange = textView.selectedRange()
+        let rangeToFormat = selectedRange.length > 0 ? selectedRange : NSRange(location: 0, length: textView.string.count)
+
+        textStorage.beginEditing()
+        textStorage.enumerateAttribute(.strikethroughStyle, in: rangeToFormat) { value, range, _ in
+            let currentStyle = value as? Int ?? 0
+            let newStyle = currentStyle == 0 ? NSUnderlineStyle.single.rawValue : 0
+            textStorage.addAttribute(.strikethroughStyle, value: newStyle, range: range)
+        }
+        textStorage.endEditing()
+
+        // Update the note with formatted content
+        note.attributedContent = textView.attributedString()
+        note.modifiedAt = Date()
+        notesManager.updateNote(note)
     }
 
     private func setFontSize(_ size: CGFloat) {
-        guard let textView = textView,
+        guard let textView = textViewRef.textView,
               let textStorage = textView.textStorage else {
             print("TextView is nil in setFontSize")
             return
         }
+
+        // Set formatting flag to prevent updateNSView from overwriting
+        textViewRef.isFormatting = true
+        defer { textViewRef.isFormatting = false }
 
         textView.window?.makeFirstResponder(textView)
         let selectedRange = textView.selectedRange()
@@ -543,21 +636,38 @@ struct CustomTitleBar: View {
 
         textStorage.beginEditing()
         textStorage.enumerateAttribute(.font, in: rangeToFormat) { value, range, _ in
-            if let font = value as? NSFont {
-                let newFont = NSFont(name: font.fontName, size: size) ?? NSFont.systemFont(ofSize: size)
-                textStorage.addAttribute(.font, value: newFont, range: range)
-            }
+            let font = value as? NSFont ?? NSFont.systemFont(ofSize: 16)
+            let newFont = NSFont(name: font.fontName, size: size) ?? NSFont.systemFont(ofSize: size)
+            textStorage.addAttribute(.font, value: newFont, range: range)
         }
         textStorage.endEditing()
+
+        // Also update typing attributes for new text
+        textView.typingAttributes[.font] = NSFont.systemFont(ofSize: size)
+
+        // Update the note with formatted content
+        note.attributedContent = textView.attributedString()
+        note.modifiedAt = Date()
+        notesManager.updateNote(note)
     }
 
     private func setAlignment(_ alignment: NSTextAlignment) {
-        guard let textView = textView else {
+        guard let textView = textViewRef.textView else {
             print("TextView is nil in setAlignment")
             return
         }
+
+        // Set formatting flag to prevent updateNSView from overwriting
+        textViewRef.isFormatting = true
+        defer { textViewRef.isFormatting = false }
+
         textView.window?.makeFirstResponder(textView)
         textView.alignment = alignment
+
+        // Update the note with formatted content
+        note.attributedContent = textView.attributedString()
+        note.modifiedAt = Date()
+        notesManager.updateNote(note)
     }
 
     // Additional actions
@@ -579,8 +689,9 @@ struct CustomTitleBar: View {
 
 struct NoteContentArea: View {
     @Binding var note: Note
-    @Binding var textView: NSTextView?
+    let textViewRef: TextViewReference
     @Environment(NotesManager.self) private var notesManager
+    @State private var isEditorReady = false
 
     var body: some View {
         RichTextEditorWithSlashMenu(
@@ -593,13 +704,22 @@ struct NoteContentArea: View {
                 }
             ),
             textColor: note.color.textColor,
-            onTextChange: { newText in
-                note.attributedContent = newText
-                note.modifiedAt = Date()
-                notesManager.updateNote(note)
-            }
+            onTextChange: { _ in
+                // Removed duplicate update - the binding setter already handles this
+            },
+            onTextViewCreated: { tv in
+                // Direct assignment - no state modification warning
+                textViewRef.textView = tv
+            },
+            textViewRef: textViewRef
         )
         .frame(minHeight: 200)
+        .onAppear {
+            // Give the textView a moment to initialize
+            DispatchQueue.main.asyncAfter(deadline: .now() + 0.1) {
+                isEditorReady = true
+            }
+        }
     }
 }
 

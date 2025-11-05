@@ -16,6 +16,7 @@ struct RichTextEditor: NSViewRepresentable {
     @Binding var showSlashMenu: Bool
     @Binding var slashMenuPosition: CGPoint
     @Binding var slashSearchText: String
+    var textViewRef: TextViewReference? = nil
 
     func makeCoordinator() -> Coordinator {
         Coordinator(self)
@@ -34,6 +35,12 @@ struct RichTextEditor: NSViewRepresentable {
         textView.drawsBackground = false
         textView.textContainerInset = NSSize(width: 16, height: 14)
 
+        // Set default typing attributes
+        textView.typingAttributes = [
+            .font: NSFont.systemFont(ofSize: 16),
+            .foregroundColor: NSColor(textColor)
+        ]
+
         // Set initial text
         textView.textStorage?.setAttributedString(attributedText)
 
@@ -48,6 +55,16 @@ struct RichTextEditor: NSViewRepresentable {
 
         // Update text color based on current note color
         textView.textColor = NSColor(textColor)
+
+        // Skip ALL updates if we're actively formatting
+        // This prevents the binding from overwriting user's formatting changes
+        if let ref = textViewRef, ref.isFormatting {
+            return
+        }
+
+        // Only reset typing attributes when NOT formatting
+        // This preserves formatting set by slash commands
+        textView.typingAttributes[.foregroundColor] = NSColor(textColor)
 
         // Only update if the text is different to avoid cursor jumping
         if textView.attributedString() != attributedText {
@@ -71,9 +88,18 @@ struct RichTextEditor: NSViewRepresentable {
         func textDidChange(_ notification: Notification) {
             guard let textView = notification.object as? NSTextView else { return }
 
-            // Check if user just entered a newline, and reset formatting if so
-            // Skip if we're executing a slash command
-            if !isExecutingSlashCommand {
+            // Skip binding updates if we're executing a slash command or formatting
+            // This prevents binding updates that would restore old text
+            let isFormatting = parent.textViewRef?.isFormatting ?? false
+            let shouldSkipUpdate = isExecutingSlashCommand || isFormatting
+
+            // ALWAYS detect slash commands, regardless of formatting state
+            // This ensures "/" is detected even during formatting operations
+            detectSlashCommand(in: textView)
+
+            // Only skip binding updates and format reset when formatting
+            if !shouldSkipUpdate {
+                // Check if user just entered a newline, and reset formatting if so
                 let cursorPosition = textView.selectedRange().location
                 if cursorPosition > 0 {
                     let text = textView.string
@@ -88,12 +114,10 @@ struct RichTextEditor: NSViewRepresentable {
                         ]
                     }
                 }
+
+                // Update the binding
+                parent.onTextChange(textView.attributedString())
             }
-
-            // Check for slash command
-            detectSlashCommand(in: textView)
-
-            parent.onTextChange(textView.attributedString())
         }
 
         private func detectSlashCommand(in textView: NSTextView) {
@@ -103,7 +127,6 @@ struct RichTextEditor: NSViewRepresentable {
             // Look backwards from cursor to find "/"
             if cursorPosition > 0 {
                 var searchIndex = cursorPosition - 1
-                var foundSpace = false
 
                 while searchIndex >= 0 {
                     let char = text[text.index(text.startIndex, offsetBy: searchIndex)]
@@ -113,24 +136,33 @@ struct RichTextEditor: NSViewRepresentable {
                         let slashLocation = searchIndex
                         let searchText = String(text[text.index(text.startIndex, offsetBy: slashLocation + 1)..<text.index(text.startIndex, offsetBy: cursorPosition)])
 
-                        // Show slash menu
+                        // Store range for later
                         slashRange = NSRange(location: slashLocation, length: cursorPosition - slashLocation)
-                        parent.slashSearchText = searchText
-                        parent.showSlashMenu = true
 
                         // Get cursor position for menu placement
+                        let menuPosition: CGPoint
                         if let rect = textView.layoutManager?.boundingRect(
                             forGlyphRange: NSRange(location: slashLocation, length: 1),
                             in: textView.textContainer!
                         ) {
-                            parent.slashMenuPosition = CGPoint(
+                            menuPosition = CGPoint(
                                 x: rect.origin.x,
                                 y: rect.origin.y + rect.height
                             )
+                        } else {
+                            menuPosition = .zero
+                        }
+
+                        // CRITICAL FIX: Update SwiftUI state OUTSIDE the view update cycle
+                        // This prevents "Modifying state during view update" error
+                        DispatchQueue.main.async { [parent] in
+                            parent.slashSearchText = searchText
+                            parent.slashMenuPosition = menuPosition
+                            parent.showSlashMenu = true
                         }
                         return
                     } else if char.isWhitespace || char.isNewline {
-                        foundSpace = true
+                        // Stop searching if we hit whitespace before finding "/"
                         break
                     }
 
@@ -138,8 +170,10 @@ struct RichTextEditor: NSViewRepresentable {
                 }
             }
 
-            // No slash found or invalid context, hide menu
-            parent.showSlashMenu = false
+            // No slash found or invalid context, hide menu (async to avoid state modification warning)
+            DispatchQueue.main.async { [parent] in
+                parent.showSlashMenu = false
+            }
             slashRange = nil
         }
 
