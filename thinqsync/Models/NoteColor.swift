@@ -19,7 +19,7 @@ enum NoteColor: String, Codable, CaseIterable, Sendable {
     var backgroundColor: Color {
         switch self {
         case .green:
-            return Color(red: 0x00/255, green: 0x53/255, blue: 0x28/255) // #005328 Dark Green
+            return Color(red: 0x00/255, green: 0xA8/255, blue: 0x6B/255) // #00A86B Emerald Green
         case .yellow:
             return Color(red: 0xFF/255, green: 0xEC/255, blue: 0x59/255) // #FFEC59 Bright Yellow
         case .orange:
@@ -37,7 +37,7 @@ enum NoteColor: String, Codable, CaseIterable, Sendable {
     var nsBackgroundColor: NSColor {
         switch self {
         case .green:
-            return NSColor(red: 0x00/255, green: 0x53/255, blue: 0x28/255, alpha: 1.0) // #005328
+            return NSColor(red: 0x00/255, green: 0xA8/255, blue: 0x6B/255, alpha: 1.0) // #00A86B
         case .yellow:
             return NSColor(red: 0xFF/255, green: 0xEC/255, blue: 0x59/255, alpha: 1.0) // #FFEC59
         case .orange:
