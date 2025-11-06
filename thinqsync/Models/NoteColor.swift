@@ -19,7 +19,7 @@ enum NoteColor: String, Codable, CaseIterable, Sendable {
     var backgroundColor: Color {
         switch self {
         case .green:
-            return Color(red: 0x4D/255, green: 0xD0/255, blue: 0x91/255) // #4DD091 Mint Green
+            return Color(red: 0x00/255, green: 0x53/255, blue: 0x28/255) // #005328 Dark Green
         case .yellow:
             return Color(red: 0xFF/255, green: 0xEC/255, blue: 0x59/255) // #FFEC59 Bright Yellow
         case .orange:
@@ -37,7 +37,7 @@ enum NoteColor: String, Codable, CaseIterable, Sendable {
     var nsBackgroundColor: NSColor {
         switch self {
         case .green:
-            return NSColor(red: 0x4D/255, green: 0xD0/255, blue: 0x91/255, alpha: 1.0) // #4DD091
+            return NSColor(red: 0x00/255, green: 0x53/255, blue: 0x28/255, alpha: 1.0) // #005328
         case .yellow:
             return NSColor(red: 0xFF/255, green: 0xEC/255, blue: 0x59/255, alpha: 1.0) // #FFEC59
         case .orange:
@@ -53,18 +53,18 @@ enum NoteColor: String, Codable, CaseIterable, Sendable {
 
     var textColor: Color {
         switch self {
-        case .green, .yellow, .orange, .pink:
+        case .yellow, .orange, .pink:
             return Color.black // Black text for bright backgrounds
-        case .blue, .purple:
+        case .green, .blue, .purple:
             return Color.white // White text for darker backgrounds
         }
     }
 
     var iconColor: Color {
         switch self {
-        case .green, .yellow, .orange, .pink:
+        case .yellow, .orange, .pink:
             return Color.black.opacity(0.7) // Slightly transparent black for bright backgrounds
-        case .blue, .purple:
+        case .green, .blue, .purple:
             return Color.white.opacity(0.9) // Slightly transparent white for darker backgrounds
         }
     }
