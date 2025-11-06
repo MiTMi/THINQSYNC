@@ -138,7 +138,9 @@ struct CustomTitleBar: View {
     @State private var isHoveringMinimize = false
     @State private var showingOptionsMenu = false
     @State private var showingFormatMenu = false
+    @State private var showingAIMenu = false
     @State private var showingMoreMenu = false
+    @StateObject private var aiService = DeepseekAIService.shared
 
     var body: some View {
         HStack(spacing: 0) {
@@ -414,6 +416,76 @@ struct CustomTitleBar: View {
                     .padding(.vertical, 8)
                 }
 
+                // AI button - Using Button with popover
+                Button(action: {
+                    showingAIMenu.toggle()
+                }) {
+                    ZStack {
+                        Circle()
+                            .fill(note.color.textColor.opacity(0.2))
+                            .frame(width: 20, height: 20)
+
+                        Circle()
+                            .stroke(note.color.textColor, lineWidth: 1.0)
+                            .frame(width: 20, height: 20)
+
+                        Image(systemName: "sparkles")
+                            .font(.system(size: 9, weight: .medium))
+                            .foregroundColor(note.color.textColor)
+                    }
+                    .frame(width: 24, height: 24)
+                }
+                .buttonStyle(.plain)
+                .popover(isPresented: $showingAIMenu, arrowEdge: .bottom) {
+                    VStack(alignment: .leading, spacing: 0) {
+                        Button(action: {
+                            executeAICommand(.improveWriting)
+                            showingAIMenu = false
+                        }) {
+                            Label("AI: Improve Writing", systemImage: "wand.and.stars")
+                                .frame(maxWidth: .infinity, alignment: .leading)
+                                .padding(.horizontal, 12)
+                                .padding(.vertical, 8)
+                        }
+                        .buttonStyle(.plain)
+
+                        Button(action: {
+                            executeAICommand(.summarize)
+                            showingAIMenu = false
+                        }) {
+                            Label("AI: Summarize", systemImage: "doc.text.magnifyingglass")
+                                .frame(maxWidth: .infinity, alignment: .leading)
+                                .padding(.horizontal, 12)
+                                .padding(.vertical, 8)
+                        }
+                        .buttonStyle(.plain)
+
+                        Button(action: {
+                            executeAICommand(.expand)
+                            showingAIMenu = false
+                        }) {
+                            Label("AI: Expand", systemImage: "arrow.up.left.and.arrow.down.right")
+                                .frame(maxWidth: .infinity, alignment: .leading)
+                                .padding(.horizontal, 12)
+                                .padding(.vertical, 8)
+                        }
+                        .buttonStyle(.plain)
+
+                        Button(action: {
+                            executeAICommand(.fixGrammar)
+                            showingAIMenu = false
+                        }) {
+                            Label("AI: Fix Grammar", systemImage: "checkmark.seal")
+                                .frame(maxWidth: .infinity, alignment: .leading)
+                                .padding(.horizontal, 12)
+                                .padding(.vertical, 8)
+                        }
+                        .buttonStyle(.plain)
+                    }
+                    .frame(width: 220)
+                    .padding(.vertical, 8)
+                }
+
                 // More options (three dots) - Using Button with popover
                 Button(action: {
                     showingMoreMenu.toggle()
@@ -679,6 +751,57 @@ struct CustomTitleBar: View {
     private func printNote() {
         // TODO: Implement print functionality
         print("Print note")
+    }
+
+    private func executeAICommand(_ operation: DeepseekAIService.AIOperation) {
+        guard let textView = textViewRef.textView else {
+            print("TextView is nil in executeAICommand")
+            return
+        }
+
+        // Set formatting flag to prevent updateNSView from overwriting during AI processing
+        textViewRef.isFormatting = true
+
+        // Get selected text or all text
+        let selectedRange = textView.selectedRange()
+        let textToProcess: String
+        let rangeToReplace: NSRange
+
+        if selectedRange.length > 0 {
+            textToProcess = (textView.string as NSString).substring(with: selectedRange)
+            rangeToReplace = selectedRange
+        } else {
+            textToProcess = textView.string
+            rangeToReplace = NSRange(location: 0, length: textView.string.count)
+        }
+
+        // Execute AI operation asynchronously
+        Task { @MainActor in
+            do {
+                let result = try await aiService.processText(textToProcess, operation: operation)
+
+                // Replace text with AI result
+                if let textStorage = textView.textStorage {
+                    textStorage.replaceCharacters(in: rangeToReplace, with: result)
+
+                    // Update the note
+                    note.attributedContent = textView.attributedString()
+                    note.modifiedAt = Date()
+                    notesManager.updateNote(note)
+                }
+
+                // Clear formatting flag after successful AI result
+                textViewRef.isFormatting = false
+            } catch {
+                // Show error to user
+                print("AI Error: \(error.localizedDescription)")
+
+                // Clear formatting flag even on error
+                textViewRef.isFormatting = false
+
+                // TODO: Show error alert to user
+            }
+        }
     }
 
     private func duplicateNote() {
