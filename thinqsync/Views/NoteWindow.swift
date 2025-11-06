@@ -704,8 +704,13 @@ struct NoteContentArea: View {
                 }
             ),
             textColor: note.color.textColor,
-            onTextChange: { _ in
-                // Removed duplicate update - the binding setter already handles this
+            onTextChange: { newText in
+                Task { @MainActor in
+                    await Task.yield()
+                    note.attributedContent = newText
+                    note.modifiedAt = Date()
+                    notesManager.updateNote(note)
+                }
             },
             onTextViewCreated: { tv in
                 // Direct assignment - no state modification warning
