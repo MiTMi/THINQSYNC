@@ -92,6 +92,7 @@ struct SlashCommandMenu: View {
     @Binding var isPresented: Bool
     @Binding var searchText: String
     let onCommandSelected: (SlashCommand) -> Void
+    var availableHeight: CGFloat? = nil  // Optional max height constraint
 
     @State private var selectedIndex = 0
     @State private var hoveredIndex: Int?
@@ -131,7 +132,7 @@ struct SlashCommandMenu: View {
                 }
                 .padding(.vertical, 4)
             }
-            .frame(maxHeight: 220)
+            .frame(maxHeight: calculateMaxHeight())
         }
         .frame(width: 220)
         .background(
@@ -146,6 +147,16 @@ struct SlashCommandMenu: View {
         .onChange(of: searchText) { _, _ in
             selectedIndex = 0
         }
+    }
+
+    private func calculateMaxHeight() -> CGFloat {
+        // Use provided constraint if available, otherwise use default
+        let maxHeight = availableHeight ?? 220
+
+        // Ensure minimum height to show at least 3 items (approximately 100px)
+        let minHeight: CGFloat = 100
+
+        return max(minHeight, min(maxHeight, 300))  // Cap at 300 max
     }
 
     func moveSelection(by offset: Int) {

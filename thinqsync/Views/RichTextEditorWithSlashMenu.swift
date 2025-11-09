@@ -71,7 +71,8 @@ struct RichTextEditorWithSlashMenu: View {
                     searchText: $slashSearchText,
                     onCommandSelected: { command in
                         executeCommand(command)
-                    }
+                    },
+                    availableHeight: calculateAvailableMenuHeight()
                 )
                 .offset(x: slashMenuPosition.x, y: calculateMenuYPosition())
                 .zIndex(1000)
@@ -104,22 +105,33 @@ struct RichTextEditorWithSlashMenu: View {
         }
     }
 
+    private func calculateAvailableMenuHeight() -> CGFloat {
+        let spaceBelow = viewHeight - slashMenuPosition.y
+        let spaceAbove = slashMenuPosition.y
+
+        // Use the larger of the two spaces, with some padding
+        let maxAvailableSpace = max(spaceBelow - 40, spaceAbove - 40)
+
+        // Return constrained height (min 100, max 300)
+        return max(100, min(maxAvailableSpace, 300))
+    }
+
     private func calculateMenuYPosition() -> CGFloat {
-        let menuHeight: CGFloat = 250 // Max height of menu
+        let menuHeight = calculateAvailableMenuHeight()
         let spaceBelow = viewHeight - slashMenuPosition.y
 
         print("📍 Menu Position Debug:")
         print("   Cursor Y: \(slashMenuPosition.y)")
         print("   View Height: \(viewHeight)")
         print("   Space Below: \(spaceBelow)")
-        print("   Menu Height Needed: \(menuHeight + 40)")
+        print("   Menu Height: \(menuHeight)")
 
         // Check if there's enough space below the cursor
         if spaceBelow < menuHeight + 40 {
             // Not enough space below - show menu above the cursor
             let abovePosition = slashMenuPosition.y - menuHeight - 10
             print("   ⬆️ Showing ABOVE at Y: \(abovePosition)")
-            return abovePosition
+            return max(10, abovePosition)  // Ensure menu doesn't go above top edge
         } else {
             // Enough space below - show menu below the cursor (default)
             let belowPosition = slashMenuPosition.y + 20
