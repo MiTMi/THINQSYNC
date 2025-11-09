@@ -64,6 +64,16 @@ struct RichTextEditorWithSlashMenu: View {
                 }
             }
 
+            // Invisible overlay to detect clicks outside the menu
+            if showSlashMenu {
+                Color.clear
+                    .contentShape(Rectangle())
+                    .onTapGesture {
+                        dismissSlashMenu()
+                    }
+                    .zIndex(999)
+            }
+
             // Slash command menu overlay with smart positioning - OUTSIDE GeometryReader
             if showSlashMenu {
                 SlashCommandMenu(
@@ -103,6 +113,24 @@ struct RichTextEditorWithSlashMenu: View {
         } message: {
             Text(aiErrorMessage)
         }
+    }
+
+    private func dismissSlashMenu() {
+        guard let textView = tvCoordinator.textView,
+              let coordinator = tvCoordinator.coordinator else {
+            showSlashMenu = false
+            return
+        }
+
+        // Remove the slash and any search text
+        coordinator.replaceSlashWithCommand(textView)
+        coordinator.finishSlashCommand()
+
+        // Hide the menu
+        showSlashMenu = false
+
+        // Refocus the text view
+        textView.window?.makeFirstResponder(textView)
     }
 
     private func calculateAvailableMenuHeight() -> CGFloat {
