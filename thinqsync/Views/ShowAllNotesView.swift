@@ -17,7 +17,6 @@ struct ShowAllNotesView: View {
     @State private var showingSearch = false
     @State private var newFolderName = ""
     @State private var viewMode: ViewMode = .grid
-    @State private var showingAIAssistant = false
     @State private var showingEmptyTrashAlert = false
     @Environment(\.openWindow) var openWindow
 
@@ -267,26 +266,6 @@ struct ShowAllNotesView: View {
                         }
                         .buttonStyle(.plain)
                     }
-
-                    // AI Assistant Button
-                    Button(action: {
-                        showingAIAssistant.toggle()
-                    }) {
-                        HStack(spacing: 6) {
-                            Image(systemName: "sparkles")
-                                .font(.system(size: 12))
-                            Text("AI Assistant")
-                                .font(.system(size: 13, weight: .medium))
-                            Image(systemName: "chevron.down")
-                                .font(.system(size: 10, weight: .semibold))
-                        }
-                        .foregroundColor(.white)
-                        .padding(.horizontal, 14)
-                        .padding(.vertical, 8)
-                        .background(Color(red: 0x8B/255, green: 0x5C/255, blue: 0xF6/255))
-                        .cornerRadius(8)
-                    }
-                    .buttonStyle(.plain)
 
                     // Search Field
                     HStack(spacing: 8) {
