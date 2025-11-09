@@ -136,6 +136,7 @@ struct CustomTitleBar: View {
 
     @State private var isHoveringClose = false
     @State private var isHoveringMinimize = false
+    @State private var isHoveringDelete = false
     @State private var showingOptionsMenu = false
     @State private var showingFormatMenu = false
     @State private var showingAIMenu = false
@@ -201,18 +202,18 @@ struct CustomTitleBar: View {
                 }) {
                     ZStack {
                         Circle()
-                            .fill(note.color.textColor.opacity(0.2))
-                            .frame(width: 20, height: 20)
+                            .fill(note.color.textColor.opacity(0.12))
+                            .frame(width: 28, height: 28)
 
                         Circle()
-                            .stroke(note.color.textColor, lineWidth: 1.0)
-                            .frame(width: 20, height: 20)
+                            .stroke(note.color.textColor.opacity(0.3), lineWidth: 1.5)
+                            .frame(width: 28, height: 28)
 
                         Image(systemName: "list.bullet")
-                            .font(.system(size: 9, weight: .medium))
+                            .font(.system(size: 11, weight: .semibold))
                             .foregroundColor(note.color.textColor)
                     }
-                    .frame(width: 24, height: 24)
+                    .frame(width: 32, height: 32)
                 }
                 .buttonStyle(.plain)
                 .popover(isPresented: $showingOptionsMenu, arrowEdge: .bottom) {
@@ -286,18 +287,18 @@ struct CustomTitleBar: View {
                 }) {
                     ZStack {
                         Circle()
-                            .fill(note.color.textColor.opacity(0.2))
-                            .frame(width: 20, height: 20)
+                            .fill(note.color.textColor.opacity(0.12))
+                            .frame(width: 28, height: 28)
 
                         Circle()
-                            .stroke(note.color.textColor, lineWidth: 1.0)
-                            .frame(width: 20, height: 20)
+                            .stroke(note.color.textColor.opacity(0.3), lineWidth: 1.5)
+                            .frame(width: 28, height: 28)
 
                         Text("A")
-                            .font(.system(size: 11, weight: .semibold))
+                            .font(.system(size: 13, weight: .bold))
                             .foregroundColor(note.color.textColor)
                     }
-                    .frame(width: 24, height: 24)
+                    .frame(width: 32, height: 32)
                 }
                 .buttonStyle(.plain)
                 .popover(isPresented: $showingFormatMenu, arrowEdge: .bottom) {
@@ -422,18 +423,18 @@ struct CustomTitleBar: View {
                 }) {
                     ZStack {
                         Circle()
-                            .fill(note.color.textColor.opacity(0.2))
-                            .frame(width: 20, height: 20)
+                            .fill(note.color.textColor.opacity(0.12))
+                            .frame(width: 28, height: 28)
 
                         Circle()
-                            .stroke(note.color.textColor, lineWidth: 1.0)
-                            .frame(width: 20, height: 20)
+                            .stroke(note.color.textColor.opacity(0.3), lineWidth: 1.5)
+                            .frame(width: 28, height: 28)
 
                         Image(systemName: "sparkles")
-                            .font(.system(size: 9, weight: .medium))
+                            .font(.system(size: 11, weight: .semibold))
                             .foregroundColor(note.color.textColor)
                     }
-                    .frame(width: 24, height: 24)
+                    .frame(width: 32, height: 32)
                 }
                 .buttonStyle(.plain)
                 .popover(isPresented: $showingAIMenu, arrowEdge: .bottom) {
@@ -492,18 +493,18 @@ struct CustomTitleBar: View {
                 }) {
                     ZStack {
                         Circle()
-                            .fill(note.color.textColor.opacity(0.2))
-                            .frame(width: 20, height: 20)
+                            .fill(note.color.textColor.opacity(0.12))
+                            .frame(width: 28, height: 28)
 
                         Circle()
-                            .stroke(note.color.textColor, lineWidth: 1.0)
-                            .frame(width: 20, height: 20)
+                            .stroke(note.color.textColor.opacity(0.3), lineWidth: 1.5)
+                            .frame(width: 28, height: 28)
 
                         Image(systemName: "ellipsis")
-                            .font(.system(size: 9, weight: .medium))
+                            .font(.system(size: 11, weight: .semibold))
                             .foregroundColor(note.color.textColor)
                     }
-                    .frame(width: 24, height: 24)
+                    .frame(width: 32, height: 32)
                 }
                 .buttonStyle(.plain)
                 .popover(isPresented: $showingMoreMenu, arrowEdge: .bottom) {
@@ -558,6 +559,30 @@ struct CustomTitleBar: View {
                     }
                     .frame(width: 200)
                     .padding(.vertical, 8)
+                }
+
+                // Delete button (trash icon)
+                Button(action: {
+                    onDelete()
+                }) {
+                    ZStack {
+                        Circle()
+                            .fill(note.color.textColor.opacity(isHoveringDelete ? 0.20 : 0.12))
+                            .frame(width: 28, height: 28)
+
+                        Circle()
+                            .stroke(note.color.textColor.opacity(isHoveringDelete ? 0.5 : 0.3), lineWidth: 1.5)
+                            .frame(width: 28, height: 28)
+
+                        Image(systemName: "trash")
+                            .font(.system(size: 11, weight: .semibold))
+                            .foregroundColor(isHoveringDelete ? Color.red : note.color.textColor)
+                    }
+                    .frame(width: 32, height: 32)
+                }
+                .buttonStyle(.plain)
+                .onHover { hovering in
+                    isHoveringDelete = hovering
                 }
             }
             .padding(.trailing, 16)

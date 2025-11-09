@@ -50,6 +50,7 @@ struct thinqsyncApp: App {
             ShowAllNotesView()
                 .environment(notesManager)
         }
-        .defaultSize(width: 900, height: 600)
+        .windowStyle(.hiddenTitleBar)
+        .defaultSize(width: 1200, height: 800)
     }
 }

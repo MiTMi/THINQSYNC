@@ -26,6 +26,10 @@ struct GettingStartedView: View {
     @Environment(NotesManager.self) private var notesManager
     @Environment(\.openWindow) private var openWindow
 
+    var recentNotes: [Note] {
+        Array(notesManager.notes.sorted { $0.createdAt > $1.createdAt }.prefix(5))
+    }
+
     var body: some View {
         VStack(spacing: 0) {
             // New Note button
@@ -41,13 +45,13 @@ struct GettingStartedView: View {
             Divider()
                 .padding(.horizontal, 16)
 
-            // Notes list
+            // Notes list - showing only 5 most recent notes
             ScrollView {
                 VStack(spacing: 0) {
-                    ForEach(notesManager.notes) { note in
+                    ForEach(recentNotes) { note in
                         MenuButton(
                             icon: nil,
-                            title: note.title,
+                            title: note.title.isEmpty ? "Untitled" : note.title,
                             nsColor: note.color.nsBackgroundColor,
                             action: {
                                 notesManager.openNote(note.id)
