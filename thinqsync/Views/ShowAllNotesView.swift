@@ -18,6 +18,7 @@ struct ShowAllNotesView: View {
     @State private var newFolderName = ""
     @State private var viewMode: ViewMode = .grid
     @State private var showingEmptyTrashAlert = false
+    @State private var sortOrder: SortOrder = .modifiedDate
     @Environment(\.openWindow) var openWindow
 
     enum SidebarSection: Hashable {
@@ -30,6 +31,12 @@ struct ShowAllNotesView: View {
     enum ViewMode {
         case grid
         case list
+    }
+
+    enum SortOrder {
+        case modifiedDate
+        case createdDate
+        case title
     }
 
     var folders: [String] {
@@ -62,7 +69,14 @@ struct ShowAllNotesView: View {
 
         // Sort
         if selectedSection != .trash {
-            return notes.sorted { $0.modifiedAt > $1.modifiedAt }
+            switch sortOrder {
+            case .modifiedDate:
+                return notes.sorted { $0.modifiedAt > $1.modifiedAt }
+            case .createdDate:
+                return notes.sorted { $0.createdAt > $1.createdAt }
+            case .title:
+                return notes.sorted { $0.title.localizedCaseInsensitiveCompare($1.title) == .orderedAscending }
+            }
         }
         return notes
     }
@@ -311,9 +325,38 @@ struct ShowAllNotesView: View {
                     }
 
                     // Sort Button
-                    Button(action: {
-                        // TODO: Sort menu
-                    }) {
+                    Menu {
+                        Button(action: {
+                            sortOrder = .modifiedDate
+                        }) {
+                            HStack {
+                                Text("Modified Date")
+                                if sortOrder == .modifiedDate {
+                                    Image(systemName: "checkmark")
+                                }
+                            }
+                        }
+                        Button(action: {
+                            sortOrder = .createdDate
+                        }) {
+                            HStack {
+                                Text("Created Date")
+                                if sortOrder == .createdDate {
+                                    Image(systemName: "checkmark")
+                                }
+                            }
+                        }
+                        Button(action: {
+                            sortOrder = .title
+                        }) {
+                            HStack {
+                                Text("Title")
+                                if sortOrder == .title {
+                                    Image(systemName: "checkmark")
+                                }
+                            }
+                        }
+                    } label: {
                         HStack(spacing: 6) {
                             Image(systemName: "arrow.up.arrow.down")
                                 .font(.system(size: 12))
@@ -326,6 +369,7 @@ struct ShowAllNotesView: View {
                         .background(Color(red: 0x2D/255, green: 0x35/255, blue: 0x42/255))
                         .cornerRadius(8)
                     }
+                    .menuStyle(.borderlessButton)
                     .buttonStyle(.plain)
                 }
                 .padding(.horizontal, 24)
@@ -350,32 +394,55 @@ struct ShowAllNotesView: View {
                     .frame(maxWidth: .infinity, maxHeight: .infinity)
                 } else {
                     ScrollView {
-                        LazyVGrid(columns: [
-                            GridItem(.flexible(), spacing: 20),
-                            GridItem(.flexible(), spacing: 20),
-                            GridItem(.flexible(), spacing: 20),
-                            GridItem(.flexible(), spacing: 20)
-                        ], spacing: 20) {
-                            ForEach(filteredNotes) { note in
-                                NoteCard(
-                                    note: note,
-                                    isSelected: selectedNoteID == note.id,
-                                    isTrash: selectedSection == .trash,
-                                    onTap: {
-                                        // Open the note in a floating window like from menubar
-                                        openWindow(value: note.id)
-                                        notesManager.openNote(note.id)
-                                    },
-                                    onDelete: {
-                                        notesManager.deleteNote(note)
-                                    },
-                                    onRestore: {
-                                        notesManager.restoreNote(note)
-                                    }
-                                )
+                        if viewMode == .grid {
+                            LazyVGrid(columns: [
+                                GridItem(.flexible(), spacing: 20),
+                                GridItem(.flexible(), spacing: 20),
+                                GridItem(.flexible(), spacing: 20),
+                                GridItem(.flexible(), spacing: 20)
+                            ], spacing: 20) {
+                                ForEach(filteredNotes) { note in
+                                    NoteCard(
+                                        note: note,
+                                        isSelected: selectedNoteID == note.id,
+                                        isTrash: selectedSection == .trash,
+                                        onTap: {
+                                            // Open the note in a floating window like from menubar
+                                            openWindow(value: note.id)
+                                            notesManager.openNote(note.id)
+                                        },
+                                        onDelete: {
+                                            notesManager.deleteNote(note)
+                                        },
+                                        onRestore: {
+                                            notesManager.restoreNote(note)
+                                        }
+                                    )
+                                }
                             }
+                            .padding(24)
+                        } else {
+                            LazyVStack(spacing: 12) {
+                                ForEach(filteredNotes) { note in
+                                    NoteListRow(
+                                        note: note,
+                                        isSelected: selectedNoteID == note.id,
+                                        isTrash: selectedSection == .trash,
+                                        onTap: {
+                                            openWindow(value: note.id)
+                                            notesManager.openNote(note.id)
+                                        },
+                                        onDelete: {
+                                            notesManager.deleteNote(note)
+                                        },
+                                        onRestore: {
+                                            notesManager.restoreNote(note)
+                                        }
+                                    )
+                                }
+                            }
+                            .padding(24)
                         }
-                        .padding(24)
                     }
                 }
             }
@@ -576,6 +643,137 @@ struct NoteCard: View {
         .contentShape(Rectangle())
         .onTapGesture {
             onTap()
+        }
+        .contextMenu {
+            if isTrash {
+                Button("Restore") {
+                    onRestore()
+                }
+                Button("Delete Permanently", role: .destructive) {
+                    showingPermanentDeleteAlert = true
+                }
+            } else {
+                Button("Delete") {
+                    onDelete()
+                }
+            }
+        }
+        .alert("Permanently Delete Note", isPresented: $showingPermanentDeleteAlert) {
+            Button("Cancel", role: .cancel) { }
+            Button("Delete Permanently", role: .destructive) {
+                onDelete()
+            }
+        } message: {
+            Text("This note will be permanently deleted and cannot be restored. This action cannot be undone.")
+        }
+    }
+
+    private func getFolderTagColor(_ folder: String) -> Color {
+        switch folder.lowercased() {
+        case "work": return Color(red: 0x3B/255, green: 0x82/255, blue: 0xF6/255)
+        case "personal": return Color(red: 0x10/255, green: 0xB9/255, blue: 0x81/255)
+        case "ideas": return Color(red: 0xA8/255, green: 0x5C/255, blue: 0xF6/255)
+        default: return Color.blue
+        }
+    }
+}
+
+// Note List Row Component (for list view)
+struct NoteListRow: View {
+    let note: Note
+    let isSelected: Bool
+    let isTrash: Bool
+    let onTap: () -> Void
+    let onDelete: () -> Void
+    let onRestore: () -> Void
+
+    @State private var isHoveringDelete = false
+    @State private var isHovering = false
+    @State private var showingPermanentDeleteAlert = false
+
+    var body: some View {
+        HStack(spacing: 16) {
+            // Color indicator
+            Circle()
+                .fill(note.color.backgroundColor)
+                .frame(width: 10, height: 10)
+
+            // Content
+            VStack(alignment: .leading, spacing: 4) {
+                // Title
+                Text(note.title.isEmpty ? "Untitled" : note.title)
+                    .font(.system(size: 14, weight: .semibold))
+                    .foregroundColor(.white)
+                    .lineLimit(1)
+
+                // Content preview
+                Text(note.content)
+                    .font(.system(size: 12))
+                    .foregroundColor(.gray)
+                    .lineLimit(2)
+            }
+
+            Spacer()
+
+            // Folder tag
+            if let folder = note.folder {
+                Text(folder)
+                    .font(.system(size: 10, weight: .medium))
+                    .foregroundColor(getFolderTagColor(folder))
+                    .padding(.horizontal, 8)
+                    .padding(.vertical, 3)
+                    .background(getFolderTagColor(folder).opacity(0.2))
+                    .cornerRadius(4)
+            }
+
+            // Date
+            Text(note.modifiedAt.formatted(date: .abbreviated, time: .omitted))
+                .font(.system(size: 11))
+                .foregroundColor(.gray)
+                .frame(width: 80, alignment: .trailing)
+
+            // Star
+            if note.isFavorite && !isTrash {
+                Image(systemName: "star.fill")
+                    .font(.system(size: 12))
+                    .foregroundColor(.yellow)
+                    .frame(width: 20)
+            } else {
+                Color.clear.frame(width: 20)
+            }
+
+            // Delete button
+            Button(action: {
+                if isTrash {
+                    showingPermanentDeleteAlert = true
+                } else {
+                    onDelete()
+                }
+            }) {
+                Image(systemName: isTrash ? "trash.slash" : "trash")
+                    .font(.system(size: 11))
+                    .foregroundColor(isHoveringDelete ? .red : .gray.opacity(0.6))
+                    .frame(width: 20)
+            }
+            .buttonStyle(.plain)
+            .onHover { hovering in
+                isHoveringDelete = hovering
+            }
+        }
+        .padding(.horizontal, 16)
+        .padding(.vertical, 12)
+        .background(isHovering ? Color(red: 0x1E/255, green: 0x24/255, blue: 0x2E/255) : Color.clear)
+        .cornerRadius(8)
+        .overlay(
+            RoundedRectangle(cornerRadius: 8)
+                .strokeBorder(isSelected ? Color.blue : Color.clear, lineWidth: 2)
+        )
+        .contentShape(Rectangle())
+        .onTapGesture {
+            onTap()
+        }
+        .onHover { hovering in
+            isHovering = hovering
         }
         .contextMenu {
             if isTrash {
