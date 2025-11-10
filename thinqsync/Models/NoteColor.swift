@@ -53,18 +53,18 @@ enum NoteColor: String, Codable, CaseIterable, Sendable {
 
     var textColor: Color {
         switch self {
-        case .yellow, .orange, .pink, .green:
+        case .yellow, .orange, .pink, .green, .blue:
             return Color.black // Black text for bright backgrounds
-        case .blue, .purple:
+        case .purple:
             return Color.white // White text for darker backgrounds
         }
     }
 
     var iconColor: Color {
         switch self {
-        case .yellow, .orange, .pink, .green:
+        case .yellow, .orange, .pink, .green, .blue:
             return Color.black.opacity(0.7) // Slightly transparent black for bright backgrounds
-        case .blue, .purple:
+        case .purple:
             return Color.white.opacity(0.9) // Slightly transparent white for darker backgrounds
         }
     }

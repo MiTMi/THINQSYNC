@@ -89,7 +89,7 @@ struct ShowAllNotesView: View {
                 HStack {
                     Text("Notes")
                         .font(.system(size: 22, weight: .semibold))
-                        .foregroundColor(.white)
+                        .foregroundColor(Color(nsColor: .labelColor))
 
                     Spacer()
 
@@ -98,7 +98,7 @@ struct ShowAllNotesView: View {
                     }) {
                         Image(systemName: "gearshape")
                             .font(.system(size: 16))
-                            .foregroundColor(.gray)
+                            .foregroundColor(Color(nsColor: .secondaryLabelColor))
                     }
                     .buttonStyle(.plain)
                 }
@@ -149,7 +149,7 @@ struct ShowAllNotesView: View {
                     HStack {
                         Text("FOLDERS")
                             .font(.system(size: 11, weight: .semibold))
-                            .foregroundColor(.gray)
+                            .foregroundColor(Color(nsColor: .secondaryLabelColor))
 
                         Spacer()
 
@@ -158,7 +158,7 @@ struct ShowAllNotesView: View {
                         }) {
                             Image(systemName: "plus")
                                 .font(.system(size: 10))
-                                .foregroundColor(.gray)
+                                .foregroundColor(Color(nsColor: .secondaryLabelColor))
                         }
                         .buttonStyle(.plain)
                     }
@@ -219,21 +219,21 @@ struct ShowAllNotesView: View {
 
                 HStack(spacing: 10) {
                     Circle()
-                        .fill(Color.gray.opacity(0.3))
+                        .fill(Color(nsColor: .quaternaryLabelColor))
                         .frame(width: 32, height: 32)
                         .overlay(
                             Image(systemName: "person.fill")
                                 .font(.system(size: 14))
-                                .foregroundColor(.gray)
+                                .foregroundColor(Color(nsColor: .secondaryLabelColor))
                         )
 
                     VStack(alignment: .leading, spacing: 2) {
                         Text("Sarah Wilson")
                             .font(.system(size: 13, weight: .medium))
-                            .foregroundColor(.white)
+                            .foregroundColor(Color(nsColor: .labelColor))
                         Text("Free Plan")
                             .font(.system(size: 11))
-                            .foregroundColor(.gray)
+                            .foregroundColor(Color(nsColor: .secondaryLabelColor))
                     }
 
                     Spacer()
@@ -242,153 +242,158 @@ struct ShowAllNotesView: View {
                 .padding(.vertical, 12)
             }
             .frame(width: 260)
-            .background(Color(red: 0x1E/255, green: 0x24/255, blue: 0x2E/255))
+            .background(Color(nsColor: .controlBackgroundColor))
 
             // Main Content Area
             VStack(spacing: 0) {
                 // Top Navigation Bar
-                HStack(spacing: 16) {
+                HStack(spacing: 0) {
                     // Section title and count
                     HStack(spacing: 8) {
                         Text(sectionTitle)
                             .font(.system(size: 22, weight: .semibold))
-                            .foregroundColor(.white)
+                            .foregroundColor(Color(nsColor: .labelColor))
 
                         Text("\(filteredNotes.count) notes")
                             .font(.system(size: 14))
-                            .foregroundColor(.gray)
+                            .foregroundColor(Color(nsColor: .secondaryLabelColor))
+
+                        // Empty Trash Button (only show in trash section)
+                        if selectedSection == .trash && !notesManager.deletedNotes.isEmpty {
+                            Button(action: {
+                                showingEmptyTrashAlert = true
+                            }) {
+                                HStack(spacing: 6) {
+                                    Image(systemName: "trash")
+                                        .font(.system(size: 12))
+                                    Text("Empty Trash")
+                                        .font(.system(size: 13, weight: .medium))
+                                }
+                                .foregroundColor(.white)
+                                .padding(.horizontal, 14)
+                                .padding(.vertical, 8)
+                                .background(Color.red)
+                                .cornerRadius(8)
+                            }
+                            .buttonStyle(.plain)
+                            .padding(.leading, 12)
+                        }
                     }
 
                     Spacer()
 
-                    // Empty Trash Button (only show in trash section)
-                    if selectedSection == .trash && !notesManager.deletedNotes.isEmpty {
-                        Button(action: {
-                            showingEmptyTrashAlert = true
-                        }) {
-                            HStack(spacing: 6) {
-                                Image(systemName: "trash")
-                                    .font(.system(size: 12))
-                                Text("Empty Trash")
-                                    .font(.system(size: 13, weight: .medium))
-                            }
-                            .foregroundColor(.white)
-                            .padding(.horizontal, 14)
-                            .padding(.vertical, 8)
-                            .background(Color.red)
-                            .cornerRadius(8)
-                        }
-                        .buttonStyle(.plain)
-                    }
-
-                    // Search Field
+                    // Right-aligned controls group
                     HStack(spacing: 8) {
-                        Image(systemName: "magnifyingglass")
-                            .font(.system(size: 13))
-                            .foregroundColor(.gray)
-                        TextField("Search notes...", text: $searchText)
-                            .textFieldStyle(.plain)
-                            .font(.system(size: 13))
-                            .foregroundColor(.white)
-                    }
-                    .padding(.horizontal, 12)
-                    .padding(.vertical, 8)
-                    .frame(width: 220)
-                    .background(Color(red: 0x2D/255, green: 0x35/255, blue: 0x42/255))
-                    .cornerRadius(8)
-
-                    // Grid/List View Toggle
-                    HStack(spacing: 4) {
-                        Button(action: {
-                            viewMode = .grid
-                        }) {
-                            Image(systemName: "square.grid.2x2")
-                                .font(.system(size: 14))
-                                .foregroundColor(viewMode == .grid ? .white : .gray)
-                                .frame(width: 32, height: 32)
-                                .background(viewMode == .grid ? Color(red: 0x2D/255, green: 0x35/255, blue: 0x42/255) : Color.clear)
-                                .cornerRadius(6)
-                        }
-                        .buttonStyle(.plain)
-
-                        Button(action: {
-                            viewMode = .list
-                        }) {
-                            Image(systemName: "list.bullet")
-                                .font(.system(size: 14))
-                                .foregroundColor(viewMode == .list ? .white : .gray)
-                                .frame(width: 32, height: 32)
-                                .background(viewMode == .list ? Color(red: 0x2D/255, green: 0x35/255, blue: 0x42/255) : Color.clear)
-                                .cornerRadius(6)
-                        }
-                        .buttonStyle(.plain)
-                    }
-
-                    // Sort Button
-                    Menu {
-                        Button(action: {
-                            sortOrder = .modifiedDate
-                        }) {
-                            HStack {
-                                Text("Modified Date")
-                                if sortOrder == .modifiedDate {
-                                    Image(systemName: "checkmark")
-                                }
-                            }
-                        }
-                        Button(action: {
-                            sortOrder = .createdDate
-                        }) {
-                            HStack {
-                                Text("Created Date")
-                                if sortOrder == .createdDate {
-                                    Image(systemName: "checkmark")
-                                }
-                            }
-                        }
-                        Button(action: {
-                            sortOrder = .title
-                        }) {
-                            HStack {
-                                Text("Title")
-                                if sortOrder == .title {
-                                    Image(systemName: "checkmark")
-                                }
-                            }
-                        }
-                    } label: {
-                        HStack(spacing: 6) {
-                            Image(systemName: "arrow.up.arrow.down")
-                                .font(.system(size: 12))
-                            Text("Sort")
+                        // Search Field
+                        HStack(spacing: 8) {
+                            Image(systemName: "magnifyingglass")
                                 .font(.system(size: 13))
+                                .foregroundColor(Color(nsColor: .secondaryLabelColor))
+                            TextField("Search notes...", text: $searchText)
+                                .textFieldStyle(.plain)
+                                .font(.system(size: 13))
+                                .foregroundColor(Color(nsColor: .labelColor))
                         }
-                        .foregroundColor(.white)
                         .padding(.horizontal, 12)
                         .padding(.vertical, 8)
-                        .background(Color(red: 0x2D/255, green: 0x35/255, blue: 0x42/255))
+                        .frame(width: 200)
+                        .background(Color(nsColor: .controlBackgroundColor))
                         .cornerRadius(8)
+
+                        // Grid/List View Toggle
+                        HStack(spacing: 2) {
+                            Button(action: {
+                                viewMode = .grid
+                            }) {
+                                Image(systemName: "square.grid.2x2")
+                                    .font(.system(size: 14))
+                                    .foregroundColor(viewMode == .grid ? Color(nsColor: .labelColor) : Color(nsColor: .secondaryLabelColor))
+                                    .frame(width: 32, height: 32)
+                                    .background(viewMode == .grid ? Color(nsColor: .controlBackgroundColor) : Color.clear)
+                                    .cornerRadius(6)
+                            }
+                            .buttonStyle(.plain)
+
+                            Button(action: {
+                                viewMode = .list
+                            }) {
+                                Image(systemName: "list.bullet")
+                                    .font(.system(size: 14))
+                                    .foregroundColor(viewMode == .list ? Color(nsColor: .labelColor) : Color(nsColor: .secondaryLabelColor))
+                                    .frame(width: 32, height: 32)
+                                    .background(viewMode == .list ? Color(nsColor: .controlBackgroundColor) : Color.clear)
+                                    .cornerRadius(6)
+                            }
+                            .buttonStyle(.plain)
+                        }
+
+                        // Sort Button
+                        Menu {
+                            Button(action: {
+                                sortOrder = .modifiedDate
+                            }) {
+                                HStack {
+                                    Text("Modified Date")
+                                    if sortOrder == .modifiedDate {
+                                        Image(systemName: "checkmark")
+                                    }
+                                }
+                            }
+                            Button(action: {
+                                sortOrder = .createdDate
+                            }) {
+                                HStack {
+                                    Text("Created Date")
+                                    if sortOrder == .createdDate {
+                                        Image(systemName: "checkmark")
+                                    }
+                                }
+                            }
+                            Button(action: {
+                                sortOrder = .title
+                            }) {
+                                HStack {
+                                    Text("Title")
+                                    if sortOrder == .title {
+                                        Image(systemName: "checkmark")
+                                    }
+                                }
+                            }
+                        } label: {
+                            HStack(spacing: 6) {
+                                Image(systemName: "arrow.up.arrow.down")
+                                    .font(.system(size: 12))
+                                Text("Sort")
+                                    .font(.system(size: 13))
+                            }
+                            .foregroundColor(Color(nsColor: .labelColor))
+                            .padding(.horizontal, 12)
+                            .padding(.vertical, 8)
+                            .background(Color(nsColor: .controlBackgroundColor))
+                            .cornerRadius(8)
+                        }
+                        .menuStyle(.borderlessButton)
+                        .buttonStyle(.plain)
                     }
-                    .menuStyle(.borderlessButton)
-                    .buttonStyle(.plain)
                 }
-                .padding(.horizontal, 24)
+                .padding(.leading, 20)
+                .padding(.trailing, 16)
                 .padding(.vertical, 16)
-                .background(Color(red: 0x1A/255, green: 0x20/255, blue: 0x2A/255))
+                .background(Color(nsColor: .windowBackgroundColor))
 
                 // Notes Grid/List
                 if filteredNotes.isEmpty {
                     VStack(spacing: 16) {
                         Image(systemName: "note.text")
                             .font(.system(size: 48))
-                            .foregroundColor(.gray)
+                            .foregroundColor(Color(nsColor: .secondaryLabelColor))
                         Text("No Notes")
                             .font(.system(size: 18, weight: .medium))
-                            .foregroundColor(.gray)
+                            .foregroundColor(Color(nsColor: .secondaryLabelColor))
                         if selectedSection == .trash {
                             Text("Your trash is empty")
                                 .font(.system(size: 14))
-                                .foregroundColor(.gray)
+                                .foregroundColor(Color(nsColor: .tertiaryLabelColor))
                         }
                     }
                     .frame(maxWidth: .infinity, maxHeight: .infinity)
@@ -447,7 +452,7 @@ struct ShowAllNotesView: View {
                 }
             }
             .frame(maxWidth: .infinity, maxHeight: .infinity)
-            .background(Color(red: 0x0F/255, green: 0x14/255, blue: 0x1A/255))
+            .background(Color(nsColor: .textBackgroundColor))
         }
         .alert("New Folder", isPresented: $showingNewFolderAlert) {
             TextField("Folder Name", text: $newFolderName)
@@ -528,17 +533,17 @@ struct SidebarRow: View {
 
             Text(title)
                 .font(.system(size: 13, weight: isSelected ? .medium : .regular))
-                .foregroundColor(isSelected ? .white : Color.gray.opacity(0.8))
+                .foregroundColor(isSelected ? Color(nsColor: .labelColor) : Color(nsColor: .secondaryLabelColor))
 
             Spacer()
 
             Text("\(count)")
                 .font(.system(size: 11))
-                .foregroundColor(.gray)
+                .foregroundColor(Color(nsColor: .tertiaryLabelColor))
         }
         .padding(.horizontal, 20)
         .padding(.vertical, 6)
-        .background(isSelected ? Color.white.opacity(0.1) : Color.clear)
+        .background(isSelected ? Color(nsColor: .selectedContentBackgroundColor) : Color.clear)
         .cornerRadius(6)
     }
 }
@@ -558,18 +563,14 @@ struct NoteCard: View {
 
     var body: some View {
         VStack(alignment: .leading, spacing: 12) {
-            // Color Dot, Star, and Delete icon
+            // Star and Delete icon
             HStack {
-                Circle()
-                    .fill(note.color.backgroundColor)
-                    .frame(width: 12, height: 12)
-
                 Spacer()
 
                 if note.isFavorite && !isTrash {
                     Image(systemName: "star.fill")
                         .font(.system(size: 12))
-                        .foregroundColor(.yellow)
+                        .foregroundColor(note.color.textColor)
                 }
 
                 // Delete button (soft delete when not in trash, permanent delete when in trash)
@@ -582,16 +583,15 @@ struct NoteCard: View {
                 }) {
                     Image(systemName: isTrash ? "trash.slash" : "trash")
                         .font(.system(size: 11))
-                        .foregroundColor(isHoveringDelete ? .red : .gray.opacity(0.6))
+                        .foregroundColor(isHoveringDelete ? .red : note.color.iconColor)
                 }
                 .buttonStyle(.plain)
                 .onHover { hovering in
                     isHoveringDelete = hovering
                 }
             }
-            .padding(.horizontal, -4)
             .padding(.vertical, 4)
-            .background(isHoveringHeader ? Color.white.opacity(0.05) : Color.clear)
+            .background(isHoveringHeader ? note.color.textColor.opacity(0.1) : Color.clear)
             .cornerRadius(6)
             .onHover { hovering in
                 isHoveringHeader = hovering
@@ -600,13 +600,13 @@ struct NoteCard: View {
             // Title
             Text(note.title.isEmpty ? "Untitled" : note.title)
                 .font(.system(size: 15, weight: .semibold))
-                .foregroundColor(.white)
+                .foregroundColor(note.color.textColor)
                 .lineLimit(1)
 
             // Content Preview
             Text(note.content)
                 .font(.system(size: 13))
-                .foregroundColor(.gray)
+                .foregroundColor(note.color.textColor.opacity(0.8))
                 .lineLimit(3)
                 .frame(maxWidth: .infinity, alignment: .leading)
                 .frame(height: 50)
@@ -617,7 +617,7 @@ struct NoteCard: View {
             HStack(alignment: .bottom) {
                 Text(note.modifiedAt.formatted(date: .abbreviated, time: .omitted))
                     .font(.system(size: 11))
-                    .foregroundColor(.gray)
+                    .foregroundColor(note.color.iconColor)
 
                 Spacer()
 
@@ -634,11 +634,11 @@ struct NoteCard: View {
         }
         .padding(16)
         .frame(height: 180)
-        .background(Color(red: 0x1E/255, green: 0x24/255, blue: 0x2E/255))
+        .background(note.color.backgroundColor)
         .cornerRadius(12)
         .overlay(
             RoundedRectangle(cornerRadius: 12)
-                .strokeBorder(isSelected ? Color.blue : Color.clear, lineWidth: 2)
+                .strokeBorder(isSelected ? Color.blue : Color.clear, lineWidth: isSelected ? 2 : 0)
         )
         .contentShape(Rectangle())
         .onTapGesture {
@@ -703,13 +703,13 @@ struct NoteListRow: View {
                 // Title
                 Text(note.title.isEmpty ? "Untitled" : note.title)
                     .font(.system(size: 14, weight: .semibold))
-                    .foregroundColor(.white)
+                    .foregroundColor(Color(nsColor: .labelColor))
                     .lineLimit(1)
 
                 // Content preview
                 Text(note.content)
                     .font(.system(size: 12))
-                    .foregroundColor(.gray)
+                    .foregroundColor(Color(nsColor: .secondaryLabelColor))
                     .lineLimit(2)
             }
 
@@ -729,7 +729,7 @@ struct NoteListRow: View {
             // Date
             Text(note.modifiedAt.formatted(date: .abbreviated, time: .omitted))
                 .font(.system(size: 11))
-                .foregroundColor(.gray)
+                .foregroundColor(Color(nsColor: .tertiaryLabelColor))
                 .frame(width: 80, alignment: .trailing)
 
             // Star
@@ -752,7 +752,7 @@ struct NoteListRow: View {
             }) {
                 Image(systemName: isTrash ? "trash.slash" : "trash")
                     .font(.system(size: 11))
-                    .foregroundColor(isHoveringDelete ? .red : .gray.opacity(0.6))
+                    .foregroundColor(isHoveringDelete ? .red : Color(nsColor: .tertiaryLabelColor))
                     .frame(width: 20)
             }
             .buttonStyle(.plain)
@@ -762,11 +762,11 @@ struct NoteListRow: View {
         }
         .padding(.horizontal, 16)
         .padding(.vertical, 12)
-        .background(isHovering ? Color(red: 0x1E/255, green: 0x24/255, blue: 0x2E/255) : Color.clear)
+        .background(isHovering ? Color(nsColor: .controlBackgroundColor) : Color.clear)
         .cornerRadius(8)
         .overlay(
             RoundedRectangle(cornerRadius: 8)
-                .strokeBorder(isSelected ? Color.blue : Color.clear, lineWidth: 2)
+                .strokeBorder(isSelected ? Color.blue : Color.clear, lineWidth: isSelected ? 2 : 0)
         )
         .contentShape(Rectangle())
         .onTapGesture {
@@ -825,9 +825,9 @@ struct NoteEditorSheet: View {
                 }) {
                     Image(systemName: "xmark")
                         .font(.system(size: 14, weight: .medium))
-                        .foregroundColor(.white)
+                        .foregroundColor(Color(nsColor: .labelColor))
                         .frame(width: 32, height: 32)
-                        .background(Color.white.opacity(0.1))
+                        .background(Color(nsColor: .controlBackgroundColor))
                         .cornerRadius(8)
                 }
                 .buttonStyle(.plain)
@@ -870,9 +870,9 @@ struct NoteEditorSheet: View {
                 }) {
                     Image(systemName: note.isFavorite ? "star.fill" : "star")
                         .font(.system(size: 14, weight: .medium))
-                        .foregroundColor(note.isFavorite ? .yellow : .white.opacity(0.6))
+                        .foregroundColor(note.isFavorite ? .yellow : Color(nsColor: .secondaryLabelColor))
                         .frame(width: 32, height: 32)
-                        .background(Color.white.opacity(0.1))
+                        .background(Color(nsColor: .controlBackgroundColor))
                         .cornerRadius(8)
                 }
                 .buttonStyle(.plain)
@@ -896,16 +896,16 @@ struct NoteEditorSheet: View {
                 } label: {
                     Image(systemName: "folder")
                         .font(.system(size: 14, weight: .medium))
-                        .foregroundColor(.white.opacity(0.6))
+                        .foregroundColor(Color(nsColor: .secondaryLabelColor))
                         .frame(width: 32, height: 32)
-                        .background(Color.white.opacity(0.1))
+                        .background(Color(nsColor: .controlBackgroundColor))
                         .cornerRadius(8)
                 }
                 .buttonStyle(.plain)
             }
             .padding(.horizontal, 24)
             .padding(.vertical, 16)
-            .background(Color(red: 0x1A/255, green: 0x20/255, blue: 0x2A/255))
+            .background(Color(nsColor: .windowBackgroundColor))
 
             // Content Area
             VStack(spacing: 0) {
@@ -913,7 +913,7 @@ struct NoteEditorSheet: View {
                 TextField("Title", text: $note.title)
                     .textFieldStyle(.plain)
                     .font(.system(size: 32, weight: .bold))
-                    .foregroundColor(.white)
+                    .foregroundColor(Color(nsColor: .labelColor))
                     .padding(.horizontal, 40)
                     .padding(.top, 32)
                     .padding(.bottom, 20)
@@ -947,7 +947,7 @@ struct NoteEditorSheet: View {
             }
         }
         .frame(minWidth: 800, minHeight: 600)
-        .background(Color(red: 0x0F/255, green: 0x14/255, blue: 0x1A/255))
+        .background(Color(nsColor: .textBackgroundColor))
     }
 
     // Fix colors to system colors for display in Show All Notes
