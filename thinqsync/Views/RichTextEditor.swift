@@ -35,6 +35,17 @@ struct RichTextEditor: NSViewRepresentable {
         textView.drawsBackground = false
         textView.textContainerInset = NSSize(width: 16, height: 14)
 
+        // Enable real-time grammar and spelling checking
+        textView.isContinuousSpellCheckingEnabled = true
+        textView.isGrammarCheckingEnabled = true
+        textView.isAutomaticSpellingCorrectionEnabled = true
+        textView.isAutomaticTextReplacementEnabled = true
+
+        // Enable RTL (Right-to-Left) language support for Hebrew, Arabic, etc.
+        textView.baseWritingDirection = .natural  // Automatically detects text direction
+        textView.usesFontPanel = true
+        textView.usesRuler = true
+
         // Set default typing attributes
         textView.typingAttributes = [
             .font: NSFont.systemFont(ofSize: 16),
@@ -60,6 +71,17 @@ struct RichTextEditor: NSViewRepresentable {
         // This prevents the binding from overwriting user's formatting changes
         if let ref = textViewRef, ref.isFormatting {
             return
+        }
+
+        // Update default color for ALL existing text (instant light/dark mode switching)
+        if let textStorage = textView.textStorage {
+            let fullRange = NSRange(location: 0, length: textStorage.length)
+            textStorage.enumerateAttribute(.foregroundColor, in: fullRange) { value, range, _ in
+                // Only update if it's the default system color (not user-formatted colors)
+                if value == nil || (value as? NSColor)?.alphaComponent == 1.0 {
+                    textStorage.addAttribute(.foregroundColor, value: NSColor(textColor), range: range)
+                }
+            }
         }
 
         // Only reset typing attributes when NOT formatting
