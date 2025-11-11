@@ -115,6 +115,9 @@ struct RichTextEditor: NSViewRepresentable {
             let isFormatting = parent.textViewRef?.isFormatting ?? false
             let shouldSkipUpdate = isExecutingSlashCommand || isFormatting
 
+            // Detect and auto-adjust text direction for RTL languages (Hebrew, Arabic, etc.)
+            detectAndAdjustTextDirection(in: textView)
+
             // ALWAYS detect slash commands, regardless of formatting state
             // This ensures "/" is detected even during formatting operations
             detectSlashCommand(in: textView)
@@ -211,6 +214,59 @@ struct RichTextEditor: NSViewRepresentable {
         func finishSlashCommand() {
             // Reset flag after command execution is complete
             isExecutingSlashCommand = false
+        }
+
+        // Detect RTL characters and auto-adjust text alignment
+        private func detectAndAdjustTextDirection(in textView: NSTextView) {
+            let text = textView.string
+
+            // Check if text contains RTL characters (Hebrew: 0x0590-0x05FF, Arabic: 0x0600-0x06FF)
+            let hasRTLCharacters = text.unicodeScalars.contains { scalar in
+                // Hebrew range
+                (scalar.value >= 0x0590 && scalar.value <= 0x05FF) ||
+                // Arabic range
+                (scalar.value >= 0x0600 && scalar.value <= 0x06FF) ||
+                // Hebrew Extended range
+                (scalar.value >= 0xFB1D && scalar.value <= 0xFB4F) ||
+                // Arabic Presentation Forms
+                (scalar.value >= 0xFB50 && scalar.value <= 0xFDFF) ||
+                (scalar.value >= 0xFE70 && scalar.value <= 0xFEFF)
+            }
+
+            // Get the current paragraph style
+            let currentParagraphStyle = textView.defaultParagraphStyle ?? NSParagraphStyle.default
+            let mutableParagraphStyle = currentParagraphStyle.mutableCopy() as! NSMutableParagraphStyle
+
+            // Set alignment based on text content
+            if hasRTLCharacters {
+                // RTL text detected - align right
+                if mutableParagraphStyle.alignment != .right {
+                    mutableParagraphStyle.alignment = .right
+                    mutableParagraphStyle.baseWritingDirection = .rightToLeft
+                    textView.defaultParagraphStyle = mutableParagraphStyle
+                    textView.alignment = .right
+
+                    // Update existing text alignment
+                    if let textStorage = textView.textStorage {
+                        let fullRange = NSRange(location: 0, length: textStorage.length)
+                        textStorage.addAttribute(.paragraphStyle, value: mutableParagraphStyle, range: fullRange)
+                    }
+                }
+            } else if !text.isEmpty {
+                // LTR text or empty - align left
+                if mutableParagraphStyle.alignment != .left {
+                    mutableParagraphStyle.alignment = .left
+                    mutableParagraphStyle.baseWritingDirection = .leftToRight
+                    textView.defaultParagraphStyle = mutableParagraphStyle
+                    textView.alignment = .left
+
+                    // Update existing text alignment
+                    if let textStorage = textView.textStorage {
+                        let fullRange = NSRange(location: 0, length: textStorage.length)
+                        textStorage.addAttribute(.paragraphStyle, value: mutableParagraphStyle, range: fullRange)
+                    }
+                }
+            }
         }
     }
 }

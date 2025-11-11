@@ -694,7 +694,7 @@ struct IntegratedCarouselCardView: View {
             }
         }
         .padding(32)
-        .frame(width: 600, height: 550)
+        .frame(width: 750, height: 550)
         .glassMorphism(color: noteData.color, opacity: 0.25, borderOpacity: 0.4)
     }
 }
