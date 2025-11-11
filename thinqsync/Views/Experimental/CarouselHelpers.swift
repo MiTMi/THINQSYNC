@@ -115,29 +115,33 @@ struct GlassMorphismModifier: ViewModifier {
     var opacity: Double = 0.15
     var blur: Double = 15
     var borderOpacity: Double = 0.25
+    @Environment(\.colorScheme) private var colorScheme
 
     func body(content: Content) -> some View {
         content
             .background(
                 ZStack {
-                    // Pure glass effect - no color tint, just blur
+                    // Less translucent glass effect for better visibility
                     Rectangle()
-                        .fill(.ultraThinMaterial)
-                        .opacity(0.3)
+                        .fill(.regularMaterial)
+                        .opacity(0.7)
 
-                    // Subtle white tint for visibility
+                    // Subtle tint for visibility (adapts to light/dark mode)
                     Rectangle()
-                        .fill(Color.white.opacity(0.05))
+                        .fill(colorScheme == .dark ? Color.white.opacity(0.08) : Color.black.opacity(0.03))
                 }
             )
             .overlay(
-                // Glossy border with gradient
+                // Glossy border with gradient (adapts to light/dark mode)
                 RoundedRectangle(cornerRadius: 24)
                     .stroke(
                         LinearGradient(
-                            gradient: Gradient(colors: [
+                            gradient: Gradient(colors: colorScheme == .dark ? [
                                 Color.white.opacity(0.4),
                                 Color.white.opacity(0.15)
+                            ] : [
+                                Color.black.opacity(0.2),
+                                Color.black.opacity(0.05)
                             ]),
                             startPoint: .topLeading,
                             endPoint: .bottomTrailing

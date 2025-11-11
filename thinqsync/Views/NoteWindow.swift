@@ -126,6 +126,7 @@ struct CustomTitleBar: View {
 
     @Environment(NotesManager.self) private var notesManager
     @Environment(\.openWindow) private var openWindow
+    @Environment(\.colorScheme) private var colorScheme
 
     @State private var isHoveringClose = false
     @State private var isHoveringMinimize = false
@@ -136,6 +137,15 @@ struct CustomTitleBar: View {
     @State private var showingMoreMenu = false
     @StateObject private var aiService = DeepseekAIService.shared
 
+    // Adaptive colors based on system appearance
+    private var adaptiveColor: Color {
+        colorScheme == .dark ? .white : .black
+    }
+
+    private var shadowColor: Color {
+        colorScheme == .dark ? .black : .white
+    }
+
     var body: some View {
         HStack(spacing: 0) {
             // Left side: Close and Minimize buttons
@@ -144,13 +154,13 @@ struct CustomTitleBar: View {
                 Button(action: onClose) {
                     ZStack {
                         Circle()
-                            .fill(.white.opacity(isHoveringClose ? 0.25 : 0.15))
+                            .fill(adaptiveColor.opacity(isHoveringClose ? 0.25 : 0.15))
                             .frame(width: 28, height: 28)
 
                         Image(systemName: "xmark")
                             .font(.system(size: 12, weight: .medium))
-                            .foregroundColor(.white.opacity(0.9))
-                            .shadow(color: .black.opacity(0.3), radius: 1, x: 0, y: 1)
+                            .foregroundColor(adaptiveColor.opacity(0.9))
+                            .shadow(color: shadowColor.opacity(0.3), radius: 1, x: 0, y: 1)
                     }
                 }
                 .buttonStyle(.plain)
@@ -162,13 +172,13 @@ struct CustomTitleBar: View {
                 Button(action: onMinimize) {
                     ZStack {
                         Circle()
-                            .fill(.white.opacity(isHoveringMinimize ? 0.25 : 0.15))
+                            .fill(adaptiveColor.opacity(isHoveringMinimize ? 0.25 : 0.15))
                             .frame(width: 28, height: 28)
 
                         Image(systemName: "chevron.down")
                             .font(.system(size: 12, weight: .medium))
-                            .foregroundColor(.white.opacity(0.9))
-                            .shadow(color: .black.opacity(0.3), radius: 1, x: 0, y: 1)
+                            .foregroundColor(adaptiveColor.opacity(0.9))
+                            .shadow(color: shadowColor.opacity(0.3), radius: 1, x: 0, y: 1)
                     }
                 }
                 .buttonStyle(.plain)
@@ -179,11 +189,11 @@ struct CustomTitleBar: View {
             .padding(.leading, 12)
 
             // Title (left-aligned)
-            TextField("", text: $note.title, prompt: Text("New Note").foregroundColor(.white.opacity(0.5)))
+            TextField("", text: $note.title, prompt: Text("New Note").foregroundColor(adaptiveColor.opacity(0.5)))
                 .textFieldStyle(.plain)
                 .font(.system(size: 18, weight: .semibold))
-                .foregroundColor(.white)
-                .shadow(color: .black.opacity(0.3), radius: 2, x: 0, y: 1)
+                .foregroundColor(adaptiveColor)
+                .shadow(color: shadowColor.opacity(0.3), radius: 2, x: 0, y: 1)
                 .multilineTextAlignment(.leading)
                 .frame(maxWidth: .infinity, alignment: .leading)
                 .padding(.leading, 12)
@@ -198,17 +208,17 @@ struct CustomTitleBar: View {
                 }) {
                     ZStack {
                         Circle()
-                            .fill(.white.opacity(0.12))
+                            .fill(adaptiveColor.opacity(0.12))
                             .frame(width: 28, height: 28)
 
                         Circle()
-                            .stroke(.white.opacity(0.3), lineWidth: 1.5)
+                            .stroke(adaptiveColor.opacity(0.3), lineWidth: 1.5)
                             .frame(width: 28, height: 28)
 
                         Image(systemName: "list.bullet")
                             .font(.system(size: 11, weight: .semibold))
-                            .foregroundColor(.white)
-                            .shadow(color: .black.opacity(0.3), radius: 1, x: 0, y: 1)
+                            .foregroundColor(adaptiveColor)
+                            .shadow(color: shadowColor.opacity(0.3), radius: 1, x: 0, y: 1)
                     }
                     .frame(width: 32, height: 32)
                 }
@@ -284,17 +294,17 @@ struct CustomTitleBar: View {
                 }) {
                     ZStack {
                         Circle()
-                            .fill(.white.opacity(0.12))
+                            .fill(adaptiveColor.opacity(0.12))
                             .frame(width: 28, height: 28)
 
                         Circle()
-                            .stroke(.white.opacity(0.3), lineWidth: 1.5)
+                            .stroke(adaptiveColor.opacity(0.3), lineWidth: 1.5)
                             .frame(width: 28, height: 28)
 
                         Text("A")
                             .font(.system(size: 13, weight: .bold))
-                            .foregroundColor(.white)
-                            .shadow(color: .black.opacity(0.3), radius: 1, x: 0, y: 1)
+                            .foregroundColor(adaptiveColor)
+                            .shadow(color: shadowColor.opacity(0.3), radius: 1, x: 0, y: 1)
                     }
                     .frame(width: 32, height: 32)
                 }
@@ -421,17 +431,17 @@ struct CustomTitleBar: View {
                 }) {
                     ZStack {
                         Circle()
-                            .fill(.white.opacity(0.12))
+                            .fill(adaptiveColor.opacity(0.12))
                             .frame(width: 28, height: 28)
 
                         Circle()
-                            .stroke(.white.opacity(0.3), lineWidth: 1.5)
+                            .stroke(adaptiveColor.opacity(0.3), lineWidth: 1.5)
                             .frame(width: 28, height: 28)
 
                         Image(systemName: "sparkles")
                             .font(.system(size: 11, weight: .semibold))
-                            .foregroundColor(.white)
-                            .shadow(color: .black.opacity(0.3), radius: 1, x: 0, y: 1)
+                            .foregroundColor(adaptiveColor)
+                            .shadow(color: shadowColor.opacity(0.3), radius: 1, x: 0, y: 1)
                     }
                     .frame(width: 32, height: 32)
                 }
@@ -492,17 +502,17 @@ struct CustomTitleBar: View {
                 }) {
                     ZStack {
                         Circle()
-                            .fill(.white.opacity(0.12))
+                            .fill(adaptiveColor.opacity(0.12))
                             .frame(width: 28, height: 28)
 
                         Circle()
-                            .stroke(.white.opacity(0.3), lineWidth: 1.5)
+                            .stroke(adaptiveColor.opacity(0.3), lineWidth: 1.5)
                             .frame(width: 28, height: 28)
 
                         Image(systemName: "ellipsis")
                             .font(.system(size: 11, weight: .semibold))
-                            .foregroundColor(.white)
-                            .shadow(color: .black.opacity(0.3), radius: 1, x: 0, y: 1)
+                            .foregroundColor(adaptiveColor)
+                            .shadow(color: shadowColor.opacity(0.3), radius: 1, x: 0, y: 1)
                     }
                     .frame(width: 32, height: 32)
                 }
@@ -567,17 +577,17 @@ struct CustomTitleBar: View {
                 }) {
                     ZStack {
                         Circle()
-                            .fill(.white.opacity(isHoveringDelete ? 0.20 : 0.12))
+                            .fill(adaptiveColor.opacity(isHoveringDelete ? 0.20 : 0.12))
                             .frame(width: 28, height: 28)
 
                         Circle()
-                            .stroke(.white.opacity(isHoveringDelete ? 0.5 : 0.3), lineWidth: 1.5)
+                            .stroke(adaptiveColor.opacity(isHoveringDelete ? 0.5 : 0.3), lineWidth: 1.5)
                             .frame(width: 28, height: 28)
 
                         Image(systemName: "trash")
                             .font(.system(size: 11, weight: .semibold))
-                            .foregroundColor(isHoveringDelete ? Color.red : .white)
-                            .shadow(color: .black.opacity(0.3), radius: 1, x: 0, y: 1)
+                            .foregroundColor(isHoveringDelete ? Color.red : adaptiveColor)
+                            .shadow(color: shadowColor.opacity(0.3), radius: 1, x: 0, y: 1)
                     }
                     .frame(width: 32, height: 32)
                 }
@@ -840,6 +850,7 @@ struct NoteContentArea: View {
     @Binding var note: Note
     let textViewRef: TextViewReference
     @Environment(NotesManager.self) private var notesManager
+    @Environment(\.colorScheme) private var colorScheme
     @State private var isEditorReady = false
 
     var body: some View {
@@ -852,7 +863,7 @@ struct NoteContentArea: View {
                     notesManager.updateNote(note)
                 }
             ),
-            textColor: .white,
+            textColor: colorScheme == .dark ? .white : .black,
             onTextChange: { newText in
                 Task { @MainActor in
                     await Task.yield()
