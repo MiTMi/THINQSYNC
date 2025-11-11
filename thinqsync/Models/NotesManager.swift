@@ -59,7 +59,7 @@ class NotesManager {
         return folders
     }
 
-    func createNote(title: String = "", color: NoteColor = .green) -> Note {
+    func createNote(title: String = "", color: NoteColor = .yellow) -> Note {
         let note = Note(title: title, color: color)
         _allNotes.append(note)
         openNotes[note.id] = true

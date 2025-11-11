@@ -52,5 +52,13 @@ struct thinqsyncApp: App {
         }
         .windowStyle(.hiddenTitleBar)
         .defaultSize(width: 1200, height: 800)
+
+        // Window for Carousel Dashboard
+        WindowGroup(id: "carousel-dashboard") {
+            CarouselDashboardIntegratedView()
+                .environment(notesManager)
+        }
+        .windowStyle(.hiddenTitleBar)
+        .defaultSize(width: 1200, height: 800)
     }
 }
