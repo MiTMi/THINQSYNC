@@ -37,13 +37,12 @@ struct thinqsyncApp: App {
                let noteBinding = notesManager.binding(for: noteID) {
                 NoteWindow(note: noteBinding)
                     .environment(notesManager)
-                    .frame(minWidth: 300, minHeight: 200)
                     .ignoresSafeArea(.all)
             }
         }
         .windowStyle(.hiddenTitleBar)
         .windowResizability(.automatic)
-        .defaultSize(width: 400, height: 300)
+        .defaultSize(width: 530, height: 330)
 
         // Window for Show all Notes view
         WindowGroup(id: "show-all-notes") {

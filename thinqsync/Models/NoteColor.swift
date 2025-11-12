@@ -51,6 +51,17 @@ enum NoteColor: String, Codable, CaseIterable, Sendable {
         }
     }
 
+    // Adaptive text color based on system appearance
+    func textColor(for colorScheme: ColorScheme) -> Color {
+        return colorScheme == .dark ? .white : .black
+    }
+
+    // Adaptive icon color based on system appearance
+    func iconColor(for colorScheme: ColorScheme) -> Color {
+        return colorScheme == .dark ? Color.white.opacity(0.9) : Color.black.opacity(0.7)
+    }
+
+    // Legacy non-adaptive text color (for backwards compatibility)
     var textColor: Color {
         switch self {
         case .yellow, .orange, .pink, .green, .blue:
@@ -60,6 +71,7 @@ enum NoteColor: String, Codable, CaseIterable, Sendable {
         }
     }
 
+    // Legacy non-adaptive icon color (for backwards compatibility)
     var iconColor: Color {
         switch self {
         case .yellow, .orange, .pink, .green, .blue:

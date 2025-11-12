@@ -72,6 +72,13 @@ struct NoteWindow: View {
         guard !windowConfigured else { return }
         windowConfigured = true
 
+        // CRITICAL: Force window size to 530x330
+        // Using setFrame instead of setContentSize for more direct control
+        // This overrides macOS's cached window sizes for existing notes
+        let currentOrigin = window.frame.origin
+        let newFrame = NSRect(x: currentOrigin.x, y: currentOrigin.y, width: 530, height: 330)
+        window.setFrame(newFrame, display: true)
+
         // Set window to float
         window.level = .floating
         window.collectionBehavior = [.canJoinAllSpaces, .fullScreenAuxiliary]
@@ -197,6 +204,26 @@ struct CustomTitleBar: View {
                 .multilineTextAlignment(.leading)
                 .frame(maxWidth: .infinity, alignment: .leading)
                 .padding(.leading, 12)
+
+            // iCloud sync indicator
+            if notesManager.iCloudEnabled {
+                HStack(spacing: 4) {
+                    Image(systemName: notesManager.isSyncing ? "icloud.and.arrow.up" : "icloud")
+                        .font(.system(size: 11, weight: .medium))
+                        .foregroundColor(adaptiveColor.opacity(0.7))
+                        .symbolEffect(.pulse, options: .repeating, isActive: notesManager.isSyncing)
+
+                    if notesManager.isSyncing {
+                        Text("Syncing...")
+                            .font(.system(size: 10, weight: .medium))
+                            .foregroundColor(adaptiveColor.opacity(0.6))
+                    }
+                }
+                .padding(.horizontal, 8)
+                .padding(.vertical, 4)
+                .background(adaptiveColor.opacity(0.08))
+                .cornerRadius(8)
+            }
 
             Spacer()
 
@@ -852,6 +879,7 @@ struct NoteContentArea: View {
     @Environment(NotesManager.self) private var notesManager
     @Environment(\.colorScheme) private var colorScheme
     @State private var isEditorReady = false
+    @State private var colorSchemeVersion = 0  // Track appearance changes
 
     var body: some View {
         RichTextEditorWithSlashMenu(
@@ -863,7 +891,7 @@ struct NoteContentArea: View {
                     notesManager.updateNote(note)
                 }
             ),
-            textColor: colorScheme == .dark ? .white : .black,
+            textColor: note.color.textColor(for: colorScheme) == .white ? .white : .black,
             onTextChange: { newText in
                 Task { @MainActor in
                     await Task.yield()
@@ -883,6 +911,43 @@ struct NoteContentArea: View {
             // Give the textView a moment to initialize
             DispatchQueue.main.asyncAfter(deadline: .now() + 0.1) {
                 isEditorReady = true
+            }
+        }
+        .onChange(of: colorScheme) { oldScheme, newScheme in
+            // Force immediate text color update when appearance changes
+            colorSchemeVersion += 1
+
+            // Directly update text colors in the text view
+            if let textView = textViewRef.textView,
+               let textStorage = textView.textStorage {
+                let targetColor = note.color.textColor(for: newScheme) == .white ? NSColor.white : NSColor.black
+                let fullRange = NSRange(location: 0, length: textStorage.length)
+
+                textStorage.beginEditing()
+                textStorage.enumerateAttribute(.foregroundColor, in: fullRange) { value, range, _ in
+                    if let existingColor = value as? NSColor {
+                        // Check if this is a default text color
+                        let isWhite = existingColor.isClose(to: .white)
+                        let isBlack = existingColor.isClose(to: .black)
+                        let isLabelColor = existingColor.isClose(to: .labelColor)
+
+                        // Update if it's a default system text color
+                        if isWhite || isBlack || isLabelColor {
+                            textStorage.addAttribute(.foregroundColor, value: targetColor, range: range)
+                        }
+                    } else {
+                        // No color set - apply the current text color
+                        textStorage.addAttribute(.foregroundColor, value: targetColor, range: range)
+                    }
+                }
+                textStorage.endEditing()
+
+                // Also update typing attributes
+                textView.typingAttributes[.foregroundColor] = targetColor
+
+                // CRITICAL: Force immediate visual redisplay of the text view
+                // Without this, the color changes won't appear until the next view update
+                textView.setNeedsDisplay(textView.bounds)
             }
         }
     }

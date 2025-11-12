@@ -9,6 +9,7 @@ import SwiftUI
 
 struct CarouselDashboardIntegratedView: View {
     @Environment(NotesManager.self) private var notesManager
+    @Environment(\.colorScheme) private var colorScheme
     @State private var currentIndex: Int = 0
     @State private var particleBursts: [ParticleBurstTrigger] = []
     @State private var isLoading = true
@@ -19,14 +20,20 @@ struct CarouselDashboardIntegratedView: View {
     @FocusState private var isFocused: Bool
     @Environment(\.openWindow) private var openWindow
 
+    // Adaptive colors based on system appearance
+    private var adaptiveTextColor: Color {
+        colorScheme == .dark ? .white : .black
+    }
+
+    private var adaptiveShadowColor: Color {
+        colorScheme == .dark ? .black.opacity(0.3) : .white.opacity(0.3)
+    }
+
     // Convert real notes to carousel notes with search filtering
     private var displayNotes: [CarouselNoteData] {
         let allNotes = notesManager.notes.map { note in
-            // Extract plain text from content property (all lines, no limit)
+            // Extract plain text from content property (preserve original formatting)
             let plainText = note.content
-            let items = plainText.components(separatedBy: .newlines)
-                .filter { !$0.trimmingCharacters(in: .whitespaces).isEmpty }
-                .map { String($0) }
 
             // Map NoteColor to carousel colors
             let carouselColor: Color = {
@@ -43,7 +50,7 @@ struct CarouselDashboardIntegratedView: View {
             return CarouselNoteData(
                 id: note.id,
                 title: note.title,
-                items: Array(items),
+                content: plainText,
                 color: carouselColor,
                 isFavorite: note.isFavorite,
                 folder: note.folder,
@@ -57,19 +64,23 @@ struct CarouselDashboardIntegratedView: View {
         } else {
             return allNotes.filter { noteData in
                 noteData.title.localizedCaseInsensitiveContains(searchText) ||
-                noteData.items.contains { $0.localizedCaseInsensitiveContains(searchText) }
+                noteData.content.localizedCaseInsensitiveContains(searchText)
             }
         }
     }
 
     var body: some View {
         ZStack {
-            // Gradient background
+            // Adaptive gradient background
             LinearGradient(
-                gradient: Gradient(colors: [
+                gradient: Gradient(colors: colorScheme == .dark ? [
                     Color.prussianBlue.opacity(0.3),
                     Color.blueGreen.opacity(0.2),
                     Color.skyBlue.opacity(0.3)
+                ] : [
+                    Color.gray.opacity(0.1),
+                    Color.blue.opacity(0.05),
+                    Color.gray.opacity(0.15)
                 ]),
                 startPoint: .topLeading,
                 endPoint: .bottomTrailing
@@ -95,16 +106,16 @@ struct CarouselDashboardIntegratedView: View {
                         VStack(spacing: 20) {
                             Image(systemName: "magnifyingglass")
                                 .font(.system(size: 80))
-                                .foregroundColor(.white.opacity(0.5))
+                                .foregroundColor(adaptiveTextColor.opacity(0.5))
 
                             Text("No Results Found")
                                 .font(.title)
                                 .fontWeight(.bold)
-                                .foregroundColor(.white)
+                                .foregroundColor(adaptiveTextColor)
 
                             Text("Try a different search term")
                                 .font(.body)
-                                .foregroundColor(.white.opacity(0.7))
+                                .foregroundColor(adaptiveTextColor.opacity(0.7))
 
                             Button(action: {
                                 searchText = ""
@@ -129,16 +140,16 @@ struct CarouselDashboardIntegratedView: View {
                         VStack(spacing: 20) {
                             Image(systemName: "note.text")
                                 .font(.system(size: 80))
-                                .foregroundColor(.white.opacity(0.5))
+                                .foregroundColor(adaptiveTextColor.opacity(0.5))
 
                             Text("No Notes Yet")
                                 .font(.title)
                                 .fontWeight(.bold)
-                                .foregroundColor(.white)
+                                .foregroundColor(adaptiveTextColor)
 
                             Text("Create your first note to get started")
                                 .font(.body)
-                                .foregroundColor(.white.opacity(0.7))
+                                .foregroundColor(adaptiveTextColor.opacity(0.7))
 
                             Button(action: {
                                 let note = notesManager.createNote()
@@ -242,11 +253,42 @@ struct CarouselDashboardIntegratedView: View {
             HStack(spacing: 8) {
                 Image(systemName: "note.text")
                     .font(.title2)
-                    .foregroundColor(.white)
+                    .foregroundColor(adaptiveTextColor)
                 Text("ThinqSync")
                     .font(.title2)
                     .fontWeight(.bold)
-                    .foregroundColor(.white)
+                    .foregroundColor(adaptiveTextColor)
+            }
+
+            // iCloud sync indicator
+            if notesManager.iCloudEnabled {
+                HStack(spacing: 6) {
+                    Image(systemName: notesManager.isSyncing ? "icloud.and.arrow.up" : "icloud")
+                        .font(.system(size: 14, weight: .medium))
+                        .foregroundColor(adaptiveTextColor.opacity(0.9))
+                        .symbolEffect(.pulse, options: .repeating, isActive: notesManager.isSyncing)
+
+                    if notesManager.isSyncing {
+                        Text("Syncing...")
+                            .font(.system(size: 12, weight: .medium))
+                            .foregroundColor(adaptiveTextColor.opacity(0.8))
+                    } else {
+                        Text("Synced")
+                            .font(.system(size: 12, weight: .medium))
+                            .foregroundColor(adaptiveTextColor.opacity(0.8))
+                    }
+                }
+                .padding(.horizontal, 12)
+                .padding(.vertical, 6)
+                .background(
+                    Capsule()
+                        .fill(.ultraThinMaterial)
+                        .opacity(0.5)
+                )
+                .overlay(
+                    Capsule()
+                        .stroke(adaptiveTextColor.opacity(0.3), lineWidth: 1)
+                )
             }
 
             Spacer()
@@ -269,7 +311,7 @@ struct CarouselDashboardIntegratedView: View {
                 }) {
                     Image(systemName: showSearch ? "xmark" : "magnifyingglass")
                         .font(.title3)
-                        .foregroundColor(.white)
+                        .foregroundColor(adaptiveTextColor)
                 }
                 .buttonStyle(GlassButtonStyle())
                 .help(showSearch ? "Close search" : "Search notes")
@@ -280,7 +322,7 @@ struct CarouselDashboardIntegratedView: View {
                 }) {
                     Image(systemName: "gearshape")
                         .font(.title3)
-                        .foregroundColor(.white)
+                        .foregroundColor(adaptiveTextColor)
                 }
                 .buttonStyle(GlassButtonStyle())
                 .help("Settings")
@@ -312,12 +354,12 @@ struct CarouselDashboardIntegratedView: View {
     private var searchBar: some View {
         HStack(spacing: 12) {
             Image(systemName: "magnifyingglass")
-                .foregroundColor(.white.opacity(0.6))
+                .foregroundColor(adaptiveTextColor.opacity(0.6))
 
             TextField("Search notes...", text: $searchText)
                 .textFieldStyle(.plain)
                 .font(.body)
-                .foregroundColor(.white)
+                .foregroundColor(adaptiveTextColor)
                 .focused($isFocused)
 
             if !searchText.isEmpty {
@@ -325,7 +367,7 @@ struct CarouselDashboardIntegratedView: View {
                     searchText = ""
                 }) {
                     Image(systemName: "xmark.circle.fill")
-                        .foregroundColor(.white.opacity(0.6))
+                        .foregroundColor(adaptiveTextColor.opacity(0.6))
                 }
                 .buttonStyle(PlainButtonStyle())
             }
@@ -354,6 +396,7 @@ struct CarouselDashboardIntegratedView: View {
                     IntegratedCarouselCardView(
                         noteData: note,
                         notesManager: notesManager,
+                        colorScheme: colorScheme,
                         onFavoriteToggle: {
                             triggerParticleBurst(in: geometry)
                         },
@@ -393,7 +436,7 @@ struct CarouselDashboardIntegratedView: View {
                     Button(action: previousCard) {
                         Image(systemName: "chevron.left")
                             .font(.title)
-                            .foregroundColor(.white)
+                            .foregroundColor(adaptiveTextColor)
                             .frame(width: 50, height: 50)
                             .background(
                                 Circle()
@@ -410,7 +453,7 @@ struct CarouselDashboardIntegratedView: View {
                     Button(action: nextCard) {
                         Image(systemName: "chevron.right")
                             .font(.title)
-                            .foregroundColor(.white)
+                            .foregroundColor(adaptiveTextColor)
                             .frame(width: 50, height: 50)
                             .background(
                                 Circle()
@@ -434,15 +477,15 @@ struct CarouselDashboardIntegratedView: View {
         HStack(spacing: 12) {
             ForEach(Array(displayNotes.enumerated()), id: \.element.id) { index, _ in
                 Circle()
-                    .fill(index == currentIndex ? Color.white : Color.white.opacity(0.4))
+                    .fill(index == currentIndex ? adaptiveTextColor : adaptiveTextColor.opacity(0.4))
                     .frame(width: index == currentIndex ? 12 : 8, height: index == currentIndex ? 12 : 8)
                     .overlay(
                         Circle()
-                            .stroke(Color.white.opacity(0.8), lineWidth: index == currentIndex ? 2 : 0)
+                            .stroke(adaptiveTextColor.opacity(0.8), lineWidth: index == currentIndex ? 2 : 0)
                             .scaleEffect(index == currentIndex ? 1.3 : 1.0)
                             .opacity(index == currentIndex ? 0.6 : 0)
                     )
-                    .shadow(color: .white.opacity(index == currentIndex ? 0.5 : 0), radius: 8, x: 0, y: 0)
+                    .shadow(color: adaptiveTextColor.opacity(index == currentIndex ? 0.5 : 0), radius: 8, x: 0, y: 0)
                     .animation(.spring(duration: 0.4, bounce: 0.5), value: currentIndex)
                     .onTapGesture {
                         withAnimation(.spring(duration: 0.5, bounce: 0.3)) {
@@ -478,7 +521,7 @@ struct CarouselDashboardIntegratedView: View {
         HStack {
             Text("\(currentIndex + 1) / \(displayNotes.count)")
                 .font(.subheadline)
-                .foregroundColor(.white.opacity(0.8))
+                .foregroundColor(adaptiveTextColor.opacity(0.8))
                 .padding(.horizontal, 20)
                 .padding(.vertical, 10)
                 .background(
@@ -554,10 +597,20 @@ struct CarouselDashboardIntegratedView: View {
 struct IntegratedCarouselCardView: View {
     let noteData: CarouselNoteData
     let notesManager: NotesManager
+    let colorScheme: ColorScheme
     let onFavoriteToggle: () -> Void
     let onDelete: () -> Void
 
     @Environment(\.openWindow) private var openWindow
+
+    // Adaptive colors based on system appearance
+    private var adaptiveTextColor: Color {
+        colorScheme == .dark ? .white : .black
+    }
+
+    private var adaptiveShadowColor: Color {
+        colorScheme == .dark ? .black.opacity(0.3) : .white.opacity(0.3)
+    }
 
     var body: some View {
         VStack(alignment: .leading, spacing: 20) {
@@ -565,8 +618,8 @@ struct IntegratedCarouselCardView: View {
             HStack {
                 Text(noteData.title)
                     .font(.system(size: 32, weight: .heavy))
-                    .foregroundColor(.white)
-                    .shadow(color: .black.opacity(0.3), radius: 2, x: 0, y: 1)
+                    .foregroundColor(adaptiveTextColor)
+                    .shadow(color: adaptiveShadowColor, radius: 2, x: 0, y: 1)
 
                 Spacer()
 
@@ -578,8 +631,8 @@ struct IntegratedCarouselCardView: View {
                     }) {
                         Image(systemName: "trash")
                             .font(.title3)
-                            .foregroundColor(.white.opacity(0.8))
-                            .shadow(color: .black.opacity(0.3), radius: 2, x: 0, y: 1)
+                            .foregroundColor(adaptiveTextColor.opacity(0.8))
+                            .shadow(color: adaptiveShadowColor, radius: 2, x: 0, y: 1)
                     }
                     .buttonStyle(PlainButtonStyle())
                     .help("Delete note")
@@ -597,38 +650,22 @@ struct IntegratedCarouselCardView: View {
                             .font(.title2)
                             .foregroundColor(.selectiveYellow)
                             .scaleEffect(noteData.isFavorite ? 1.2 : 1.0)
-                            .shadow(color: .black.opacity(0.3), radius: 2, x: 0, y: 1)
+                            .shadow(color: adaptiveShadowColor, radius: 2, x: 0, y: 1)
                     }
                     .buttonStyle(PlainButtonStyle())
                     .help("Toggle favorite")
                 }
             }
 
-            // List items - scrollable to show all content
+            // Note content - scrollable to show all content
             ScrollView(.vertical, showsIndicators: true) {
-                VStack(alignment: .leading, spacing: 16) {
-                    ForEach(Array(noteData.items.enumerated()), id: \.offset) { index, item in
-                        HStack(alignment: .top, spacing: 12) {
-                            Circle()
-                                .fill(Color.white)
-                                .frame(width: 8, height: 8)
-                                .padding(.top, 8)
-                                .shadow(color: .black.opacity(0.3), radius: 1, x: 0, y: 1)
-
-                            Text(item)
-                                .font(.system(size: 16, weight: .semibold))
-                                .foregroundColor(.white)
-                                .shadow(color: .black.opacity(0.4), radius: 2, x: 0, y: 1)
-                                .multilineTextAlignment(.leading)
-                                .fixedSize(horizontal: false, vertical: true)
-                        }
-                        .transition(.asymmetric(
-                            insertion: .move(edge: .leading).combined(with: .opacity),
-                            removal: .opacity
-                        ))
-                    }
-                }
-                .padding(.trailing, 8)
+                Text(noteData.content.isEmpty ? "Empty note" : noteData.content)
+                    .font(.system(size: 16, weight: .regular))
+                    .foregroundColor(adaptiveTextColor)
+                    .shadow(color: adaptiveShadowColor, radius: 2, x: 0, y: 1)
+                    .multilineTextAlignment(.leading)
+                    .frame(maxWidth: .infinity, alignment: .leading)
+                    .padding(.trailing, 8)
             }
             .frame(maxHeight: 300)
             .scrollIndicators(.visible)
@@ -639,19 +676,19 @@ struct IntegratedCarouselCardView: View {
                 HStack(spacing: 12) {
                     Text(noteData.modifiedAt, style: .date)
                         .font(.system(size: 12, weight: .medium))
-                        .foregroundColor(.white.opacity(0.9))
-                        .shadow(color: .black.opacity(0.3), radius: 1, x: 0, y: 1)
+                        .foregroundColor(adaptiveTextColor.opacity(0.9))
+                        .shadow(color: adaptiveShadowColor, radius: 1, x: 0, y: 1)
 
                     if let folder = noteData.folder {
                         Text(folder)
                             .font(.system(size: 12, weight: .semibold))
-                            .foregroundColor(.white.opacity(0.9))
-                            .shadow(color: .black.opacity(0.3), radius: 1, x: 0, y: 1)
+                            .foregroundColor(adaptiveTextColor.opacity(0.9))
+                            .shadow(color: adaptiveShadowColor, radius: 1, x: 0, y: 1)
                             .padding(.horizontal, 10)
                             .padding(.vertical, 5)
                             .background(
                                 Capsule()
-                                    .fill(Color.white.opacity(0.15))
+                                    .fill(adaptiveTextColor.opacity(0.15))
                             )
                     }
                 }
@@ -671,8 +708,8 @@ struct IntegratedCarouselCardView: View {
                     }) {
                         Image(systemName: "doc.on.doc")
                             .font(.system(size: 14))
-                            .foregroundColor(.white.opacity(0.8))
-                            .shadow(color: .black.opacity(0.3), radius: 1, x: 0, y: 1)
+                            .foregroundColor(adaptiveTextColor.opacity(0.8))
+                            .shadow(color: adaptiveShadowColor, radius: 1, x: 0, y: 1)
                     }
                     .buttonStyle(PlainButtonStyle())
                     .help("Copy note content")
@@ -685,8 +722,8 @@ struct IntegratedCarouselCardView: View {
                     }) {
                         Image(systemName: "pencil")
                             .font(.system(size: 14))
-                            .foregroundColor(.white.opacity(0.8))
-                            .shadow(color: .black.opacity(0.3), radius: 1, x: 0, y: 1)
+                            .foregroundColor(adaptiveTextColor.opacity(0.8))
+                            .shadow(color: adaptiveShadowColor, radius: 1, x: 0, y: 1)
                     }
                     .buttonStyle(PlainButtonStyle())
                     .help("Edit note")
@@ -704,7 +741,7 @@ struct IntegratedCarouselCardView: View {
 struct CarouselNoteData: Identifiable {
     let id: UUID
     let title: String
-    let items: [String]
+    let content: String
     let color: Color
     let isFavorite: Bool
     let folder: String?
@@ -716,13 +753,18 @@ struct CarouselNoteData: Identifiable {
 struct IntegratedThumbnailView: View {
     let noteData: CarouselNoteData
     let isActive: Bool
+    @Environment(\.colorScheme) private var colorScheme
+
+    private var adaptiveTextColor: Color {
+        colorScheme == .dark ? .white : .black
+    }
 
     var body: some View {
         VStack(alignment: .leading, spacing: 8) {
             Text(noteData.title)
                 .font(.caption)
                 .fontWeight(.semibold)
-                .foregroundColor(.white)
+                .foregroundColor(adaptiveTextColor)
                 .lineLimit(1)
 
             // Translucent preview matching carousel background
@@ -754,10 +796,10 @@ struct IntegratedThumbnailView: View {
         )
         .overlay(
             RoundedRectangle(cornerRadius: 12)
-                .stroke(isActive ? Color.white : Color.clear, lineWidth: 2)
+                .stroke(isActive ? adaptiveTextColor : Color.clear, lineWidth: 2)
         )
         .scaleEffect(isActive ? 1.1 : 1.0)
-        .shadow(color: isActive ? Color.white.opacity(0.5) : .clear, radius: 10)
+        .shadow(color: isActive ? adaptiveTextColor.opacity(0.5) : .clear, radius: 10)
         .animation(.spring(duration: 0.3, bounce: 0.4), value: isActive)
     }
 }

@@ -73,17 +73,6 @@ struct RichTextEditor: NSViewRepresentable {
             return
         }
 
-        // Update default color for ALL existing text (instant light/dark mode switching)
-        if let textStorage = textView.textStorage {
-            let fullRange = NSRange(location: 0, length: textStorage.length)
-            textStorage.enumerateAttribute(.foregroundColor, in: fullRange) { value, range, _ in
-                // Only update if it's the default system color (not user-formatted colors)
-                if value == nil || (value as? NSColor)?.alphaComponent == 1.0 {
-                    textStorage.addAttribute(.foregroundColor, value: NSColor(textColor), range: range)
-                }
-            }
-        }
-
         // Only reset typing attributes when NOT formatting
         // This preserves formatting set by slash commands
         textView.typingAttributes[.foregroundColor] = NSColor(textColor)
@@ -95,6 +84,34 @@ struct RichTextEditor: NSViewRepresentable {
             if selectedRange.location <= textView.string.count {
                 textView.setSelectedRange(selectedRange)
             }
+        }
+
+        // CRITICAL: Update default color for ALL existing text AFTER setting attributed text
+        // This fixes the issue where notes created in dark mode show white text in light mode
+        // Must run AFTER setAttributedString to override any stored colors from the binding
+        if let textStorage = textView.textStorage {
+            let fullRange = NSRange(location: 0, length: textStorage.length)
+            let targetColor = NSColor(textColor)
+
+            textStorage.beginEditing()
+            textStorage.enumerateAttribute(.foregroundColor, in: fullRange) { value, range, _ in
+                if let existingColor = value as? NSColor {
+                    // Check if this is a default text color (white or black with full opacity)
+                    // by comparing against common system text colors
+                    let isWhite = existingColor.isClose(to: .white)
+                    let isBlack = existingColor.isClose(to: .black)
+                    let isLabelColor = existingColor.isClose(to: .labelColor)
+
+                    // Update if it's a default system text color (white, black, or labelColor)
+                    if isWhite || isBlack || isLabelColor {
+                        textStorage.addAttribute(.foregroundColor, value: targetColor, range: range)
+                    }
+                } else {
+                    // No color set - apply the current text color
+                    textStorage.addAttribute(.foregroundColor, value: targetColor, range: range)
+                }
+            }
+            textStorage.endEditing()
         }
     }
 
@@ -279,5 +296,22 @@ extension NSAttributedString {
             .foregroundColor: color  // Use the provided color
         ]
         self.init(string: string, attributes: attributes)
+    }
+}
+
+// Extension to compare NSColors with tolerance for color space differences
+extension NSColor {
+    func isClose(to otherColor: NSColor, tolerance: CGFloat = 0.1) -> Bool {
+        // Convert both colors to RGB color space for comparison
+        guard let selfRGB = self.usingColorSpace(.deviceRGB),
+              let otherRGB = otherColor.usingColorSpace(.deviceRGB) else {
+            return false
+        }
+
+        let redDiff = abs(selfRGB.redComponent - otherRGB.redComponent)
+        let greenDiff = abs(selfRGB.greenComponent - otherRGB.greenComponent)
+        let blueDiff = abs(selfRGB.blueComponent - otherRGB.blueComponent)
+
+        return redDiff < tolerance && greenDiff < tolerance && blueDiff < tolerance
     }
 }
