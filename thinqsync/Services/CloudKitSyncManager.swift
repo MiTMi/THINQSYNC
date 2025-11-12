@@ -30,37 +30,67 @@ class CloudKitSyncManager {
 
     // MARK: - Schema Initialization
 
-    /// Ensures CloudKit schema exists by attempting to save a test record
+    /// Ensures CloudKit schema exists by attempting to fetch or create a test record
     /// This only needs to run once in development to create the schema
     func initializeSchema() async throws {
-        // Try to save a test record - if schema doesn't exist, this will create it
-        // If schema already exists, we just create one extra note (which is fine)
+        // Try to fetch existing records - if this works, schema exists
         do {
-            print("Initializing CloudKit schema...")
-            let dummyNote = Note(
+            let query = CKQuery(recordType: recordType, predicate: NSPredicate(value: true))
+            query.sortDescriptors = [NSSortDescriptor(key: "createdAt", ascending: false)]
+            let (results, _) = try await privateDatabase.records(matching: query, resultsLimit: 1)
+
+            if results.isEmpty {
+                // No records exist - create a welcome note to initialize schema
+                print("Creating first CloudKit record to initialize schema...")
+                let welcomeNote = Note(
+                    title: "Welcome to ThinqSync!",
+                    content: "This is your first synced note. CloudKit sync is now enabled and working.",
+                    color: .blue
+                )
+                try await saveNote(welcomeNote)
+                print("CloudKit schema initialized!")
+            } else {
+                print("CloudKit schema already exists with records")
+            }
+        } catch let error as CKError where error.code == .invalidArguments {
+            // Indexes not ready yet - schema might be initializing
+            print("CloudKit indexes not ready, schema may be initializing")
+        } catch let error as CKError where error.code == .unknownItem {
+            // Schema doesn't exist - create welcome note
+            print("Creating CloudKit schema with welcome note...")
+            let welcomeNote = Note(
                 title: "Welcome to ThinqSync!",
                 content: "This is your first synced note. CloudKit sync is now enabled and working.",
                 color: .blue
             )
-            try await saveNote(dummyNote)
-            print("CloudKit schema ready!")
-        } catch let error as CKError where error.code == .unknownItem {
-            // This shouldn't happen, but if it does, schema creation failed
-            print("Failed to create CloudKit schema: \(error)")
-            throw error
+            try await saveNote(welcomeNote)
+            print("CloudKit schema created!")
         }
     }
 
     // MARK: - Sync Notes
 
     func syncNotes(_ notes: [Note]) async throws {
-        // Delete all existing records first (simple approach)
-        // In production, you'd want a more sophisticated sync strategy
-        try await deleteAllRecords()
-
-        // Upload all notes
+        // Upload all notes - CloudKit will update existing records or create new ones
         for note in notes {
-            try await saveNote(note)
+            do {
+                try await saveNote(note)
+            } catch let error as CKError where error.code == .serverRecordChanged {
+                // Record already exists with different version - fetch and update
+                print("Record \(note.title) already exists, updating...")
+                let recordID = CKRecord.ID(recordName: note.id.uuidString)
+                if let existingRecord = try? await privateDatabase.record(for: recordID) {
+                    // Update existing record with new data
+                    existingRecord["title"] = note.title as CKRecordValue
+                    existingRecord["contentRTF"] = note.contentWrapper.data as CKRecordValue
+                    existingRecord["contentPlainText"] = note.content as CKRecordValue
+                    existingRecord["color"] = note.color.rawValue as CKRecordValue
+                    existingRecord["isFavorite"] = note.isFavorite as CKRecordValue
+                    existingRecord["folder"] = (note.folder ?? "") as CKRecordValue
+                    existingRecord["modifiedAt"] = note.modifiedAt as CKRecordValue
+                    try? await privateDatabase.save(existingRecord)
+                }
+            }
         }
     }
 
