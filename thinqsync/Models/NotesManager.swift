@@ -34,15 +34,15 @@ class NotesManager {
         // Load saved notes from UserDefaults
         loadNotes()
 
-        // If no saved notes exist, create sample notes
+        // If no saved notes exist, create sample notes (only if not using iCloud)
         if _allNotes.isEmpty {
             createSampleNotes()
         }
 
-        // iCloud disabled for now - focusing on local storage
-        // Task {
-        //     await checkiCloudStatus()
-        // }
+        // Check iCloud status and sync on app launch
+        Task {
+            await checkiCloudStatus()
+        }
     }
 
     var favoriteNotes: [Note] {
@@ -150,12 +150,12 @@ class NotesManager {
             UserDefaults.standard.set(encoded, forKey: saveKey)
         }
 
-        // iCloud sync disabled for now
-        // if iCloudEnabled {
-        //     Task {
-        //         await syncToiCloud()
-        //     }
-        // }
+        // Auto-sync to iCloud after saving locally
+        if iCloudEnabled {
+            Task {
+                await syncToiCloud()
+            }
+        }
     }
 
     private func loadNotes() {
@@ -228,7 +228,10 @@ class NotesManager {
             let cloudNotes = try await cloudSync.fetchAllNotes()
             if !cloudNotes.isEmpty {
                 _allNotes = cloudNotes
-                saveNotes()
+                // Save to local storage (without triggering another iCloud sync)
+                if let encoded = try? JSONEncoder().encode(_allNotes) {
+                    UserDefaults.standard.set(encoded, forKey: saveKey)
+                }
                 print("Loaded \(cloudNotes.count) notes from iCloud")
             }
         } catch {

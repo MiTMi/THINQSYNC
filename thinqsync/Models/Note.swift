@@ -12,7 +12,7 @@ import AppKit
 struct Note: Identifiable, Codable, Sendable {
     var id: UUID
     var title: String
-    private var contentWrapper: AttributedStringWrapper
+    var contentWrapper: AttributedStringWrapper  // Internal access for CloudKit sync
     var color: NoteColor
     var isFavorite: Bool
     var folder: String?
@@ -58,6 +58,29 @@ struct Note: Identifiable, Codable, Sendable {
             .foregroundColor: NSColor.labelColor
         ]
         self.contentWrapper = AttributedStringWrapper(NSAttributedString(string: content, attributes: attributes))
+        self.color = color
+        self.isFavorite = isFavorite
+        self.folder = folder
+        self.createdAt = createdAt
+        self.modifiedAt = modifiedAt
+        self.deletedAt = deletedAt
+    }
+
+    // Initializer for CloudKit deserialization (with contentWrapper directly)
+    init(
+        id: UUID,
+        title: String,
+        contentWrapper: AttributedStringWrapper,
+        color: NoteColor,
+        isFavorite: Bool,
+        folder: String?,
+        createdAt: Date,
+        modifiedAt: Date,
+        deletedAt: Date? = nil
+    ) {
+        self.id = id
+        self.title = title
+        self.contentWrapper = contentWrapper
         self.color = color
         self.isFavorite = isFavorite
         self.folder = folder

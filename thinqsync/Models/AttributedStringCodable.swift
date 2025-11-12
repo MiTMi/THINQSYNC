@@ -25,6 +25,11 @@ struct AttributedStringWrapper: Codable, Sendable {
         }
     }
 
+    // Initialize directly from RTF data (for CloudKit deserialization)
+    init(data: Data) {
+        self.data = data
+    }
+
     var attributedString: NSAttributedString {
         if let attributed = try? NSAttributedString(
             data: data,

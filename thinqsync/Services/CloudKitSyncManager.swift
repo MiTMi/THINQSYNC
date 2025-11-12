@@ -88,7 +88,10 @@ class CloudKitSyncManager {
         let record = CKRecord(recordType: recordType, recordID: recordID)
 
         record["title"] = note.title as CKRecordValue
-        record["content"] = note.content as CKRecordValue
+        // Store RTF data to preserve formatting (bold, italic, sizes, etc.)
+        record["contentRTF"] = note.contentWrapper.data as CKRecordValue
+        // Store plain text for search/preview and backwards compatibility
+        record["contentPlainText"] = note.content as CKRecordValue
         record["color"] = note.color.rawValue as CKRecordValue
         record["isFavorite"] = note.isFavorite as CKRecordValue
         record["folder"] = (note.folder ?? "") as CKRecordValue
@@ -101,7 +104,6 @@ class CloudKitSyncManager {
     private func noteFromRecord(_ record: CKRecord) -> Note? {
         guard let id = UUID(uuidString: record.recordID.recordName),
               let title = record["title"] as? String,
-              let content = record["content"] as? String,
               let colorString = record["color"] as? String,
               let color = NoteColor(rawValue: colorString),
               let isFavorite = record["isFavorite"] as? Bool,
@@ -110,11 +112,26 @@ class CloudKitSyncManager {
             return nil
         }
 
+        // Restore rich text from RTF data (preserves formatting)
+        let contentWrapper: AttributedStringWrapper
+        if let rtfData = record["contentRTF"] as? Data {
+            contentWrapper = AttributedStringWrapper(data: rtfData)
+        } else if let plainText = record["contentPlainText"] as? String {
+            // Fallback for old records without RTF data
+            contentWrapper = AttributedStringWrapper(NSAttributedString(string: plainText))
+        } else if let legacyContent = record["content"] as? String {
+            // Backwards compatibility with very old schema
+            contentWrapper = AttributedStringWrapper(NSAttributedString(string: legacyContent))
+        } else {
+            // Empty note
+            contentWrapper = AttributedStringWrapper(NSAttributedString(string: ""))
+        }
+
         let folder = record["folder"] as? String
         return Note(
             id: id,
             title: title,
-            content: content,
+            contentWrapper: contentWrapper,
             color: color,
             isFavorite: isFavorite,
             folder: folder?.isEmpty == false ? folder : nil,
