@@ -28,6 +28,30 @@ class CloudKitSyncManager {
         return status == .available
     }
 
+    // MARK: - Schema Initialization
+
+    /// Ensures CloudKit schema exists by attempting to save a test record
+    /// This only needs to run once in development to create the schema
+    func initializeSchema() async throws {
+        // Check if schema already exists by trying to query
+        let query = CKQuery(recordType: recordType, predicate: NSPredicate(value: true))
+        do {
+            _ = try await privateDatabase.records(matching: query, resultsLimit: 1)
+            // If query succeeds, schema exists
+            print("CloudKit schema already exists")
+        } catch let error as CKError where error.code == .unknownItem {
+            // Schema doesn't exist - create a dummy record to initialize it
+            print("Creating CloudKit schema...")
+            let dummyNote = Note(
+                title: "Schema Initialization Note",
+                content: "This note was created to initialize the CloudKit schema. You can delete it.",
+                color: .blue
+            )
+            try await saveNote(dummyNote)
+            print("CloudKit schema created successfully!")
+        }
+    }
+
     // MARK: - Sync Notes
 
     func syncNotes(_ notes: [Note]) async throws {

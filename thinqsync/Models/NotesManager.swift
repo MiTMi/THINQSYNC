@@ -198,6 +198,9 @@ class NotesManager {
         do {
             iCloudEnabled = try await cloudSync.checkAccountStatus()
             if iCloudEnabled {
+                // Initialize CloudKit schema if needed (first-time setup)
+                try await cloudSync.initializeSchema()
+                // Then sync notes
                 await syncFromiCloud()
             }
         } catch {
