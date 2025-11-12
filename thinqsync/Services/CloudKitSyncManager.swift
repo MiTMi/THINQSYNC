@@ -67,21 +67,30 @@ class CloudKitSyncManager {
 
     func fetchAllNotes() async throws -> [Note] {
         let query = CKQuery(recordType: recordType, predicate: NSPredicate(value: true))
-        let (results, _) = try await privateDatabase.records(matching: query)
+        // Add sort descriptor to avoid "recordName not queryable" error
+        query.sortDescriptors = [NSSortDescriptor(key: "createdAt", ascending: false)]
 
-        var notes: [Note] = []
-        for (_, result) in results {
-            switch result {
-            case .success(let record):
-                if let note = noteFromRecord(record) {
-                    notes.append(note)
+        do {
+            let (results, _) = try await privateDatabase.records(matching: query)
+
+            var notes: [Note] = []
+            for (_, result) in results {
+                switch result {
+                case .success(let record):
+                    if let note = noteFromRecord(record) {
+                        notes.append(note)
+                    }
+                case .failure(let error):
+                    print("Error fetching record: \(error)")
                 }
-            case .failure(let error):
-                print("Error fetching record: \(error)")
             }
-        }
 
-        return notes
+            return notes
+        } catch let error as CKError where error.code == .invalidArguments {
+            // Schema was just created, indexes not ready yet - return empty
+            print("CloudKit indexes not ready yet, will sync on next launch")
+            return []
+        }
     }
 
     // MARK: - Individual Operations
@@ -100,10 +109,18 @@ class CloudKitSyncManager {
 
     private func deleteAllRecords() async throws {
         let query = CKQuery(recordType: recordType, predicate: NSPredicate(value: true))
-        let (results, _) = try await privateDatabase.records(matching: query)
+        // Add sort descriptor to avoid "recordName not queryable" error
+        query.sortDescriptors = [NSSortDescriptor(key: "createdAt", ascending: false)]
 
-        for (recordID, _) in results {
-            _ = try? await privateDatabase.deleteRecord(withID: recordID)
+        do {
+            let (results, _) = try await privateDatabase.records(matching: query)
+
+            for (recordID, _) in results {
+                _ = try? await privateDatabase.deleteRecord(withID: recordID)
+            }
+        } catch let error as CKError where error.code == .invalidArguments {
+            // Schema was just created, indexes not ready yet - skip deletion
+            print("CloudKit indexes not ready yet, skipping deletion")
         }
     }
 
