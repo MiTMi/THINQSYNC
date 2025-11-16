@@ -121,37 +121,45 @@ struct GlassMorphismModifier: ViewModifier {
         content
             .background(
                 ZStack {
-                    // Less translucent glass effect for better visibility
-                    Rectangle()
-                        .fill(.regularMaterial)
-                        .opacity(0.7)
+                    // Use the actual color parameter
+                    RoundedRectangle(cornerRadius: 20)
+                        .fill(color)
 
-                    // Subtle tint for visibility (adapts to light/dark mode)
-                    Rectangle()
-                        .fill(colorScheme == .dark ? Color.white.opacity(0.08) : Color.black.opacity(0.03))
+                    // Subtle gradient overlay for depth
+                    RoundedRectangle(cornerRadius: 20)
+                        .fill(
+                            LinearGradient(
+                                colors: [
+                                    Color.white.opacity(0.1),
+                                    Color.clear
+                                ],
+                                startPoint: .topLeading,
+                                endPoint: .bottomTrailing
+                            )
+                        )
                 }
             )
             .overlay(
-                // Glossy border with gradient (adapts to light/dark mode)
-                RoundedRectangle(cornerRadius: 24)
-                    .stroke(
-                        LinearGradient(
-                            gradient: Gradient(colors: colorScheme == .dark ? [
-                                Color.white.opacity(0.4),
-                                Color.white.opacity(0.15)
-                            ] : [
-                                Color.black.opacity(0.2),
-                                Color.black.opacity(0.05)
-                            ]),
-                            startPoint: .topLeading,
-                            endPoint: .bottomTrailing
-                        ),
-                        lineWidth: 1.5
+                // Border with subtle transparency
+                RoundedRectangle(cornerRadius: 20)
+                    .strokeBorder(
+                        Color.black.opacity(0.15),
+                        lineWidth: 1
                     )
             )
-            .clipShape(RoundedRectangle(cornerRadius: 24))
-            .shadow(color: Color.black.opacity(0.15), radius: 20, x: 0, y: 10)
-            .shadow(color: Color.black.opacity(0.05), radius: 5, x: 0, y: 2)
+            .clipShape(RoundedRectangle(cornerRadius: 20))
+            .shadow(
+                color: Color.black.opacity(0.15),
+                radius: 20,
+                x: 0,
+                y: 10
+            )
+            .shadow(
+                color: Color.black.opacity(0.08),
+                radius: 8,
+                x: 0,
+                y: 4
+            )
     }
 }
 
@@ -217,5 +225,34 @@ struct FloatingModifier: ViewModifier {
 extension View {
     func floating(duration: Double = 4.0, distance: Double = 5) -> some View {
         modifier(FloatingModifier(duration: duration, distance: distance))
+    }
+}
+
+// MARK: - Glass Button Style
+
+struct GlassButtonStyle: ButtonStyle {
+    @Environment(\.colorScheme) private var colorScheme
+
+    func makeBody(configuration: Configuration) -> some View {
+        configuration.label
+            .padding(12)
+            .background(
+                Circle()
+                    .fill(colorScheme == .dark ?
+                          Color(white: 0.2) :
+                          Color(white: 0.96))
+                    .overlay(
+                        Circle()
+                            .strokeBorder(
+                                colorScheme == .dark ?
+                                    Color.white.opacity(0.1) :
+                                    Color.black.opacity(0.06),
+                                lineWidth: 1
+                            )
+                    )
+            )
+            .scaleEffect(configuration.isPressed ? 0.92 : 1.0)
+            .opacity(configuration.isPressed ? 0.7 : 1.0)
+            .animation(.spring(duration: 0.2, bounce: 0.5), value: configuration.isPressed)
     }
 }

@@ -8,6 +8,46 @@
 import SwiftUI
 import AppKit
 
+// Custom NSTextView that strips formatting on paste
+class PlainPasteTextView: NSTextView {
+    override func paste(_ sender: Any?) {
+        // Get text from pasteboard
+        let pasteboard = NSPasteboard.general
+
+        // Try to get plain text string from pasteboard
+        guard let plainText = pasteboard.string(forType: .string) else {
+            super.paste(sender)
+            return
+        }
+
+        // Create attributed string with default formatting
+        let defaultFont = NSFont.systemFont(ofSize: 16)
+        let defaultColor = self.textColor ?? NSColor.labelColor
+
+        let attributes: [NSAttributedString.Key: Any] = [
+            .font: defaultFont,
+            .foregroundColor: defaultColor
+        ]
+
+        let attributedString = NSAttributedString(string: plainText, attributes: attributes)
+
+        // Insert the plain text with default formatting
+        if let textStorage = self.textStorage {
+            let selectedRange = self.selectedRange()
+            textStorage.beginEditing()
+            textStorage.replaceCharacters(in: selectedRange, with: attributedString)
+            textStorage.endEditing()
+
+            // Move cursor to end of inserted text
+            let newPosition = selectedRange.location + plainText.count
+            self.setSelectedRange(NSRange(location: newPosition, length: 0))
+
+            // CRITICAL: Notify delegate that text changed so binding gets updated
+            self.delegate?.textDidChange?(Notification(name: NSText.didChangeNotification, object: self))
+        }
+    }
+}
+
 struct RichTextEditor: NSViewRepresentable {
     @Binding var attributedText: NSAttributedString
     var textColor: Color
@@ -23,9 +63,32 @@ struct RichTextEditor: NSViewRepresentable {
     }
 
     func makeNSView(context: Context) -> NSScrollView {
-        let scrollView = NSTextView.scrollableTextView()
-        let textView = scrollView.documentView as! NSTextView
+        // Create scroll view manually with our custom text view
+        let scrollView = NSScrollView()
+        scrollView.hasVerticalScroller = true
+        scrollView.hasHorizontalScroller = false
+        scrollView.autohidesScrollers = true
+        scrollView.borderType = .noBorder
+        scrollView.backgroundColor = .clear
+        scrollView.drawsBackground = false
 
+        // Create text container and layout manager
+        let textContainer = NSTextContainer()
+        textContainer.widthTracksTextView = true
+        textContainer.heightTracksTextView = false
+        textContainer.containerSize = NSSize(width: 0, height: CGFloat.greatestFiniteMagnitude)
+
+        let layoutManager = NSLayoutManager()
+        layoutManager.addTextContainer(textContainer)
+
+        // Create text storage with initial attributed text
+        let textStorage = NSTextStorage(attributedString: attributedText)
+        textStorage.addLayoutManager(layoutManager)
+
+        // Create our custom text view that strips formatting on paste
+        let textView = PlainPasteTextView(frame: .zero, textContainer: textContainer)
+
+        // Configure the text view
         textView.delegate = context.coordinator
         textView.isRichText = true
         textView.allowsUndo = true
@@ -34,6 +97,16 @@ struct RichTextEditor: NSViewRepresentable {
         textView.backgroundColor = .clear
         textView.drawsBackground = false
         textView.textContainerInset = NSSize(width: 16, height: 14)
+        textView.isVerticallyResizable = true
+        textView.isHorizontallyResizable = false
+        textView.autoresizingMask = [.width]
+
+        // Critical: Set max and min sizes to prevent text from disappearing
+        textView.minSize = NSSize(width: 0, height: 0)
+        textView.maxSize = NSSize(width: CGFloat.greatestFiniteMagnitude, height: CGFloat.greatestFiniteMagnitude)
+
+        // Set the text view as the document view
+        scrollView.documentView = textView
 
         // Enable real-time grammar and spelling checking
         textView.isContinuousSpellCheckingEnabled = true
@@ -51,9 +124,6 @@ struct RichTextEditor: NSViewRepresentable {
             .font: NSFont.systemFont(ofSize: 16),
             .foregroundColor: NSColor(textColor)
         ]
-
-        // Set initial text
-        textView.textStorage?.setAttributedString(attributedText)
 
         // Notify parent of textView creation
         onTextViewCreated?(textView)
@@ -76,6 +146,13 @@ struct RichTextEditor: NSViewRepresentable {
         // Only reset typing attributes when NOT formatting
         // This preserves formatting set by slash commands
         textView.typingAttributes[.foregroundColor] = NSColor(textColor)
+
+        // IMPORTANT: Don't reset text storage if window is key (user is actively using it)
+        // This prevents pasted text from being erased during window resize
+        if let window = textView.window, window.isKeyWindow {
+            // Window is active - skip text storage updates to preserve user edits
+            return
+        }
 
         // Only update if the text is different to avoid cursor jumping
         if textView.attributedString() != attributedText {

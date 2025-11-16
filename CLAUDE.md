@@ -2,6 +2,20 @@
 
 This file provides guidance to Claude Code (claude.ai/code) when working with code in this repository.
 
+## ⚠️ CRITICAL: Git Operations Require User Approval ⚠️
+
+**NEVER perform ANY Git remote operations without explicit user confirmation:**
+- ❌ NO `git push` (including `--force`, tags, branches)
+- ❌ NO `git pull` or `git fetch`
+- ❌ NO `git remote` modifications (add, remove, set-url)
+- ❌ NO GitHub operations via `gh` CLI (creating PRs, issues, releases)
+
+**ALWAYS ASK FIRST** before executing any command that communicates with remote repositories.
+
+Local Git operations (commit, add, status, diff, log) are allowed without confirmation.
+
+---
+
 ## Project Overview
 
 ThinqSync is a macOS menubar-only sticky notes application with rich text formatting and iCloud sync capability. Built with SwiftUI and AppKit integration, it lives exclusively in the menubar (no dock icon) and displays floating note windows.
@@ -206,7 +220,7 @@ When adding tests:
 - Commit messages include Claude co-authorship footer
 - Stable points tagged (e.g., `v1.0-menubar-styling-fix`)
 - See `RESTORE_POINTS.md` for revert instructions
-- Always ask me before updating GitHub, push, pull and more, need my confirmation!
+- **See "Git Operations Require User Approval" section at the top of this file**
 
 When asked to design UI & frontend interface
 When asked to design UI & frontend interface

@@ -53,11 +53,12 @@ struct thinqsyncApp: App {
         .defaultSize(width: 1200, height: 800)
 
         // Window for Carousel Dashboard
-        WindowGroup(id: "carousel-dashboard") {
-            CarouselDashboardIntegratedView()
+        Window("Carousel Dashboard", id: "carousel-dashboard") {
+            NeoBrutalismCarouselView()
                 .environment(notesManager)
+                .frame(minWidth: 900, minHeight: 600)
         }
-        .windowStyle(.hiddenTitleBar)
-        .defaultSize(width: 1200, height: 800)
+        .defaultSize(width: 1400, height: 900)
+        .defaultPosition(.center)
     }
 }

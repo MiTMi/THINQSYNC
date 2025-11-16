@@ -19,17 +19,17 @@ enum NoteColor: String, Codable, CaseIterable, Sendable {
     var backgroundColor: Color {
         switch self {
         case .green:
-            return Color(red: 0x00/255, green: 0xA8/255, blue: 0x6B/255) // #00A86B Emerald Green
+            return Color(hex: "22c55e") // Neo-brutalism Green
         case .yellow:
-            return Color(red: 0xFF/255, green: 0xEC/255, blue: 0x59/255) // #FFEC59 Bright Yellow
+            return Color(hex: "ffb703") // Neo-brutalism Yellow
         case .orange:
-            return Color(red: 0xFF/255, green: 0xA2/255, blue: 0x3A/255) // #FFA23A Orange
+            return Color(hex: "fb8500") // Neo-brutalism Orange
         case .blue:
-            return Color(red: 0x00/255, green: 0xA5/255, blue: 0xE3/255) // #00A5E3 Bright Blue
+            return Color(hex: "219ebc") // Neo-brutalism Blue
         case .purple:
-            return Color(red: 0xC0/255, green: 0x57/255, blue: 0x80/255) // #C05780 Mauve Purple
+            return Color(hex: "a855f7") // Neo-brutalism Purple
         case .pink:
-            return Color(red: 0xFF/255, green: 0x96/255, blue: 0xC5/255) // #FF96C5 Soft Pink
+            return .white // Neo-brutalism White
         }
     }
 
@@ -37,47 +37,37 @@ enum NoteColor: String, Codable, CaseIterable, Sendable {
     var nsBackgroundColor: NSColor {
         switch self {
         case .green:
-            return NSColor(red: 0x00/255, green: 0xA8/255, blue: 0x6B/255, alpha: 1.0) // #00A86B
+            return NSColor(red: 0x22/255, green: 0xc5/255, blue: 0x5e/255, alpha: 1.0) // #22c55e
         case .yellow:
-            return NSColor(red: 0xFF/255, green: 0xEC/255, blue: 0x59/255, alpha: 1.0) // #FFEC59
+            return NSColor(red: 0xff/255, green: 0xb7/255, blue: 0x03/255, alpha: 1.0) // #ffb703
         case .orange:
-            return NSColor(red: 0xFF/255, green: 0xA2/255, blue: 0x3A/255, alpha: 1.0) // #FFA23A
+            return NSColor(red: 0xfb/255, green: 0x85/255, blue: 0x00/255, alpha: 1.0) // #fb8500
         case .blue:
-            return NSColor(red: 0x00/255, green: 0xA5/255, blue: 0xE3/255, alpha: 1.0) // #00A5E3
+            return NSColor(red: 0x21/255, green: 0x9e/255, blue: 0xbc/255, alpha: 1.0) // #219ebc
         case .purple:
-            return NSColor(red: 0xC0/255, green: 0x57/255, blue: 0x80/255, alpha: 1.0) // #C05780
+            return NSColor(red: 0xa8/255, green: 0x55/255, blue: 0xf7/255, alpha: 1.0) // #a855f7
         case .pink:
-            return NSColor(red: 0xFF/255, green: 0x96/255, blue: 0xC5/255, alpha: 1.0) // #FF96C5
+            return NSColor.white // White
         }
     }
 
-    // Adaptive text color based on system appearance
+    // Text color - always black for neo-brutalism style (good contrast on all vibrant colors)
     func textColor(for colorScheme: ColorScheme) -> Color {
-        return colorScheme == .dark ? .white : .black
+        return .black
     }
 
-    // Adaptive icon color based on system appearance
+    // Icon color - always black for neo-brutalism style
     func iconColor(for colorScheme: ColorScheme) -> Color {
-        return colorScheme == .dark ? Color.white.opacity(0.9) : Color.black.opacity(0.7)
+        return Color.black.opacity(0.7)
     }
 
     // Legacy non-adaptive text color (for backwards compatibility)
     var textColor: Color {
-        switch self {
-        case .yellow, .orange, .pink, .green, .blue:
-            return Color.black // Black text for bright backgrounds
-        case .purple:
-            return Color.white // White text for darker backgrounds
-        }
+        return .black // Black text for all neo-brutalism colors
     }
 
     // Legacy non-adaptive icon color (for backwards compatibility)
     var iconColor: Color {
-        switch self {
-        case .yellow, .orange, .pink, .green, .blue:
-            return Color.black.opacity(0.7) // Slightly transparent black for bright backgrounds
-        case .purple:
-            return Color.white.opacity(0.9) // Slightly transparent white for darker backgrounds
-        }
+        return Color.black.opacity(0.7) // Black icons for all neo-brutalism colors
     }
 }

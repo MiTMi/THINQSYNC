@@ -17,6 +17,7 @@ struct CarouselDashboardIntegratedView: View {
     @State private var searchText = ""
     @State private var showSearch = false
     @State private var deletingNoteId: UUID? = nil
+    @State private var showTrash = false  // New: toggle between notes and trash view
     @FocusState private var isFocused: Bool
     @Environment(\.openWindow) private var openWindow
 
@@ -31,7 +32,10 @@ struct CarouselDashboardIntegratedView: View {
 
     // Convert real notes to carousel notes with search filtering
     private var displayNotes: [CarouselNoteData] {
-        let allNotes = notesManager.notes.map { note in
+        // Choose between regular notes and deleted notes based on showTrash
+        let sourceNotes = showTrash ? notesManager.deletedNotes : notesManager.notes
+
+        let allNotes = sourceNotes.map { note in
             // Extract plain text from content property (preserve original formatting)
             let plainText = note.content
 
@@ -54,7 +58,8 @@ struct CarouselDashboardIntegratedView: View {
                 color: carouselColor,
                 isFavorite: note.isFavorite,
                 folder: note.folder,
-                modifiedAt: note.modifiedAt
+                modifiedAt: note.modifiedAt,
+                deletedAt: note.deletedAt
             )
         }
 
@@ -71,16 +76,23 @@ struct CarouselDashboardIntegratedView: View {
 
     var body: some View {
         ZStack {
-            // Adaptive gradient background
+            // Clean adaptive background
+            Rectangle()
+                .fill(colorScheme == .dark ?
+                      Color(white: 0.08) :
+                      Color(white: 0.95))
+                .ignoresSafeArea()
+
+            // Subtle gradient overlay for depth
             LinearGradient(
                 gradient: Gradient(colors: colorScheme == .dark ? [
-                    Color.prussianBlue.opacity(0.3),
-                    Color.blueGreen.opacity(0.2),
-                    Color.skyBlue.opacity(0.3)
+                    Color.blue.opacity(0.08),
+                    Color.purple.opacity(0.05),
+                    Color.clear
                 ] : [
-                    Color.gray.opacity(0.1),
-                    Color.blue.opacity(0.05),
-                    Color.gray.opacity(0.15)
+                    Color.blue.opacity(0.03),
+                    Color.purple.opacity(0.02),
+                    Color.clear
                 ]),
                 startPoint: .topLeading,
                 endPoint: .bottomTrailing
@@ -100,7 +112,7 @@ struct CarouselDashboardIntegratedView: View {
                 .transition(.opacity)
             } else {
                 if displayNotes.isEmpty {
-                    // Empty state - differentiate between search and truly empty
+                    // Empty state - differentiate between search, trash, and truly empty
                     if !searchText.isEmpty {
                         // Search returned no results
                         VStack(spacing: 20) {
@@ -120,6 +132,41 @@ struct CarouselDashboardIntegratedView: View {
                             Button(action: {
                                 searchText = ""
                                 showSearch = false
+                            }) {
+                                HStack {
+                                    Image(systemName: "arrow.left")
+                                    Text(showTrash ? "Back to Trash" : "Back to Notes")
+                                }
+                                .foregroundColor(.white)
+                                .padding(.horizontal, 24)
+                                .padding(.vertical, 12)
+                                .background(
+                                    Capsule()
+                                        .fill(Color.blueGreen)
+                                )
+                            }
+                            .buttonStyle(PlainButtonStyle())
+                        }
+                    } else if showTrash {
+                        // Trash is empty
+                        VStack(spacing: 20) {
+                            Image(systemName: "trash")
+                                .font(.system(size: 80))
+                                .foregroundColor(adaptiveTextColor.opacity(0.5))
+
+                            Text("Trash is Empty")
+                                .font(.title)
+                                .fontWeight(.bold)
+                                .foregroundColor(adaptiveTextColor)
+
+                            Text("Deleted notes will appear here")
+                                .font(.body)
+                                .foregroundColor(adaptiveTextColor.opacity(0.7))
+
+                            Button(action: {
+                                withAnimation(.spring(duration: 0.3, bounce: 0.5)) {
+                                    showTrash = false
+                                }
                             }) {
                                 HStack {
                                     Image(systemName: "arrow.left")
@@ -295,6 +342,35 @@ struct CarouselDashboardIntegratedView: View {
 
             // Actions
             HStack(spacing: 12) {
+                // Trash button - toggles trash view
+                Button(action: {
+                    withAnimation(.spring(duration: 0.3, bounce: 0.5)) {
+                        showTrash.toggle()
+                        currentIndex = 0  // Reset to first item when switching views
+                        searchText = ""  // Clear search when switching views
+                        showSearch = false  // Close search when switching views
+                    }
+                }) {
+                    ZStack {
+                        Image(systemName: showTrash ? "arrow.left" : "trash")
+                            .font(.title3)
+                            .foregroundColor(showTrash ? adaptiveTextColor : (notesManager.deletedNotes.isEmpty ? adaptiveTextColor.opacity(0.4) : .utOrange))
+
+                        // Badge showing count of deleted notes
+                        if !showTrash && !notesManager.deletedNotes.isEmpty {
+                            Text("\(notesManager.deletedNotes.count)")
+                                .font(.system(size: 10, weight: .bold))
+                                .foregroundColor(.white)
+                                .padding(4)
+                                .background(Circle().fill(Color.red))
+                                .offset(x: 10, y: -10)
+                        }
+                    }
+                }
+                .buttonStyle(GlassButtonStyle())
+                .help(showTrash ? "Back to notes" : "View trash (\(notesManager.deletedNotes.count))")
+                .disabled(!showTrash && notesManager.deletedNotes.isEmpty)
+
                 // Search button - toggles search bar
                 Button(action: {
                     withAnimation(.spring(duration: 0.3, bounce: 0.5)) {
@@ -327,17 +403,19 @@ struct CarouselDashboardIntegratedView: View {
                 .buttonStyle(GlassButtonStyle())
                 .help("Settings")
 
-                // New note button
-                Button(action: {
-                    let note = notesManager.createNote()
-                    openWindow(value: note.id)
-                }) {
-                    Image(systemName: "plus.circle.fill")
-                        .font(.title2)
-                        .foregroundColor(.selectiveYellow)
+                // New note button - hidden in trash view
+                if !showTrash {
+                    Button(action: {
+                        let note = notesManager.createNote()
+                        openWindow(value: note.id)
+                    }) {
+                        Image(systemName: "plus.circle.fill")
+                            .font(.title2)
+                            .foregroundColor(.selectiveYellow)
+                    }
+                    .buttonStyle(PlainButtonStyle())
+                    .help("Create new note")
                 }
-                .buttonStyle(PlainButtonStyle())
-                .help("Create new note")
             }
         }
         .padding(.horizontal, 32)
@@ -397,6 +475,7 @@ struct CarouselDashboardIntegratedView: View {
                         noteData: note,
                         notesManager: notesManager,
                         colorScheme: colorScheme,
+                        isTrashView: showTrash,
                         onFavoriteToggle: {
                             triggerParticleBurst(in: geometry)
                         },
@@ -413,6 +492,40 @@ struct CarouselDashboardIntegratedView: View {
                             DispatchQueue.main.asyncAfter(deadline: .now() + 0.3) {
                                 if let noteToDelete = notesManager.notes.first(where: { $0.id == note.id }) {
                                     notesManager.deleteNote(noteToDelete)
+                                    deletingNoteId = nil
+                                }
+                            }
+                        },
+                        onRestore: {
+                            // Mark as deleting for animation (same animation)
+                            deletingNoteId = note.id
+
+                            // Adjust current index if needed
+                            if currentIndex >= displayNotes.count - 1 && currentIndex > 0 {
+                                currentIndex -= 1
+                            }
+
+                            // Restore after animation
+                            DispatchQueue.main.asyncAfter(deadline: .now() + 0.3) {
+                                if let noteToRestore = notesManager.getNote(by: note.id) {
+                                    notesManager.restoreNote(noteToRestore)
+                                    deletingNoteId = nil
+                                }
+                            }
+                        },
+                        onPermanentDelete: {
+                            // Mark as deleting for animation
+                            deletingNoteId = note.id
+
+                            // Adjust current index if needed
+                            if currentIndex >= displayNotes.count - 1 && currentIndex > 0 {
+                                currentIndex -= 1
+                            }
+
+                            // Permanently delete after animation
+                            DispatchQueue.main.asyncAfter(deadline: .now() + 0.3) {
+                                if let noteToDelete = notesManager.getNote(by: note.id) {
+                                    notesManager.permanentlyDeleteNote(noteToDelete)
                                     deletingNoteId = nil
                                 }
                             }
@@ -532,20 +645,47 @@ struct CarouselDashboardIntegratedView: View {
 
             Spacer()
 
-            Button(action: {}) {
-                HStack {
-                    Image(systemName: "square.grid.2x2")
-                    Text("View All")
+            if showTrash {
+                // Empty Trash button (only in trash view)
+                Button(action: {
+                    // Confirm and empty trash
+                    notesManager.emptyTrash()
+                    // Switch back to notes view after emptying
+                    withAnimation(.spring(duration: 0.3, bounce: 0.5)) {
+                        showTrash = false
+                    }
+                }) {
+                    HStack {
+                        Image(systemName: "trash.slash")
+                        Text("Empty Trash")
+                    }
+                    .foregroundColor(.white)
+                    .padding(.horizontal, 20)
+                    .padding(.vertical, 10)
+                    .background(
+                        Capsule()
+                            .fill(Color.red)
+                    )
                 }
-                .foregroundColor(.white)
-                .padding(.horizontal, 20)
-                .padding(.vertical, 10)
-                .background(
-                    Capsule()
-                        .fill(Color.blueGreen)
-                )
+                .buttonStyle(PlainButtonStyle())
+                .disabled(notesManager.deletedNotes.isEmpty)
+            } else {
+                // View All button (only in notes view)
+                Button(action: {}) {
+                    HStack {
+                        Image(systemName: "square.grid.2x2")
+                        Text("View All")
+                    }
+                    .foregroundColor(.white)
+                    .padding(.horizontal, 20)
+                    .padding(.vertical, 10)
+                    .background(
+                        Capsule()
+                            .fill(Color.blueGreen)
+                    )
+                }
+                .buttonStyle(PlainButtonStyle())
             }
-            .buttonStyle(PlainButtonStyle())
         }
         .padding(.horizontal, 32)
         .padding(.vertical, 20)
@@ -598,8 +738,11 @@ struct IntegratedCarouselCardView: View {
     let noteData: CarouselNoteData
     let notesManager: NotesManager
     let colorScheme: ColorScheme
+    let isTrashView: Bool
     let onFavoriteToggle: () -> Void
     let onDelete: () -> Void
+    let onRestore: () -> Void
+    let onPermanentDelete: () -> Void
 
     @Environment(\.openWindow) private var openWindow
 
@@ -623,37 +766,63 @@ struct IntegratedCarouselCardView: View {
 
                 Spacer()
 
-                // Action buttons
+                // Action buttons - different for trash view
                 HStack(spacing: 12) {
-                    // Delete button
-                    Button(action: {
-                        onDelete()
-                    }) {
-                        Image(systemName: "trash")
-                            .font(.title3)
-                            .foregroundColor(adaptiveTextColor.opacity(0.8))
-                            .shadow(color: adaptiveShadowColor, radius: 2, x: 0, y: 1)
-                    }
-                    .buttonStyle(PlainButtonStyle())
-                    .help("Delete note")
-
-                    // Favorite button
-                    Button(action: {
-                        // Toggle favorite in actual NotesManager
-                        if let note = notesManager.notes.first(where: { $0.id == noteData.id }) {
-                            notesManager.toggleFavorite(note)
+                    if isTrashView {
+                        // Permanently delete button
+                        Button(action: {
+                            onPermanentDelete()
+                        }) {
+                            Image(systemName: "trash.slash")
+                                .font(.title3)
+                                .foregroundColor(.red)
+                                .shadow(color: adaptiveShadowColor, radius: 2, x: 0, y: 1)
                         }
-                        withAnimation(.spring(duration: 0.3, bounce: 0.6)) {}
-                        onFavoriteToggle()
-                    }) {
-                        Image(systemName: noteData.isFavorite ? "star.fill" : "star")
-                            .font(.title2)
-                            .foregroundColor(.selectiveYellow)
-                            .scaleEffect(noteData.isFavorite ? 1.2 : 1.0)
-                            .shadow(color: adaptiveShadowColor, radius: 2, x: 0, y: 1)
+                        .buttonStyle(PlainButtonStyle())
+                        .help("Delete permanently")
+
+                        // Restore button
+                        Button(action: {
+                            onRestore()
+                        }) {
+                            Image(systemName: "arrow.uturn.backward.circle.fill")
+                                .font(.title2)
+                                .foregroundColor(.blueGreen)
+                                .shadow(color: adaptiveShadowColor, radius: 2, x: 0, y: 1)
+                        }
+                        .buttonStyle(PlainButtonStyle())
+                        .help("Restore note")
+                    } else {
+                        // Delete button
+                        Button(action: {
+                            onDelete()
+                        }) {
+                            Image(systemName: "trash")
+                                .font(.title3)
+                                .foregroundColor(adaptiveTextColor.opacity(0.8))
+                                .shadow(color: adaptiveShadowColor, radius: 2, x: 0, y: 1)
+                        }
+                        .buttonStyle(PlainButtonStyle())
+                        .help("Delete note")
+
+                        // Favorite button
+                        Button(action: {
+                            // Toggle favorite in actual NotesManager
+                            if let note = notesManager.notes.first(where: { $0.id == noteData.id }) {
+                                notesManager.toggleFavorite(note)
+                            }
+                            withAnimation(.spring(duration: 0.3, bounce: 0.6)) {}
+                            onFavoriteToggle()
+                        }) {
+                            Image(systemName: noteData.isFavorite ? "star.fill" : "star")
+                                .font(.title2)
+                                .foregroundColor(.selectiveYellow)
+                                .scaleEffect(noteData.isFavorite ? 1.2 : 1.0)
+                                .shadow(color: adaptiveShadowColor, radius: 2, x: 0, y: 1)
+                        }
+                        .buttonStyle(PlainButtonStyle())
+                        .help("Toggle favorite")
                     }
-                    .buttonStyle(PlainButtonStyle())
-                    .help("Toggle favorite")
                 }
             }
 
@@ -674,10 +843,27 @@ struct IntegratedCarouselCardView: View {
             HStack {
                 // Left side - date and folder
                 HStack(spacing: 12) {
-                    Text(noteData.modifiedAt, style: .date)
-                        .font(.system(size: 12, weight: .medium))
-                        .foregroundColor(adaptiveTextColor.opacity(0.9))
+                    if isTrashView, let deletedDate = noteData.deletedAt {
+                        // Show deleted date in trash view
+                        HStack(spacing: 4) {
+                            Image(systemName: "trash")
+                                .font(.system(size: 10))
+                                .foregroundColor(adaptiveTextColor.opacity(0.7))
+                            Text("Deleted:")
+                                .font(.system(size: 12, weight: .medium))
+                                .foregroundColor(adaptiveTextColor.opacity(0.7))
+                            Text(deletedDate, style: .date)
+                                .font(.system(size: 12, weight: .medium))
+                                .foregroundColor(adaptiveTextColor.opacity(0.9))
+                        }
                         .shadow(color: adaptiveShadowColor, radius: 1, x: 0, y: 1)
+                    } else {
+                        // Show modified date in normal view
+                        Text(noteData.modifiedAt, style: .date)
+                            .font(.system(size: 12, weight: .medium))
+                            .foregroundColor(adaptiveTextColor.opacity(0.9))
+                            .shadow(color: adaptiveShadowColor, radius: 1, x: 0, y: 1)
+                    }
 
                     if let folder = noteData.folder {
                         Text(folder)
@@ -700,7 +886,11 @@ struct IntegratedCarouselCardView: View {
                     // Copy button
                     Button(action: {
                         // Copy note content to clipboard
-                        if let note = notesManager.notes.first(where: { $0.id == noteData.id }) {
+                        let noteToFind = isTrashView ?
+                            notesManager.getNote(by: noteData.id) :
+                            notesManager.notes.first(where: { $0.id == noteData.id })
+
+                        if let note = noteToFind {
                             let plainText = note.content
                             NSPasteboard.general.clearContents()
                             NSPasteboard.general.setString(plainText, forType: .string)
@@ -714,19 +904,21 @@ struct IntegratedCarouselCardView: View {
                     .buttonStyle(PlainButtonStyle())
                     .help("Copy note content")
 
-                    // Edit button
-                    Button(action: {
-                        // Open note in edit window
-                        notesManager.openNote(noteData.id)
-                        openWindow(value: noteData.id)
-                    }) {
-                        Image(systemName: "pencil")
-                            .font(.system(size: 14))
-                            .foregroundColor(adaptiveTextColor.opacity(0.8))
-                            .shadow(color: adaptiveShadowColor, radius: 1, x: 0, y: 1)
+                    // Edit button - only shown in normal view
+                    if !isTrashView {
+                        Button(action: {
+                            // Open note in edit window
+                            notesManager.openNote(noteData.id)
+                            openWindow(value: noteData.id)
+                        }) {
+                            Image(systemName: "pencil")
+                                .font(.system(size: 14))
+                                .foregroundColor(adaptiveTextColor.opacity(0.8))
+                                .shadow(color: adaptiveShadowColor, radius: 1, x: 0, y: 1)
+                        }
+                        .buttonStyle(PlainButtonStyle())
+                        .help("Edit note")
                     }
-                    .buttonStyle(PlainButtonStyle())
-                    .help("Edit note")
                 }
             }
         }
@@ -746,6 +938,7 @@ struct CarouselNoteData: Identifiable {
     let isFavorite: Bool
     let folder: String?
     let modifiedAt: Date
+    let deletedAt: Date?
 }
 
 // MARK: - Integrated Thumbnail View
