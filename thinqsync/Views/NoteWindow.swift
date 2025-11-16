@@ -72,12 +72,15 @@ struct NoteWindow: View {
         guard !windowConfigured else { return }
         windowConfigured = true
 
-        // CRITICAL: Force window size to 530x330
-        // Using setFrame instead of setContentSize for more direct control
-        // This overrides macOS's cached window sizes for existing notes
-        let currentOrigin = window.frame.origin
-        let newFrame = NSRect(x: currentOrigin.x, y: currentOrigin.y, width: 530, height: 330)
-        window.setFrame(newFrame, display: true)
+        // Restore saved window frame if it exists, otherwise use default size
+        if let savedFrame = note.windowFrame {
+            window.setFrame(savedFrame, display: true)
+        } else {
+            // Default window size
+            let currentOrigin = window.frame.origin
+            let newFrame = NSRect(x: currentOrigin.x, y: currentOrigin.y, width: 530, height: 330)
+            window.setFrame(newFrame, display: true)
+        }
 
         // Set window to float
         window.level = .floating
@@ -99,6 +102,35 @@ struct NoteWindow: View {
         window.backgroundColor = .clear
         window.isOpaque = false
         window.hasShadow = false  // We add our own shadow in SwiftUI
+
+        // Set up notification observer to save window frame when it changes
+        NotificationCenter.default.addObserver(
+            forName: NSWindow.didResizeNotification,
+            object: window,
+            queue: .main
+        ) { [weak window] _ in
+            if let window = window {
+                Task { @MainActor in
+                    // Save window frame
+                    note.windowFrame = window.frame
+                    notesManager.updateNote(note)
+                }
+            }
+        }
+
+        NotificationCenter.default.addObserver(
+            forName: NSWindow.didMoveNotification,
+            object: window,
+            queue: .main
+        ) { [weak window] _ in
+            if let window = window {
+                Task { @MainActor in
+                    // Save window frame
+                    note.windowFrame = window.frame
+                    notesManager.updateNote(note)
+                }
+            }
+        }
     }
 }
 

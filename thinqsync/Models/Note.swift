@@ -19,6 +19,7 @@ struct Note: Identifiable, Codable, Sendable {
     var createdAt: Date
     var modifiedAt: Date
     var deletedAt: Date?
+    var windowFrame: CGRect?  // Saved window position and size
 
     // Computed property for easy access to attributed string
     var attributedContent: NSAttributedString {
@@ -48,7 +49,8 @@ struct Note: Identifiable, Codable, Sendable {
         folder: String? = nil,
         createdAt: Date = Date(),
         modifiedAt: Date = Date(),
-        deletedAt: Date? = nil
+        deletedAt: Date? = nil,
+        windowFrame: CGRect? = nil
     ) {
         self.id = id
         self.title = title
@@ -64,6 +66,7 @@ struct Note: Identifiable, Codable, Sendable {
         self.createdAt = createdAt
         self.modifiedAt = modifiedAt
         self.deletedAt = deletedAt
+        self.windowFrame = windowFrame
     }
 
     // Initializer for CloudKit deserialization (with contentWrapper directly)
@@ -76,7 +79,8 @@ struct Note: Identifiable, Codable, Sendable {
         folder: String?,
         createdAt: Date,
         modifiedAt: Date,
-        deletedAt: Date? = nil
+        deletedAt: Date? = nil,
+        windowFrame: CGRect? = nil
     ) {
         self.id = id
         self.title = title
@@ -87,10 +91,11 @@ struct Note: Identifiable, Codable, Sendable {
         self.createdAt = createdAt
         self.modifiedAt = modifiedAt
         self.deletedAt = deletedAt
+        self.windowFrame = windowFrame
     }
 
     // Custom coding keys
     enum CodingKeys: String, CodingKey {
-        case id, title, contentWrapper, color, isFavorite, folder, createdAt, modifiedAt, deletedAt
+        case id, title, contentWrapper, color, isFavorite, folder, createdAt, modifiedAt, deletedAt, windowFrame
     }
 }
