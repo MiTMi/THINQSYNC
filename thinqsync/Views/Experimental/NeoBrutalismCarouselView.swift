@@ -105,29 +105,31 @@ struct NeoBrutalismCarouselView: View {
     }
 
     var body: some View {
-        ZStack {
-            // Sky blue background
-            Color(hex: "8ecae6")
-                .ignoresSafeArea()
+        GeometryReader { geometry in
+            ZStack {
+                // Sky blue background
+                Color(hex: "8ecae6")
+                    .ignoresSafeArea()
 
-            ScrollView {
-                VStack(spacing: 40) {
+                VStack(spacing: geometry.size.height * 0.02) {
                     // Top Bar
                     topBar
 
                     // Main Carousel
                     carouselContainer
+                        .frame(height: geometry.size.height * 0.45)
 
                     // Progress Dots
                     progressDots
 
                     // Thumbnail Strip
                     thumbnailStrip
+                        .frame(height: geometry.size.height * 0.12)
 
                     // Bottom Bar
                     bottomBar
                 }
-                .padding(40)
+                .padding(geometry.size.width * 0.025)
             }
         }
         .onChange(of: displayNotes.count) { oldValue, newValue in
@@ -214,36 +216,37 @@ struct NeoBrutalismCarouselView: View {
     // MARK: - Carousel Container
 
     private var carouselContainer: some View {
-        ZStack {
-            // Navigation buttons
-            HStack {
-                NeoBrutalNavigationButton(direction: .left) {
-                    withAnimation(.spring(duration: 0.3, bounce: 0.5)) {
-                        currentIndex = (currentIndex - 1 + displayNotes.count) % max(displayNotes.count, 1)
+        GeometryReader { geometry in
+            ZStack {
+                // Navigation buttons
+                HStack {
+                    NeoBrutalNavigationButton(direction: .left) {
+                        withAnimation(.spring(duration: 0.3, bounce: 0.5)) {
+                            currentIndex = (currentIndex - 1 + displayNotes.count) % max(displayNotes.count, 1)
+                        }
+                    }
+
+                    Spacer()
+
+                    NeoBrutalNavigationButton(direction: .right) {
+                        withAnimation(.spring(duration: 0.3, bounce: 0.5)) {
+                            currentIndex = (currentIndex + 1) % max(displayNotes.count, 1)
+                        }
                     }
                 }
+                .zIndex(10)
 
-                Spacer()
-
-                NeoBrutalNavigationButton(direction: .right) {
-                    withAnimation(.spring(duration: 0.3, bounce: 0.5)) {
-                        currentIndex = (currentIndex + 1) % max(displayNotes.count, 1)
-                    }
+                // Card stack
+                if displayNotes.isEmpty {
+                    emptyState(geometry: geometry)
+                } else {
+                    cardStack(geometry: geometry)
                 }
-            }
-            .zIndex(10)
-
-            // Card stack
-            if displayNotes.isEmpty {
-                emptyState
-            } else {
-                cardStack
             }
         }
-        .frame(height: 540)
     }
 
-    private var cardStack: some View {
+    private func cardStack(geometry: GeometryProxy) -> some View {
         ZStack {
             // Only show the active card - no stacking effect
             if !displayNotes.isEmpty {
@@ -253,6 +256,7 @@ struct NeoBrutalismCarouselView: View {
                 NeoBrutalNoteCard(
                     noteData: noteData,
                     position: .active,
+                    geometry: geometry,
                     onTap: {
                         if let note = notesManager.notes.first(where: { $0.id == noteData.id }) {
                             openWindow(value: note.id)
@@ -292,20 +296,21 @@ struct NeoBrutalismCarouselView: View {
                 }
             }
         }
-        .frame(maxWidth: 700)
+        .frame(maxWidth: geometry.size.width * 0.6)
     }
 
-    private var emptyState: some View {
+    private func emptyState(geometry: GeometryProxy) -> some View {
         VStack(spacing: 20) {
             Image(systemName: "note.text")
-                .font(.system(size: 64, weight: .black))
+                .font(.system(size: min(geometry.size.width * 0.08, 64), weight: .black))
                 .foregroundColor(.black)
 
             Text(showTrash ? "TRASH IS EMPTY" : "NO NOTES YET")
-                .font(.system(size: 32, weight: .black))
+                .font(.system(size: min(geometry.size.width * 0.04, 32), weight: .black))
                 .foregroundColor(.black)
         }
-        .frame(width: 700, height: 540)
+        .frame(maxWidth: geometry.size.width * 0.6)
+        .frame(maxHeight: .infinity)
         .background(
             Color.white
                 .overlay(
@@ -606,6 +611,7 @@ enum CardPosition: Equatable {
 struct NeoBrutalNoteCard: View {
     let noteData: CarouselNoteData
     let position: CardPosition
+    let geometry: GeometryProxy
     let onTap: () -> Void
     let onFavorite: () -> Void
     let onDelete: () -> Void
@@ -619,7 +625,7 @@ struct NeoBrutalNoteCard: View {
             // Header
             HStack {
                 Text(noteData.title.uppercased())
-                    .font(.system(size: 40, weight: .heavy))
+                    .font(.system(size: min(geometry.size.width * 0.03, 40), weight: .heavy))
                     .foregroundColor(.black)
                     .lineLimit(1)
 
@@ -627,12 +633,12 @@ struct NeoBrutalNoteCard: View {
 
                 Button(action: onFavorite) {
                     Image(systemName: noteData.isFavorite ? "star.fill" : "star")
-                        .font(.system(size: 24, weight: .black))
+                        .font(.system(size: min(geometry.size.width * 0.02, 24), weight: .black))
                         .foregroundColor(noteData.isFavorite ? Color(hex: "ffb703") : .black)
                 }
                 .buttonStyle(.plain)
             }
-            .padding(.bottom, 24)
+            .padding(.bottom, geometry.size.height * 0.03)
             .overlay(
                 Rectangle()
                     .fill(Color.black)
@@ -643,13 +649,12 @@ struct NeoBrutalNoteCard: View {
             // Content
             ScrollView {
                 Text(noteData.content.isEmpty ? "Empty note" : noteData.content)
-                    .font(.system(size: 18, weight: .regular))
+                    .font(.system(size: min(geometry.size.width * 0.014, 18), weight: .regular))
                     .foregroundColor(.black)
                     .lineSpacing(6)
                     .frame(maxWidth: .infinity, alignment: .leading)
             }
-            .frame(minHeight: 220)
-            .padding(.top, 32)
+            .padding(.top, geometry.size.height * 0.04)
 
             Spacer()
 
@@ -663,7 +668,7 @@ struct NeoBrutalNoteCard: View {
                     HStack(spacing: 16) {
                         if let folder = noteData.folder {
                             Text(folder.uppercased())
-                                .font(.system(size: 13, weight: .black))
+                                .font(.system(size: min(geometry.size.width * 0.01, 13), weight: .black))
                                 .foregroundColor(.black)
                                 .padding(.horizontal, 16)
                                 .padding(.vertical, 8)
@@ -675,7 +680,7 @@ struct NeoBrutalNoteCard: View {
                         }
 
                         Text(formatDate(noteData.modifiedAt))
-                            .font(.system(size: 14, weight: .black))
+                            .font(.system(size: min(geometry.size.width * 0.011, 14), weight: .black))
                             .foregroundColor(.black)
                     }
 
@@ -693,10 +698,10 @@ struct NeoBrutalNoteCard: View {
                         }
                     }
                 }
-                .padding(.top, 24)
+                .padding(.top, geometry.size.height * 0.03)
             }
         }
-        .padding(48)
+        .padding(geometry.size.width * 0.035)
         .background(
             noteData.color
                 .overlay(
@@ -708,7 +713,6 @@ struct NeoBrutalNoteCard: View {
         .offset(position.offset)
         .opacity(position.opacity)
         .zIndex(position.zIndex)
-        .frame(height: 540)
         .overlay(
             Group {
                 if showDeleteConfirmation {

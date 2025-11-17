@@ -1,0 +1,527 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ThinqSync - Neo-Brutalism Carousel Dashboard</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;700;900&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="carousel_brutalism_theme.css">
+    <script src="https://unpkg.com/lucide@latest/dist/umd/lucide.min.js"></script>
+    <style>
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+            padding: 40px 20px;
+            min-height: 100vh;
+        }
+
+        .top-bar {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 60px;
+            padding: 24px;
+            background: #ffffff;
+            border: 4px solid #000000;
+            box-shadow: 8px 8px 0px #000000;
+        }
+
+        .carousel-container {
+            position: relative;
+            height: 620px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .card-stack {
+            position: relative;
+            width: 100%;
+            max-width: 700px;
+            height: 540px;
+        }
+
+        .note-card {
+            position: absolute;
+            width: 100%;
+            height: 100%;
+            border: 4px solid #000000;
+            padding: 48px;
+            transition: all 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
+            cursor: pointer;
+        }
+
+        .note-card.active {
+            z-index: 3;
+            transform: translateX(0) translateY(0);
+            opacity: 1;
+            box-shadow: 12px 12px 0px #000000;
+        }
+
+        .note-card.behind-1 {
+            z-index: 2;
+            transform: translateX(30px) translateY(-20px);
+            opacity: 1;
+            box-shadow: 8px 8px 0px #000000;
+        }
+
+        .note-card.behind-2 {
+            z-index: 1;
+            transform: translateX(60px) translateY(-40px);
+            opacity: 1;
+            box-shadow: 4px 4px 0px #000000;
+        }
+
+        .note-card.hidden {
+            z-index: 0;
+            opacity: 0;
+            transform: translateX(100px) translateY(-60px);
+        }
+
+        .card-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+            margin-bottom: 32px;
+            padding-bottom: 24px;
+            border-bottom: 4px solid #000000;
+        }
+
+        .card-title {
+            font-size: 40px;
+            font-weight: 900;
+            color: #000000;
+            margin: 0;
+            text-transform: uppercase;
+            letter-spacing: 0.02em;
+        }
+
+        .card-actions {
+            display: flex;
+            gap: 12px;
+        }
+
+        .card-content {
+            font-size: 18px;
+            line-height: 1.6;
+            color: #000000;
+            margin-bottom: 32px;
+            min-height: 220px;
+            font-weight: 700;
+        }
+
+        .card-content ul {
+            list-style: none;
+            padding: 0;
+            margin-top: 20px;
+        }
+
+        .card-content li {
+            padding: 12px 0;
+            padding-left: 32px;
+            position: relative;
+            font-weight: 700;
+        }
+
+        .card-content li::before {
+            content: "▶";
+            position: absolute;
+            left: 0;
+            color: #000000;
+            font-size: 16px;
+        }
+
+        .card-footer {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding-top: 24px;
+            border-top: 4px solid #000000;
+        }
+
+        .card-meta {
+            display: flex;
+            gap: 16px;
+            align-items: center;
+            flex-wrap: wrap;
+        }
+
+        .nav-buttons {
+            position: absolute;
+            width: 100%;
+            display: flex;
+            justify-content: space-between;
+            z-index: 10;
+            pointer-events: none;
+        }
+
+        .nav-btn {
+            pointer-events: all;
+            width: 72px;
+            height: 72px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            background: #ffffff;
+            border: 4px solid #000000;
+            box-shadow: 6px 6px 0px #000000;
+        }
+
+        .nav-btn:hover {
+            transform: translate(-2px, -2px);
+            box-shadow: 10px 10px 0px #000000;
+        }
+
+        .nav-btn:active {
+            transform: translate(2px, 2px);
+            box-shadow: 2px 2px 0px #000000;
+        }
+
+        .progress-dots {
+            display: flex;
+            justify-content: center;
+            gap: 16px;
+            margin-top: 50px;
+        }
+
+        .dot {
+            width: 20px;
+            height: 20px;
+            background: #ffffff;
+            border: 4px solid #000000;
+            cursor: pointer;
+            transition: all 0.2s ease;
+        }
+
+        .dot.active {
+            background: #219ebc;
+            width: 48px;
+            transform: rotate(45deg);
+        }
+
+        .dot:hover {
+            transform: scale(1.1);
+        }
+
+        .thumbnail-strip {
+            display: flex;
+            gap: 20px;
+            justify-content: center;
+            margin-top: 40px;
+            padding: 24px;
+            overflow-x: auto;
+            background: #ffffff;
+            border: 4px solid #000000;
+            box-shadow: 6px 6px 0px #000000;
+        }
+
+        .thumbnail {
+            width: 90px;
+            height: 90px;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            border: 4px solid #000000;
+            flex-shrink: 0;
+            box-shadow: 4px 4px 0px #000000;
+        }
+
+        .thumbnail.active {
+            border-width: 6px;
+            transform: scale(1.1) rotate(-5deg);
+            box-shadow: 6px 6px 0px #000000;
+        }
+
+        .thumbnail:hover {
+            transform: scale(1.05) rotate(2deg);
+        }
+
+        .bottom-bar {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-top: 60px;
+            padding: 24px;
+            background: #ffffff;
+            border: 4px solid #000000;
+            box-shadow: 6px 6px 0px #000000;
+        }
+
+        /* Color variations */
+        .card-green { background: #22c55e !important; }
+        .card-yellow { background: #ffb703 !important; }
+        .card-orange { background: #fb8500 !important; }
+        .card-blue { background: #219ebc !important; }
+        .card-purple { background: #a855f7 !important; }
+        .card-white { background: #ffffff !important; }
+
+        .star-filled {
+            fill: #ffb703;
+            stroke: #000000;
+            stroke-width: 2px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <!-- Top Bar -->
+        <div class="top-bar">
+            <div class="flex items-center gap-4">
+                <h1 style="font-size: 28px; font-weight: 900; text-transform: uppercase;">ThinqSync</h1>
+            </div>
+            <div class="flex items-center gap-4">
+                <button class="btn btn-white btn-icon">
+                    <i data-lucide="search" style="width: 24px; height: 24px; stroke-width: 3;"></i>
+                </button>
+                <button class="btn btn-white btn-icon">
+                    <i data-lucide="settings" style="width: 24px; height: 24px; stroke-width: 3;"></i>
+                </button>
+                <button class="btn btn-cta">
+                    <i data-lucide="plus" style="width: 20px; height: 20px; stroke-width: 3;"></i>
+                    NEW NOTE
+                </button>
+            </div>
+        </div>
+
+        <!-- Carousel Container -->
+        <div class="carousel-container">
+            <!-- Navigation Buttons -->
+            <div class="nav-buttons">
+                <button class="nav-btn" onclick="previousCard()">
+                    <i data-lucide="chevron-left" style="width: 36px; height: 36px; stroke-width: 4; color: #000000;"></i>
+                </button>
+                <button class="nav-btn" onclick="nextCard()">
+                    <i data-lucide="chevron-right" style="width: 36px; height: 36px; stroke-width: 4; color: #000000;"></i>
+                </button>
+            </div>
+
+            <!-- Card Stack -->
+            <div class="card-stack">
+                <!-- Note Card 1 -->
+                <div class="note-card card-blue active" data-index="0">
+                    <div class="card-header">
+                        <h2 class="card-title">MEETING NOTES</h2>
+                        <div class="card-actions">
+                            <button class="btn btn-icon btn-yellow">
+                                <i data-lucide="star" class="star-filled" style="width: 24px; height: 24px;"></i>
+                            </button>
+                        </div>
+                    </div>
+                    <div class="card-content">
+                        <p style="margin-bottom: 20px; font-weight: 900;">Q4 ROADMAP & PRODUCT STRATEGY</p>
+                        <ul>
+                            <li>PRODUCT LAUNCH Q1 2026</li>
+                            <li>FEATURE X DEVELOPMENT</li>
+                            <li>BUDGET ALLOCATION</li>
+                            <li>TEAM EXPANSION</li>
+                        </ul>
+                    </div>
+                    <div class="card-footer">
+                        <div class="card-meta">
+                            <span class="badge badge-white">WORK</span>
+                            <span style="font-size: 14px; font-weight: 900;">NOV 11 • 3:45 PM</span>
+                        </div>
+                        <div class="flex gap-2">
+                            <button class="btn btn-white">
+                                <i data-lucide="edit" style="width: 18px; height: 18px; stroke-width: 3;"></i>
+                                EDIT
+                            </button>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Note Card 2 -->
+                <div class="note-card card-green behind-1" data-index="1">
+                    <div class="card-header">
+                        <h2 class="card-title">QUICK IDEAS</h2>
+                        <div class="card-actions">
+                            <button class="btn btn-icon btn-white">
+                                <i data-lucide="star" style="width: 24px; height: 24px; stroke-width: 3;"></i>
+                            </button>
+                        </div>
+                    </div>
+                    <div class="card-content">
+                        <p style="margin-bottom: 20px; font-weight: 900;">FEATURE REQUESTS</p>
+                        <ul>
+                            <li>DARK MODE SUPPORT</li>
+                            <li>EXPORT TO PDF/MD</li>
+                            <li>TAG SYSTEM</li>
+                            <li>COLLABORATION</li>
+                            <li>MOBILE APP</li>
+                        </ul>
+                    </div>
+                    <div class="card-footer">
+                        <div class="card-meta">
+                            <span class="badge badge-white">WORK</span>
+                            <span style="font-size: 14px; font-weight: 900;">NOV 11 • 11:20 AM</span>
+                        </div>
+                        <div class="flex gap-2">
+                            <button class="btn btn-white">
+                                <i data-lucide="edit" style="width: 18px; height: 18px; stroke-width: 3;"></i>
+                                EDIT
+                            </button>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Note Card 3 -->
+                <div class="note-card card-yellow behind-2" data-index="2">
+                    <div class="card-header">
+                        <h2 class="card-title">SHOPPING LIST</h2>
+                        <div class="card-actions">
+                            <button class="btn btn-icon btn-white">
+                                <i data-lucide="star" style="width: 24px; height: 24px; stroke-width: 3;"></i>
+                            </button>
+                        </div>
+                    </div>
+                    <div class="card-content">
+                        <p style="margin-bottom: 20px; font-weight: 900;">WEEKLY GROCERIES</p>
+                        <ul>
+                            <li>ORGANIC MILK & EGGS</li>
+                            <li>FRESH BREAD</li>
+                            <li>COFFEE BEANS</li>
+                            <li>BUTTER & CHEESE</li>
+                            <li>VEGETABLES & FRUITS</li>
+                        </ul>
+                    </div>
+                    <div class="card-footer">
+                        <div class="card-meta">
+                            <span class="badge badge-white">PERSONAL</span>
+                            <span style="font-size: 14px; font-weight: 900;">NOV 10 • 8:30 PM</span>
+                        </div>
+                        <div class="flex gap-2">
+                            <button class="btn btn-white">
+                                <i data-lucide="edit" style="width: 18px; height: 18px; stroke-width: 3;"></i>
+                                EDIT
+                            </button>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Note Card 4 -->
+                <div class="note-card card-orange hidden" data-index="3">
+                    <div class="card-header">
+                        <h2 class="card-title">DESIGN SYSTEM</h2>
+                        <div class="card-actions">
+                            <button class="btn btn-icon btn-yellow">
+                                <i data-lucide="star" class="star-filled" style="width: 24px; height: 24px;"></i>
+                            </button>
+                        </div>
+                    </div>
+                    <div class="card-content">
+                        <p style="margin-bottom: 20px; font-weight: 900;">COLOR PALETTE UPDATE</p>
+                        <ul>
+                            <li>SKY BLUE #8ECAE6</li>
+                            <li>BLUE GREEN #219EBC</li>
+                            <li>PRUSSIAN BLUE #023047</li>
+                            <li>YELLOW #FFB703</li>
+                            <li>ORANGE #FB8500</li>
+                        </ul>
+                    </div>
+                    <div class="card-footer">
+                        <div class="card-meta">
+                            <span class="badge badge-white">WORK</span>
+                            <span style="font-size: 14px; font-weight: 900;">NOV 10 • 2:15 PM</span>
+                        </div>
+                        <div class="flex gap-2">
+                            <button class="btn btn-white">
+                                <i data-lucide="edit" style="width: 18px; height: 18px; stroke-width: 3;"></i>
+                                EDIT
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Progress Dots -->
+        <div class="progress-dots">
+            <div class="dot active" onclick="goToCard(0)"></div>
+            <div class="dot" onclick="goToCard(1)"></div>
+            <div class="dot" onclick="goToCard(2)"></div>
+            <div class="dot" onclick="goToCard(3)"></div>
+        </div>
+
+        <!-- Thumbnail Strip -->
+        <div class="thumbnail-strip">
+            <div class="thumbnail card-blue active" onclick="goToCard(0)"></div>
+            <div class="thumbnail card-green" onclick="goToCard(1)"></div>
+            <div class="thumbnail card-yellow" onclick="goToCard(2)"></div>
+            <div class="thumbnail card-orange" onclick="goToCard(3)"></div>
+        </div>
+
+        <!-- Bottom Bar -->
+        <div class="bottom-bar">
+            <div class="flex items-center gap-4">
+                <button class="btn btn-white">
+                    <i data-lucide="filter" style="width: 18px; height: 18px; stroke-width: 3;"></i>
+                    FILTER
+                </button>
+                <button class="btn btn-white">
+                    <i data-lucide="arrow-down-up" style="width: 18px; height: 18px; stroke-width: 3;"></i>
+                    SORT
+                </button>
+            </div>
+            <div style="font-size: 16px; font-weight: 900; text-transform: uppercase;">
+                CARD 1 OF 4 • USE ← →
+            </div>
+        </div>
+    </div>
+
+    <script>
+        lucide.createIcons();
+
+        let currentIndex = 0;
+        const cards = document.querySelectorAll('.note-card');
+        const dots = document.querySelectorAll('.dot');
+        const thumbnails = document.querySelectorAll('.thumbnail');
+        const totalCards = cards.length;
+
+        function updateCards() {
+            cards.forEach((card, index) => {
+                card.classList.remove('active', 'behind-1', 'behind-2', 'hidden');
+                if (index === currentIndex) {
+                    card.classList.add('active');
+                } else if (index === currentIndex + 1 || (currentIndex === totalCards - 1 && index === 0)) {
+                    card.classList.add('behind-1');
+                } else if (index === currentIndex + 2 || (currentIndex >= totalCards - 2 && index < 2)) {
+                    card.classList.add('behind-2');
+                } else {
+                    card.classList.add('hidden');
+                }
+            });
+
+            dots.forEach((dot, index) => {
+                dot.classList.toggle('active', index === currentIndex);
+            });
+
+            thumbnails.forEach((thumb, index) => {
+                thumb.classList.toggle('active', index === currentIndex);
+            });
+        }
+
+        function nextCard() {
+            currentIndex = (currentIndex + 1) % totalCards;
+            updateCards();
+        }
+
+        function previousCard() {
+            currentIndex = (currentIndex - 1 + totalCards) % totalCards;
+            updateCards();
+        }
+
+        function goToCard(index) {
+            currentIndex = index;
+            updateCards();
+        }
+
+        document.addEventListener('keydown', (e) => {
+            if (e.key === 'ArrowRight') nextCard();
+            if (e.key === 'ArrowLeft') previousCard();
+        });
+    </script>
+</body>
+</html>
