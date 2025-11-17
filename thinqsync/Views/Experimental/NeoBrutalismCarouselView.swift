@@ -116,11 +116,11 @@ struct NeoBrutalismCarouselView: View {
                     topBar
 
                     Spacer()
-                        .frame(height: geometry.size.height * 0.01)
+                        .frame(height: geometry.size.height * 0.025)
 
                     // Main Carousel
                     carouselContainer
-                        .frame(height: geometry.size.height * 0.45)
+                        .frame(height: geometry.size.height * 0.43)
 
                     Spacer()
                         .frame(height: geometry.size.height * 0.018)
