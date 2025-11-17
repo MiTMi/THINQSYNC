@@ -466,8 +466,8 @@ struct NeoBrutalismCarouselView: View {
                         .shadow(color: .black, radius: 0, x: 6, y: 6)
                 )
                 .padding(.horizontal, 24)
-                .padding(.bottom, 16)
-                .transition(.move(edge: .bottom).combined(with: .opacity))
+                .padding(.top, 16)
+                .transition(.move(edge: .top).combined(with: .opacity))
             }
 
             // Sort popover
@@ -510,8 +510,8 @@ struct NeoBrutalismCarouselView: View {
                         .shadow(color: .black, radius: 0, x: 6, y: 6)
                 )
                 .padding(.horizontal, 24)
-                .padding(.bottom, 16)
-                .transition(.move(edge: .bottom).combined(with: .opacity))
+                .padding(.top, 16)
+                .transition(.move(edge: .top).combined(with: .opacity))
             }
 
             HStack {
