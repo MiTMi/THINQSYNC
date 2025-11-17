@@ -15,10 +15,68 @@ struct NeoBrutalismCarouselView: View {
     @State private var searchText = ""
     @State private var showSearch = false
     @State private var showTrash = false
+    @State private var selectedFilter: FilterOption = .all
+    @State private var sortOrder: SortOrder = .modifiedDate
+    @State private var selectedFolder: String? = nil
+    @State private var showFilterPopover = false
+    @State private var showSortPopover = false
+
+    enum FilterOption: String, CaseIterable {
+        case all = "ALL NOTES"
+        case favorites = "FAVORITES"
+        case folder = "BY FOLDER"
+    }
+
+    enum SortOrder: String, CaseIterable {
+        case modifiedDate = "MODIFIED DATE"
+        case createdDate = "CREATED DATE"
+        case title = "TITLE"
+        case color = "COLOR"
+    }
+
+    private var availableFolders: [String] {
+        Array(Set(notesManager.notes.compactMap { $0.folder })).sorted()
+    }
 
     // Convert notes to display format
     private var displayNotes: [CarouselNoteData] {
-        let sourceNotes = showTrash ? notesManager.deletedNotes : notesManager.notes
+        var sourceNotes = showTrash ? notesManager.deletedNotes : notesManager.notes
+
+        // Apply search filter
+        if !searchText.isEmpty && !showTrash {
+            sourceNotes = sourceNotes.filter { note in
+                note.title.localizedCaseInsensitiveContains(searchText) ||
+                note.contentWrapper.attributedString.string.localizedCaseInsensitiveContains(searchText)
+            }
+        }
+
+        // Apply category filter
+        if !showTrash {
+            switch selectedFilter {
+            case .all:
+                break
+            case .favorites:
+                sourceNotes = sourceNotes.filter { $0.isFavorite }
+            case .folder:
+                if let folder = selectedFolder {
+                    sourceNotes = sourceNotes.filter { $0.folder == folder }
+                }
+            }
+        }
+
+        // Apply sort order
+        if !showTrash {
+            switch sortOrder {
+            case .modifiedDate:
+                sourceNotes = sourceNotes.sorted { $0.modifiedAt > $1.modifiedAt }
+            case .createdDate:
+                sourceNotes = sourceNotes.sorted { $0.createdAt > $1.createdAt }
+            case .title:
+                sourceNotes = sourceNotes.sorted { $0.title.localizedCompare($1.title) == .orderedAscending }
+            case .color:
+                sourceNotes = sourceNotes.sorted { $0.color.rawValue < $1.color.rawValue }
+            }
+        }
 
         return sourceNotes.map { note in
             let plainText = note.content
@@ -72,34 +130,77 @@ struct NeoBrutalismCarouselView: View {
                 .padding(40)
             }
         }
+        .onChange(of: displayNotes.count) { oldValue, newValue in
+            // Reset index if it's out of bounds when notes change
+            if currentIndex >= newValue && newValue > 0 {
+                currentIndex = newValue - 1
+            } else if newValue == 0 {
+                currentIndex = 0
+            }
+        }
     }
 
     // MARK: - Top Bar
 
     private var topBar: some View {
-        HStack {
-            Text("THINQSYNC")
-                .font(.system(size: 28, weight: .black))
-                .foregroundColor(.black)
+        VStack(spacing: 0) {
+            HStack {
+                Text("THINQSYNC")
+                    .font(.system(size: 28, weight: .black))
+                    .foregroundColor(.black)
 
-            Spacer()
+                Spacer()
 
-            HStack(spacing: 16) {
-                NeoBrutalButton(icon: "magnifyingglass", background: .white) {
-                    showSearch.toggle()
-                }
+                HStack(spacing: 16) {
+                    NeoBrutalButton(
+                        icon: showSearch ? "xmark" : "magnifyingglass",
+                        background: showSearch ? Color(hex: "ffb703") : .white
+                    ) {
+                        withAnimation(.spring(duration: 0.3, bounce: 0.5)) {
+                            showSearch.toggle()
+                            if !showSearch {
+                                searchText = ""
+                            }
+                        }
+                    }
 
-                NeoBrutalButton(icon: "gear", background: .white) {
-                    // Settings action
-                }
+                    NeoBrutalButton(icon: "gear", background: .white) {
+                        // Settings action
+                    }
 
-                NeoBrutalButton(text: "NEW NOTE", icon: "plus", background: Color(hex: "fb8500")) {
-                    let newNote = notesManager.createNote()
-                    openWindow(value: newNote.id)
+                    NeoBrutalButton(text: "NEW NOTE", icon: "plus", background: Color(hex: "fb8500")) {
+                        let newNote = notesManager.createNote()
+                        openWindow(value: newNote.id)
+                    }
                 }
             }
+            .padding(24)
+
+            // Search field
+            if showSearch {
+                HStack {
+                    Image(systemName: "magnifyingglass")
+                        .font(.system(size: 24, weight: .black))
+                        .foregroundColor(.black)
+
+                    TextField("SEARCH NOTES...", text: $searchText)
+                        .textFieldStyle(.plain)
+                        .font(.system(size: 18, weight: .bold))
+                        .foregroundColor(.black)
+                }
+                .padding(20)
+                .background(
+                    Color(hex: "ffb703")
+                        .overlay(
+                            Rectangle()
+                                .stroke(Color.black, lineWidth: 4)
+                        )
+                )
+                .padding(.horizontal, 24)
+                .padding(.bottom, 24)
+                .transition(.move(edge: .top).combined(with: .opacity))
+            }
         }
-        .padding(24)
         .background(
             Color.white
                 .overlay(
@@ -146,7 +247,8 @@ struct NeoBrutalismCarouselView: View {
         ZStack {
             // Only show the active card - no stacking effect
             if !displayNotes.isEmpty {
-                let noteData = displayNotes[currentIndex]
+                let safeIndex = min(currentIndex, displayNotes.count - 1)
+                let noteData = displayNotes[safeIndex]
 
                 NeoBrutalNoteCard(
                     noteData: noteData,
@@ -163,10 +265,14 @@ struct NeoBrutalismCarouselView: View {
                         }
                     },
                     onDelete: {
-                        if let note = notesManager.notes.first(where: { $0.id == noteData.id }) {
-                            if showTrash {
+                        if showTrash {
+                            // In trash view - permanent delete
+                            if let note = notesManager.deletedNotes.first(where: { $0.id == noteData.id }) {
                                 notesManager.permanentlyDeleteNote(note)
-                            } else {
+                            }
+                        } else {
+                            // Normal view - move to trash
+                            if let note = notesManager.notes.first(where: { $0.id == noteData.id }) {
                                 notesManager.deleteNote(note)
                             }
                         }
@@ -178,6 +284,12 @@ struct NeoBrutalismCarouselView: View {
                     },
                     isTrashView: showTrash
                 )
+                .onAppear {
+                    // Reset index if it's out of bounds
+                    if currentIndex >= displayNotes.count {
+                        currentIndex = max(0, displayNotes.count - 1)
+                    }
+                }
             }
         }
         .frame(maxWidth: 700)
@@ -258,43 +370,192 @@ struct NeoBrutalismCarouselView: View {
     // MARK: - Bottom Bar
 
     private var bottomBar: some View {
-        HStack {
-            HStack(spacing: 16) {
-                NeoBrutalButton(text: "FILTER", icon: "line.3.horizontal.decrease", background: .white) {
-                    // Filter action
-                }
+        VStack(spacing: 0) {
+            // Filter popover
+            if showFilterPopover {
+                VStack(spacing: 0) {
+                    ForEach(FilterOption.allCases, id: \.self) { option in
+                        Button(action: {
+                            selectedFilter = option
+                            if option == .folder && !availableFolders.isEmpty {
+                                selectedFolder = availableFolders.first
+                            } else {
+                                showFilterPopover = false
+                            }
+                            currentIndex = 0
+                        }) {
+                            HStack {
+                                Text(option.rawValue)
+                                    .font(.system(size: 16, weight: .black))
+                                    .foregroundColor(.black)
+                                Spacer()
+                                if selectedFilter == option {
+                                    Image(systemName: "checkmark")
+                                        .font(.system(size: 16, weight: .black))
+                                        .foregroundColor(.black)
+                                }
+                            }
+                            .padding(16)
+                        }
+                        .buttonStyle(.plain)
 
-                NeoBrutalButton(text: "SORT", icon: "arrow.up.arrow.down", background: .white) {
-                    // Sort action
-                }
+                        if option != FilterOption.allCases.last {
+                            Rectangle()
+                                .fill(Color.black)
+                                .frame(height: 2)
+                        }
+                    }
 
-                NeoBrutalButton(
-                    text: showTrash ? "NOTES" : "TRASH",
-                    icon: showTrash ? "arrow.left" : "trash",
-                    background: showTrash ? .white : Color(hex: "fb8500")
-                ) {
-                    withAnimation(.spring(duration: 0.3, bounce: 0.5)) {
-                        showTrash.toggle()
-                        currentIndex = 0
+                    if selectedFilter == .folder && !availableFolders.isEmpty {
+                        Rectangle()
+                            .fill(Color.black)
+                            .frame(height: 4)
+
+                        ForEach(availableFolders, id: \.self) { folder in
+                            Button(action: {
+                                selectedFolder = folder
+                                currentIndex = 0
+                                showFilterPopover = false
+                            }) {
+                                HStack {
+                                    Text(folder.uppercased())
+                                        .font(.system(size: 16, weight: .black))
+                                        .foregroundColor(.black)
+                                    Spacer()
+                                    if selectedFolder == folder {
+                                        Image(systemName: "checkmark")
+                                            .font(.system(size: 16, weight: .black))
+                                            .foregroundColor(.black)
+                                    }
+                                }
+                                .padding(16)
+                            }
+                            .buttonStyle(.plain)
+
+                            if folder != availableFolders.last {
+                                Rectangle()
+                                    .fill(Color.black)
+                                    .frame(height: 2)
+                            }
+                        }
                     }
                 }
+                .background(
+                    Color.white
+                        .overlay(
+                            Rectangle()
+                                .stroke(Color.black, lineWidth: 4)
+                        )
+                        .shadow(color: .black, radius: 0, x: 6, y: 6)
+                )
+                .padding(.horizontal, 24)
+                .padding(.bottom, 16)
+                .transition(.move(edge: .bottom).combined(with: .opacity))
             }
 
-            Spacer()
+            // Sort popover
+            if showSortPopover {
+                VStack(spacing: 0) {
+                    ForEach(SortOrder.allCases, id: \.self) { order in
+                        Button(action: {
+                            sortOrder = order
+                            currentIndex = 0
+                            showSortPopover = false
+                        }) {
+                            HStack {
+                                Text(order.rawValue)
+                                    .font(.system(size: 16, weight: .black))
+                                    .foregroundColor(.black)
+                                Spacer()
+                                if sortOrder == order {
+                                    Image(systemName: "checkmark")
+                                        .font(.system(size: 16, weight: .black))
+                                        .foregroundColor(.black)
+                                }
+                            }
+                            .padding(16)
+                        }
+                        .buttonStyle(.plain)
 
-            Text("CARD \(currentIndex + 1) OF \(max(displayNotes.count, 1)) • USE ← →")
-                .font(.system(size: 16, weight: .black))
-                .foregroundColor(.black)
-        }
-        .padding(24)
-        .background(
-            Color.white
-                .overlay(
-                    Rectangle()
-                        .stroke(Color.black, lineWidth: 4)
+                        if order != SortOrder.allCases.last {
+                            Rectangle()
+                                .fill(Color.black)
+                                .frame(height: 2)
+                        }
+                    }
+                }
+                .background(
+                    Color.white
+                        .overlay(
+                            Rectangle()
+                                .stroke(Color.black, lineWidth: 4)
+                        )
+                        .shadow(color: .black, radius: 0, x: 6, y: 6)
                 )
-                .shadow(color: .black, radius: 0, x: 6, y: 6)
-        )
+                .padding(.horizontal, 24)
+                .padding(.bottom, 16)
+                .transition(.move(edge: .bottom).combined(with: .opacity))
+            }
+
+            HStack {
+                HStack(spacing: 16) {
+                    // Filter button
+                    NeoBrutalButton(
+                        text: selectedFilter == .folder && selectedFolder != nil ? (selectedFolder ?? "FILTER") : selectedFilter.rawValue,
+                        icon: "line.3.horizontal.decrease",
+                        background: selectedFilter != .all ? Color(hex: "219ebc") : .white
+                    ) {
+                        withAnimation(.spring(duration: 0.3, bounce: 0.5)) {
+                            showFilterPopover.toggle()
+                            showSortPopover = false
+                        }
+                    }
+
+                    // Sort button
+                    NeoBrutalButton(
+                        text: sortOrder.rawValue,
+                        icon: "arrow.up.arrow.down",
+                        background: sortOrder != .modifiedDate ? Color(hex: "a855f7") : .white
+                    ) {
+                        withAnimation(.spring(duration: 0.3, bounce: 0.5)) {
+                            showSortPopover.toggle()
+                            showFilterPopover = false
+                        }
+                    }
+
+                    NeoBrutalButton(
+                        text: showTrash ? "NOTES" : "TRASH",
+                        icon: showTrash ? "arrow.left" : "trash",
+                        background: showTrash ? .white : Color(hex: "fb8500")
+                    ) {
+                        withAnimation(.spring(duration: 0.3, bounce: 0.5)) {
+                            showTrash.toggle()
+                            currentIndex = 0
+                            // Reset filters when switching to/from trash
+                            selectedFilter = .all
+                            searchText = ""
+                            showFilterPopover = false
+                            showSortPopover = false
+                        }
+                    }
+                }
+
+                Spacer()
+
+                Text("CARD \(currentIndex + 1) OF \(max(displayNotes.count, 1)) • USE ← →")
+                    .font(.system(size: 16, weight: .black))
+                    .foregroundColor(.black)
+            }
+            .padding(24)
+            .background(
+                Color.white
+                    .overlay(
+                        Rectangle()
+                            .stroke(Color.black, lineWidth: 4)
+                    )
+                    .shadow(color: .black, radius: 0, x: 6, y: 6)
+            )
+        }
     }
 }
 
@@ -350,6 +611,8 @@ struct NeoBrutalNoteCard: View {
     let onDelete: () -> Void
     let onRestore: () -> Void
     let isTrashView: Bool
+
+    @State private var showDeleteConfirmation = false
 
     var body: some View {
         VStack(alignment: .leading, spacing: 0) {
@@ -421,9 +684,12 @@ struct NeoBrutalNoteCard: View {
                     HStack(spacing: 8) {
                         if isTrashView {
                             NeoBrutalButton(text: "RESTORE", icon: "arrow.uturn.backward", background: Color(hex: "22c55e"), action: onRestore)
-                            NeoBrutalButton(text: "DELETE", icon: "trash", background: Color(hex: "fb8500"), action: onDelete)
+                            NeoBrutalButton(text: "DELETE", icon: "trash", background: Color(hex: "fb8500")) {
+                                showDeleteConfirmation = true
+                            }
                         } else {
                             NeoBrutalButton(text: "EDIT", icon: "pencil", background: .white, action: onTap)
+                            NeoBrutalButton(icon: "trash", background: Color(hex: "fb8500"), action: onDelete)
                         }
                     }
                 }
@@ -443,12 +709,126 @@ struct NeoBrutalNoteCard: View {
         .opacity(position.opacity)
         .zIndex(position.zIndex)
         .frame(height: 540)
+        .overlay(
+            Group {
+                if showDeleteConfirmation {
+                    NeoBrutalDeleteConfirmation(
+                        onConfirm: {
+                            showDeleteConfirmation = false
+                            onDelete()
+                        },
+                        onCancel: {
+                            showDeleteConfirmation = false
+                        }
+                    )
+                }
+            }
+        )
     }
 
     private func formatDate(_ date: Date) -> String {
         let formatter = DateFormatter()
         formatter.dateFormat = "MMM d • h:mm a"
         return formatter.string(from: date).uppercased()
+    }
+}
+
+// MARK: - Delete Confirmation Dialog
+
+struct NeoBrutalDeleteConfirmation: View {
+    let onConfirm: () -> Void
+    let onCancel: () -> Void
+
+    var body: some View {
+        ZStack {
+            // Dark overlay
+            Color.black.opacity(0.7)
+                .ignoresSafeArea()
+
+            // Confirmation card
+            VStack(spacing: 0) {
+                // Header
+                VStack(spacing: 12) {
+                    Image(systemName: "exclamationmark.triangle.fill")
+                        .font(.system(size: 56, weight: .black))
+                        .foregroundColor(Color(hex: "fb8500"))
+
+                    Text("PERMANENT DELETE")
+                        .font(.system(size: 32, weight: .black))
+                        .foregroundColor(.black)
+                }
+                .padding(.top, 40)
+                .padding(.horizontal, 40)
+
+                // Message
+                VStack(spacing: 16) {
+                    Text("This action cannot be undone.")
+                        .font(.system(size: 18, weight: .bold))
+                        .foregroundColor(.black)
+
+                    Text("The note will be permanently deleted from your device and cannot be recovered.")
+                        .font(.system(size: 16, weight: .regular))
+                        .foregroundColor(.black.opacity(0.7))
+                        .multilineTextAlignment(.center)
+                }
+                .padding(.vertical, 32)
+                .padding(.horizontal, 40)
+
+                // Buttons
+                HStack(spacing: 16) {
+                    Button(action: onCancel) {
+                        HStack(spacing: 8) {
+                            Image(systemName: "xmark")
+                                .font(.system(size: 18, weight: .black))
+                            Text("CANCEL")
+                                .font(.system(size: 18, weight: .black))
+                        }
+                        .foregroundColor(.black)
+                        .frame(maxWidth: .infinity)
+                        .padding(.vertical, 20)
+                        .background(
+                            Color.white
+                                .overlay(
+                                    Rectangle()
+                                        .stroke(Color.black, lineWidth: 4)
+                                )
+                        )
+                    }
+                    .buttonStyle(NeoBrutalButtonStyle())
+
+                    Button(action: onConfirm) {
+                        HStack(spacing: 8) {
+                            Image(systemName: "trash.fill")
+                                .font(.system(size: 18, weight: .black))
+                            Text("DELETE")
+                                .font(.system(size: 18, weight: .black))
+                        }
+                        .foregroundColor(.white)
+                        .frame(maxWidth: .infinity)
+                        .padding(.vertical, 20)
+                        .background(
+                            Color(hex: "fb8500")
+                                .overlay(
+                                    Rectangle()
+                                        .stroke(Color.black, lineWidth: 4)
+                                )
+                        )
+                    }
+                    .buttonStyle(NeoBrutalButtonStyle())
+                }
+                .padding(.horizontal, 40)
+                .padding(.bottom, 40)
+            }
+            .frame(width: 520)
+            .background(
+                Color.white
+                    .overlay(
+                        Rectangle()
+                            .stroke(Color.black, lineWidth: 6)
+                    )
+                    .shadow(color: .black, radius: 0, x: 12, y: 12)
+            )
+        }
     }
 }
 
