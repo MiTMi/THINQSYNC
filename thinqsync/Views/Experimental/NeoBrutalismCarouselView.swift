@@ -116,27 +116,27 @@ struct NeoBrutalismCarouselView: View {
                     topBar
 
                     Spacer()
-                        .frame(height: geometry.size.height * 0.015)
+                        .frame(height: geometry.size.height * 0.01)
 
                     // Main Carousel
                     carouselContainer
-                        .frame(height: geometry.size.height * 0.48)
+                        .frame(height: geometry.size.height * 0.45)
 
                     Spacer()
-                        .frame(height: geometry.size.height * 0.02)
+                        .frame(height: geometry.size.height * 0.018)
 
                     // Progress Dots
                     progressDots
 
                     Spacer()
-                        .frame(height: geometry.size.height * 0.02)
+                        .frame(height: geometry.size.height * 0.018)
 
                     // Thumbnail Strip
                     thumbnailStrip
-                        .frame(height: geometry.size.height * 0.14)
+                        .frame(height: geometry.size.height * 0.18)
 
                     Spacer()
-                        .frame(height: geometry.size.height * 0.015)
+                        .frame(height: geometry.size.height * 0.01)
 
                     // Bottom Bar
                     bottomBar
