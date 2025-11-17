@@ -360,7 +360,7 @@ struct NeoBrutalismCarouselView: View {
 
     private var thumbnailStrip: some View {
         ScrollView(.horizontal, showsIndicators: false) {
-            HStack(spacing: 28) {
+            HStack(spacing: 40) {
                 ForEach(Array(displayNotes.enumerated()), id: \.element.id) { index, noteData in
                     NeoBrutalThumbnail(
                         color: noteData.color,
