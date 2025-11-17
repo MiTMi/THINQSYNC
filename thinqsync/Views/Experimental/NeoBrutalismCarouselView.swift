@@ -111,20 +111,20 @@ struct NeoBrutalismCarouselView: View {
                 Color(hex: "8ecae6")
                     .ignoresSafeArea()
 
-                VStack(spacing: geometry.size.height * 0.02) {
+                VStack(spacing: geometry.size.height * 0.015) {
                     // Top Bar
                     topBar
 
                     // Main Carousel
                     carouselContainer
-                        .frame(height: geometry.size.height * 0.45)
+                        .frame(height: geometry.size.height * 0.50)
 
                     // Progress Dots
                     progressDots
 
                     // Thumbnail Strip
                     thumbnailStrip
-                        .frame(height: geometry.size.height * 0.12)
+                        .frame(height: geometry.size.height * 0.10)
 
                     // Bottom Bar
                     bottomBar
@@ -503,7 +503,7 @@ struct NeoBrutalismCarouselView: View {
             }
 
             HStack {
-                HStack(spacing: 16) {
+                HStack(spacing: 12) {
                     // Filter button
                     NeoBrutalButton(
                         text: selectedFilter == .folder && selectedFolder != nil ? (selectedFolder ?? "FILTER") : selectedFilter.rawValue,
@@ -548,10 +548,11 @@ struct NeoBrutalismCarouselView: View {
                 Spacer()
 
                 Text("CARD \(currentIndex + 1) OF \(max(displayNotes.count, 1)) • USE ← →")
-                    .font(.system(size: 16, weight: .black))
+                    .font(.system(size: 13, weight: .black))
                     .foregroundColor(.black)
             }
-            .padding(24)
+            .padding(.horizontal, 20)
+            .padding(.vertical, 14)
             .background(
                 Color.white
                     .overlay(
@@ -846,24 +847,24 @@ struct NeoBrutalButton: View {
 
     var body: some View {
         Button(action: action) {
-            HStack(spacing: 8) {
+            HStack(spacing: 6) {
                 if let icon = icon {
                     Image(systemName: icon)
-                        .font(.system(size: text.isEmpty ? 24 : 18, weight: .black))
+                        .font(.system(size: text.isEmpty ? 18 : 14, weight: .black))
                 }
                 if !text.isEmpty {
                     Text(text.uppercased())
-                        .font(.system(size: 18, weight: .black))
+                        .font(.system(size: 14, weight: .black))
                 }
             }
             .foregroundColor(.black)
-            .padding(.horizontal, text.isEmpty ? 16 : 32)
-            .padding(.vertical, 16)
+            .padding(.horizontal, text.isEmpty ? 12 : 20)
+            .padding(.vertical, 10)
             .background(
                 background
                     .overlay(
                         Rectangle()
-                            .stroke(Color.black, lineWidth: 4)
+                            .stroke(Color.black, lineWidth: 3)
                     )
             )
         }
