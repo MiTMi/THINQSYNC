@@ -111,20 +111,32 @@ struct NeoBrutalismCarouselView: View {
                 Color(hex: "8ecae6")
                     .ignoresSafeArea()
 
-                VStack(spacing: geometry.size.height * 0.015) {
+                VStack(spacing: 0) {
                     // Top Bar
                     topBar
+
+                    Spacer()
+                        .frame(height: geometry.size.height * 0.02)
 
                     // Main Carousel
                     carouselContainer
                         .frame(height: geometry.size.height * 0.50)
 
+                    Spacer()
+                        .frame(height: geometry.size.height * 0.025)
+
                     // Progress Dots
                     progressDots
+
+                    Spacer()
+                        .frame(height: geometry.size.height * 0.025)
 
                     // Thumbnail Strip
                     thumbnailStrip
                         .frame(height: geometry.size.height * 0.10)
+
+                    Spacer()
+                        .frame(height: geometry.size.height * 0.025)
 
                     // Bottom Bar
                     bottomBar
@@ -348,7 +360,7 @@ struct NeoBrutalismCarouselView: View {
 
     private var thumbnailStrip: some View {
         ScrollView(.horizontal, showsIndicators: false) {
-            HStack(spacing: 20) {
+            HStack(spacing: 28) {
                 ForEach(Array(displayNotes.enumerated()), id: \.element.id) { index, noteData in
                     NeoBrutalThumbnail(
                         color: noteData.color,
