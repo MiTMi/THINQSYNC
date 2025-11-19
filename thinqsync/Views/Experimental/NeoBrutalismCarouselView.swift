@@ -142,6 +142,29 @@ struct NeoBrutalismCarouselView: View {
                     bottomBar
                 }
                 .padding(geometry.size.width * 0.025)
+
+                // Popovers overlaid on top of entire view
+                if showFilterPopover || showSortPopover {
+                    VStack {
+                        Spacer()
+
+                        if showFilterPopover {
+                            filterPopoverContent
+                                .padding(.horizontal, geometry.size.width * 0.025 + 24)
+                                .padding(.bottom, 80)
+                                .frame(maxWidth: .infinity, alignment: .leading)
+                                .transition(.move(edge: .bottom).combined(with: .opacity))
+                        }
+
+                        if showSortPopover {
+                            sortPopoverContent
+                                .padding(.horizontal, geometry.size.width * 0.025 + 24)
+                                .padding(.bottom, 80)
+                                .frame(maxWidth: .infinity, alignment: .leading)
+                                .transition(.move(edge: .bottom).combined(with: .opacity))
+                        }
+                    }
+                }
             }
         }
         .onChange(of: displayNotes.count) { oldValue, newValue in
@@ -387,194 +410,186 @@ struct NeoBrutalismCarouselView: View {
     // MARK: - Bottom Bar
 
     private var bottomBar: some View {
-        ZStack(alignment: .bottomLeading) {
-            // Main button bar
-            HStack {
-                HStack(spacing: 12) {
-                    // Filter button
-                    NeoBrutalButton(
-                        text: selectedFilter == .folder && selectedFolder != nil ? (selectedFolder ?? "FILTER") : selectedFilter.rawValue,
-                        icon: "line.3.horizontal.decrease",
-                        background: selectedFilter != .all ? Color(hex: "219ebc") : .white
-                    ) {
-                        withAnimation(.spring(duration: 0.3, bounce: 0.5)) {
-                            showFilterPopover.toggle()
-                            showSortPopover = false
-                        }
-                    }
-
-                    // Sort button
-                    NeoBrutalButton(
-                        text: sortOrder.rawValue,
-                        icon: "arrow.up.arrow.down",
-                        background: sortOrder != .modifiedDate ? Color(hex: "a855f7") : .white
-                    ) {
-                        withAnimation(.spring(duration: 0.3, bounce: 0.5)) {
-                            showSortPopover.toggle()
-                            showFilterPopover = false
-                        }
-                    }
-
-                    NeoBrutalButton(
-                        text: showTrash ? "NOTES" : "TRASH",
-                        icon: showTrash ? "arrow.left" : "trash",
-                        background: showTrash ? .white : Color(hex: "fb8500")
-                    ) {
-                        withAnimation(.spring(duration: 0.3, bounce: 0.5)) {
-                            showTrash.toggle()
-                            currentIndex = 0
-                            // Reset filters when switching to/from trash
-                            selectedFilter = .all
-                            searchText = ""
-                            showFilterPopover = false
-                            showSortPopover = false
-                        }
+        // Main button bar only
+        HStack {
+            HStack(spacing: 12) {
+                // Filter button
+                NeoBrutalButton(
+                    text: selectedFilter == .folder && selectedFolder != nil ? (selectedFolder ?? "FILTER") : selectedFilter.rawValue,
+                    icon: "line.3.horizontal.decrease",
+                    background: selectedFilter != .all ? Color(hex: "219ebc") : .white
+                ) {
+                    withAnimation(.spring(duration: 0.3, bounce: 0.5)) {
+                        showFilterPopover.toggle()
+                        showSortPopover = false
                     }
                 }
 
-                Spacer()
+                // Sort button
+                NeoBrutalButton(
+                    text: sortOrder.rawValue,
+                    icon: "arrow.up.arrow.down",
+                    background: sortOrder != .modifiedDate ? Color(hex: "a855f7") : .white
+                ) {
+                    withAnimation(.spring(duration: 0.3, bounce: 0.5)) {
+                        showSortPopover.toggle()
+                        showFilterPopover = false
+                    }
+                }
 
-                Text("CARD \(currentIndex + 1) OF \(max(displayNotes.count, 1)) • USE ← →")
-                    .font(.system(size: 13, weight: .black))
-                    .foregroundColor(.black)
+                NeoBrutalButton(
+                    text: showTrash ? "NOTES" : "TRASH",
+                    icon: showTrash ? "arrow.left" : "trash",
+                    background: showTrash ? .white : Color(hex: "fb8500")
+                ) {
+                    withAnimation(.spring(duration: 0.3, bounce: 0.5)) {
+                        showTrash.toggle()
+                        currentIndex = 0
+                        // Reset filters when switching to/from trash
+                        selectedFilter = .all
+                        searchText = ""
+                        showFilterPopover = false
+                        showSortPopover = false
+                    }
+                }
             }
-            .padding(.horizontal, 20)
-            .padding(.vertical, 14)
-            .background(
-                Color.white
-                    .overlay(
-                        Rectangle()
-                            .stroke(Color.black, lineWidth: 4)
-                    )
-                    .shadow(color: .black, radius: 0, x: 6, y: 6)
-            )
 
-            // Filter popover - positioned above button bar
-            if showFilterPopover {
-                VStack(spacing: 0) {
-                    ForEach(FilterOption.allCases, id: \.self) { option in
-                        Button(action: {
-                            selectedFilter = option
-                            if option == .folder && !availableFolders.isEmpty {
-                                selectedFolder = availableFolders.first
-                            } else {
-                                showFilterPopover = false
-                            }
-                            currentIndex = 0
-                        }) {
-                            HStack {
-                                Text(option.rawValue)
-                                    .font(.system(size: 16, weight: .black))
-                                    .foregroundColor(.black)
-                                Spacer()
-                                if selectedFilter == option {
-                                    Image(systemName: "checkmark")
-                                        .font(.system(size: 16, weight: .black))
-                                        .foregroundColor(.black)
-                                }
-                            }
-                            .padding(16)
-                        }
-                        .buttonStyle(.plain)
+            Spacer()
 
-                        if option != FilterOption.allCases.last {
-                            Rectangle()
-                                .fill(Color.black)
-                                .frame(height: 2)
+            Text("CARD \(currentIndex + 1) OF \(max(displayNotes.count, 1)) • USE ← →")
+                .font(.system(size: 13, weight: .black))
+                .foregroundColor(.black)
+        }
+        .padding(.horizontal, 20)
+        .padding(.vertical, 14)
+        .background(
+            Color.white
+                .overlay(
+                    Rectangle()
+                        .stroke(Color.black, lineWidth: 4)
+                )
+                .shadow(color: .black, radius: 0, x: 6, y: 6)
+        )
+    }
+
+    // MARK: - Popover Content
+
+    private var filterPopoverContent: some View {
+        VStack(spacing: 0) {
+            ForEach(FilterOption.allCases, id: \.self) { option in
+                Button(action: {
+                    selectedFilter = option
+                    if option == .folder && !availableFolders.isEmpty {
+                        selectedFolder = availableFolders.first
+                    } else {
+                        showFilterPopover = false
+                    }
+                    currentIndex = 0
+                }) {
+                    HStack {
+                        Text(option.rawValue)
+                            .font(.system(size: 16, weight: .black))
+                            .foregroundColor(.black)
+                        Spacer()
+                        if selectedFilter == option {
+                            Image(systemName: "checkmark")
+                                .font(.system(size: 16, weight: .black))
+                                .foregroundColor(.black)
                         }
                     }
+                    .padding(16)
+                }
+                .buttonStyle(.plain)
 
-                    if selectedFilter == .folder && !availableFolders.isEmpty {
+                if option != FilterOption.allCases.last {
+                    Rectangle()
+                        .fill(Color.black)
+                        .frame(height: 2)
+                }
+            }
+
+            if selectedFilter == .folder && !availableFolders.isEmpty {
+                Rectangle()
+                    .fill(Color.black)
+                    .frame(height: 4)
+
+                ForEach(availableFolders, id: \.self) { folder in
+                    Button(action: {
+                        selectedFolder = folder
+                        currentIndex = 0
+                        showFilterPopover = false
+                    }) {
+                        HStack {
+                            Text(folder.uppercased())
+                                .font(.system(size: 16, weight: .black))
+                                .foregroundColor(.black)
+                            Spacer()
+                            if selectedFolder == folder {
+                                Image(systemName: "checkmark")
+                                    .font(.system(size: 16, weight: .black))
+                                    .foregroundColor(.black)
+                            }
+                        }
+                        .padding(16)
+                    }
+                    .buttonStyle(.plain)
+
+                    if folder != availableFolders.last {
                         Rectangle()
                             .fill(Color.black)
-                            .frame(height: 4)
-
-                        ForEach(availableFolders, id: \.self) { folder in
-                            Button(action: {
-                                selectedFolder = folder
-                                currentIndex = 0
-                                showFilterPopover = false
-                            }) {
-                                HStack {
-                                    Text(folder.uppercased())
-                                        .font(.system(size: 16, weight: .black))
-                                        .foregroundColor(.black)
-                                    Spacer()
-                                    if selectedFolder == folder {
-                                        Image(systemName: "checkmark")
-                                            .font(.system(size: 16, weight: .black))
-                                            .foregroundColor(.black)
-                                    }
-                                }
-                                .padding(16)
-                            }
-                            .buttonStyle(.plain)
-
-                            if folder != availableFolders.last {
-                                Rectangle()
-                                    .fill(Color.black)
-                                    .frame(height: 2)
-                            }
-                        }
+                            .frame(height: 2)
                     }
                 }
-                .background(
-                    Color.white
-                        .overlay(
-                            Rectangle()
-                                .stroke(Color.black, lineWidth: 4)
-                        )
-                        .shadow(color: .black, radius: 0, x: 6, y: 6)
-                )
-                .padding(.horizontal, 24)
-                .padding(.bottom, 70)
-                .transition(.move(edge: .bottom).combined(with: .opacity))
-            }
-
-            // Sort popover - positioned above button bar
-            if showSortPopover {
-                VStack(spacing: 0) {
-                    ForEach(SortOrder.allCases, id: \.self) { order in
-                        Button(action: {
-                            sortOrder = order
-                            currentIndex = 0
-                            showSortPopover = false
-                        }) {
-                            HStack {
-                                Text(order.rawValue)
-                                    .font(.system(size: 16, weight: .black))
-                                    .foregroundColor(.black)
-                                Spacer()
-                                if sortOrder == order {
-                                    Image(systemName: "checkmark")
-                                        .font(.system(size: 16, weight: .black))
-                                        .foregroundColor(.black)
-                                }
-                            }
-                            .padding(16)
-                        }
-                        .buttonStyle(.plain)
-
-                        if order != SortOrder.allCases.last {
-                            Rectangle()
-                                .fill(Color.black)
-                                .frame(height: 2)
-                        }
-                    }
-                }
-                .background(
-                    Color.white
-                        .overlay(
-                            Rectangle()
-                                .stroke(Color.black, lineWidth: 4)
-                        )
-                        .shadow(color: .black, radius: 0, x: 6, y: 6)
-                )
-                .padding(.horizontal, 24)
-                .padding(.bottom, 70)
-                .transition(.move(edge: .bottom).combined(with: .opacity))
             }
         }
+        .background(
+            Color.white
+                .overlay(
+                    Rectangle()
+                        .stroke(Color.black, lineWidth: 4)
+                )
+                .shadow(color: .black, radius: 0, x: 6, y: 6)
+        )
+    }
+
+    private var sortPopoverContent: some View {
+        VStack(spacing: 0) {
+            ForEach(SortOrder.allCases, id: \.self) { order in
+                Button(action: {
+                    sortOrder = order
+                    currentIndex = 0
+                    showSortPopover = false
+                }) {
+                    HStack {
+                        Text(order.rawValue)
+                            .font(.system(size: 16, weight: .black))
+                            .foregroundColor(.black)
+                        Spacer()
+                        if sortOrder == order {
+                            Image(systemName: "checkmark")
+                                .font(.system(size: 16, weight: .black))
+                                .foregroundColor(.black)
+                        }
+                    }
+                    .padding(16)
+                }
+                .buttonStyle(.plain)
+
+                if order != SortOrder.allCases.last {
+                    Rectangle()
+                        .fill(Color.black)
+                        .frame(height: 2)
+                }
+            }
+        }
+        .background(
+            Color.white
+                .overlay(
+                    Rectangle()
+                        .stroke(Color.black, lineWidth: 4)
+                )
+                .shadow(color: .black, radius: 0, x: 6, y: 6)
+        )
     }
 }
 
