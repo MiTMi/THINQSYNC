@@ -387,8 +387,69 @@ struct NeoBrutalismCarouselView: View {
     // MARK: - Bottom Bar
 
     private var bottomBar: some View {
-        VStack(spacing: 0) {
-            // Filter popover
+        ZStack(alignment: .bottomLeading) {
+            // Main button bar
+            HStack {
+                HStack(spacing: 12) {
+                    // Filter button
+                    NeoBrutalButton(
+                        text: selectedFilter == .folder && selectedFolder != nil ? (selectedFolder ?? "FILTER") : selectedFilter.rawValue,
+                        icon: "line.3.horizontal.decrease",
+                        background: selectedFilter != .all ? Color(hex: "219ebc") : .white
+                    ) {
+                        withAnimation(.spring(duration: 0.3, bounce: 0.5)) {
+                            showFilterPopover.toggle()
+                            showSortPopover = false
+                        }
+                    }
+
+                    // Sort button
+                    NeoBrutalButton(
+                        text: sortOrder.rawValue,
+                        icon: "arrow.up.arrow.down",
+                        background: sortOrder != .modifiedDate ? Color(hex: "a855f7") : .white
+                    ) {
+                        withAnimation(.spring(duration: 0.3, bounce: 0.5)) {
+                            showSortPopover.toggle()
+                            showFilterPopover = false
+                        }
+                    }
+
+                    NeoBrutalButton(
+                        text: showTrash ? "NOTES" : "TRASH",
+                        icon: showTrash ? "arrow.left" : "trash",
+                        background: showTrash ? .white : Color(hex: "fb8500")
+                    ) {
+                        withAnimation(.spring(duration: 0.3, bounce: 0.5)) {
+                            showTrash.toggle()
+                            currentIndex = 0
+                            // Reset filters when switching to/from trash
+                            selectedFilter = .all
+                            searchText = ""
+                            showFilterPopover = false
+                            showSortPopover = false
+                        }
+                    }
+                }
+
+                Spacer()
+
+                Text("CARD \(currentIndex + 1) OF \(max(displayNotes.count, 1)) • USE ← →")
+                    .font(.system(size: 13, weight: .black))
+                    .foregroundColor(.black)
+            }
+            .padding(.horizontal, 20)
+            .padding(.vertical, 14)
+            .background(
+                Color.white
+                    .overlay(
+                        Rectangle()
+                            .stroke(Color.black, lineWidth: 4)
+                    )
+                    .shadow(color: .black, radius: 0, x: 6, y: 6)
+            )
+
+            // Filter popover - positioned above button bar
             if showFilterPopover {
                 VStack(spacing: 0) {
                     ForEach(FilterOption.allCases, id: \.self) { option in
@@ -466,11 +527,11 @@ struct NeoBrutalismCarouselView: View {
                         .shadow(color: .black, radius: 0, x: 6, y: 6)
                 )
                 .padding(.horizontal, 24)
-                .padding(.top, 16)
-                .transition(.move(edge: .top).combined(with: .opacity))
+                .padding(.bottom, 70)
+                .transition(.move(edge: .bottom).combined(with: .opacity))
             }
 
-            // Sort popover
+            // Sort popover - positioned above button bar
             if showSortPopover {
                 VStack(spacing: 0) {
                     ForEach(SortOrder.allCases, id: \.self) { order in
@@ -510,69 +571,9 @@ struct NeoBrutalismCarouselView: View {
                         .shadow(color: .black, radius: 0, x: 6, y: 6)
                 )
                 .padding(.horizontal, 24)
-                .padding(.top, 16)
-                .transition(.move(edge: .top).combined(with: .opacity))
+                .padding(.bottom, 70)
+                .transition(.move(edge: .bottom).combined(with: .opacity))
             }
-
-            HStack {
-                HStack(spacing: 12) {
-                    // Filter button
-                    NeoBrutalButton(
-                        text: selectedFilter == .folder && selectedFolder != nil ? (selectedFolder ?? "FILTER") : selectedFilter.rawValue,
-                        icon: "line.3.horizontal.decrease",
-                        background: selectedFilter != .all ? Color(hex: "219ebc") : .white
-                    ) {
-                        withAnimation(.spring(duration: 0.3, bounce: 0.5)) {
-                            showFilterPopover.toggle()
-                            showSortPopover = false
-                        }
-                    }
-
-                    // Sort button
-                    NeoBrutalButton(
-                        text: sortOrder.rawValue,
-                        icon: "arrow.up.arrow.down",
-                        background: sortOrder != .modifiedDate ? Color(hex: "a855f7") : .white
-                    ) {
-                        withAnimation(.spring(duration: 0.3, bounce: 0.5)) {
-                            showSortPopover.toggle()
-                            showFilterPopover = false
-                        }
-                    }
-
-                    NeoBrutalButton(
-                        text: showTrash ? "NOTES" : "TRASH",
-                        icon: showTrash ? "arrow.left" : "trash",
-                        background: showTrash ? .white : Color(hex: "fb8500")
-                    ) {
-                        withAnimation(.spring(duration: 0.3, bounce: 0.5)) {
-                            showTrash.toggle()
-                            currentIndex = 0
-                            // Reset filters when switching to/from trash
-                            selectedFilter = .all
-                            searchText = ""
-                            showFilterPopover = false
-                            showSortPopover = false
-                        }
-                    }
-                }
-
-                Spacer()
-
-                Text("CARD \(currentIndex + 1) OF \(max(displayNotes.count, 1)) • USE ← →")
-                    .font(.system(size: 13, weight: .black))
-                    .foregroundColor(.black)
-            }
-            .padding(.horizontal, 20)
-            .padding(.vertical, 14)
-            .background(
-                Color.white
-                    .overlay(
-                        Rectangle()
-                            .stroke(Color.black, lineWidth: 4)
-                    )
-                    .shadow(color: .black, radius: 0, x: 6, y: 6)
-            )
         }
     }
 }
