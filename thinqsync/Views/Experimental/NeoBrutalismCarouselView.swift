@@ -108,8 +108,8 @@ struct NeoBrutalismCarouselView: View {
     var body: some View {
         GeometryReader { geometry in
             ZStack {
-                // Adaptive background: black in dark mode, sky blue in light mode
-                (colorScheme == .dark ? Color.black : Color(hex: "8ecae6"))
+                // Adaptive background: navy blue in dark mode, sky blue in light mode
+                (colorScheme == .dark ? Color(hex: "1a1f3a") : Color(hex: "8ecae6"))
                     .ignoresSafeArea()
 
                 VStack(spacing: 0) {
