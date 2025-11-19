@@ -17,19 +17,43 @@ enum NoteColor: String, Codable, CaseIterable, Sendable {
     case pink
 
     var backgroundColor: Color {
-        switch self {
-        case .green:
-            return Color(hex: "22c55e") // Neo-brutalism Green
-        case .yellow:
-            return Color(hex: "ffb703") // Neo-brutalism Yellow
-        case .orange:
-            return Color(hex: "fb8500") // Neo-brutalism Orange
-        case .blue:
-            return Color(hex: "219ebc") // Neo-brutalism Blue
-        case .purple:
-            return Color(hex: "a855f7") // Neo-brutalism Purple
-        case .pink:
-            return .white // Neo-brutalism White
+        backgroundColor(for: .light)
+    }
+
+    // Adaptive background color based on color scheme
+    func backgroundColor(for colorScheme: ColorScheme) -> Color {
+        if colorScheme == .dark {
+            // Darkened colors for dark mode (25% darker)
+            switch self {
+            case .green:
+                return Color(hex: "1a9f4a") // Darker green
+            case .yellow:
+                return Color(hex: "cc9202") // Darker yellow
+            case .orange:
+                return Color(hex: "c96a00") // Darker orange
+            case .blue:
+                return Color(hex: "1a7e96") // Darker blue
+            case .purple:
+                return Color(hex: "8644c5") // Darker purple
+            case .pink:
+                return Color(hex: "2a2a2a") // Dark gray instead of white
+            }
+        } else {
+            // Original vibrant colors for light mode
+            switch self {
+            case .green:
+                return Color(hex: "22c55e") // Neo-brutalism Green
+            case .yellow:
+                return Color(hex: "ffb703") // Neo-brutalism Yellow
+            case .orange:
+                return Color(hex: "fb8500") // Neo-brutalism Orange
+            case .blue:
+                return Color(hex: "219ebc") // Neo-brutalism Blue
+            case .purple:
+                return Color(hex: "a855f7") // Neo-brutalism Purple
+            case .pink:
+                return .white // Neo-brutalism White
+            }
         }
     }
 
@@ -51,14 +75,46 @@ enum NoteColor: String, Codable, CaseIterable, Sendable {
         }
     }
 
-    // Text color - always black for neo-brutalism style (good contrast on all vibrant colors)
+    // Adaptive text color based on color scheme and note color
     func textColor(for colorScheme: ColorScheme) -> Color {
-        return .black
+        if colorScheme == .dark {
+            // In dark mode: white text on dark colors, black on bright colors
+            switch self {
+            case .green, .blue, .purple, .pink:
+                return .white
+            case .yellow, .orange:
+                return .black
+            }
+        } else {
+            // In light mode: black text on all colors
+            return .black
+        }
     }
 
-    // Icon color - always black for neo-brutalism style
+    // Adaptive icon color based on color scheme
     func iconColor(for colorScheme: ColorScheme) -> Color {
-        return Color.black.opacity(0.7)
+        if colorScheme == .dark {
+            // Match text color in dark mode
+            switch self {
+            case .green, .blue, .purple, .pink:
+                return Color.white.opacity(0.9)
+            case .yellow, .orange:
+                return Color.black.opacity(0.7)
+            }
+        } else {
+            // Black icons in light mode
+            return Color.black.opacity(0.7)
+        }
+    }
+
+    // Outer border color for two-tone effect
+    func outerBorderColor(for colorScheme: ColorScheme) -> Color {
+        colorScheme == .dark ? Color.white.opacity(0.9) : .black
+    }
+
+    // Inner border color for two-tone effect
+    func innerBorderColor(for colorScheme: ColorScheme) -> Color {
+        colorScheme == .dark ? Color.black.opacity(0.5) : .clear
     }
 
     // Legacy non-adaptive text color (for backwards compatibility)

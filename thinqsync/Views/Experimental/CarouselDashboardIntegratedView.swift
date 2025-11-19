@@ -56,6 +56,7 @@ struct CarouselDashboardIntegratedView: View {
                 title: note.title,
                 content: plainText,
                 color: carouselColor,
+                noteColor: note.color,
                 isFavorite: note.isFavorite,
                 folder: note.folder,
                 modifiedAt: note.modifiedAt,
@@ -935,6 +936,7 @@ struct CarouselNoteData: Identifiable {
     let title: String
     let content: String
     let color: Color
+    let noteColor: NoteColor
     let isFavorite: Bool
     let folder: String?
     let modifiedAt: Date

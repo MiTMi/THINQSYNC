@@ -96,6 +96,7 @@ struct NeoBrutalismCarouselView: View {
                 title: note.title,
                 content: plainText,
                 color: carouselColor,
+                noteColor: note.color,
                 isFavorite: note.isFavorite,
                 folder: note.folder,
                 modifiedAt: note.modifiedAt,
@@ -107,8 +108,8 @@ struct NeoBrutalismCarouselView: View {
     var body: some View {
         GeometryReader { geometry in
             ZStack {
-                // Sky blue background
-                Color(hex: "8ecae6")
+                // Adaptive background: black in dark mode, sky blue in light mode
+                (colorScheme == .dark ? Color.black : Color(hex: "8ecae6"))
                     .ignoresSafeArea()
 
                 VStack(spacing: 0) {
@@ -184,14 +185,15 @@ struct NeoBrutalismCarouselView: View {
             HStack {
                 Text("THINQSYNC")
                     .font(.system(size: 28, weight: .black))
-                    .foregroundColor(.black)
+                    .foregroundColor(colorScheme == .dark ? .white : .black)
 
                 Spacer()
 
                 HStack(spacing: 16) {
                     NeoBrutalButton(
                         icon: showSearch ? "xmark" : "magnifyingglass",
-                        background: showSearch ? Color(hex: "ffb703") : .white
+                        background: showSearch ? Color(hex: "ffb703") : (colorScheme == .dark ? Color(hex: "2a2a2a") : .white),
+                        colorScheme: colorScheme
                     ) {
                         withAnimation(.spring(duration: 0.3, bounce: 0.5)) {
                             showSearch.toggle()
@@ -201,11 +203,11 @@ struct NeoBrutalismCarouselView: View {
                         }
                     }
 
-                    NeoBrutalButton(icon: "gear", background: .white) {
+                    NeoBrutalButton(icon: "gear", background: colorScheme == .dark ? Color(hex: "2a2a2a") : .white, colorScheme: colorScheme) {
                         // Settings action
                     }
 
-                    NeoBrutalButton(text: "NEW NOTE", icon: "plus", background: Color(hex: "fb8500")) {
+                    NeoBrutalButton(text: "NEW NOTE", icon: "plus", background: Color(hex: "fb8500"), colorScheme: colorScheme) {
                         let newNote = notesManager.createNote()
                         openWindow(value: newNote.id)
                     }
@@ -239,12 +241,18 @@ struct NeoBrutalismCarouselView: View {
             }
         }
         .background(
-            Color.white
+            (colorScheme == .dark ? Color(hex: "2a2a2a") : Color.white)
                 .overlay(
-                    Rectangle()
-                        .stroke(Color.black, lineWidth: 4)
+                    ZStack {
+                        Rectangle()
+                            .stroke(colorScheme == .dark ? Color.white.opacity(0.9) : .black, lineWidth: 4)
+                        if colorScheme == .dark {
+                            Rectangle()
+                                .stroke(Color.black.opacity(0.5), lineWidth: 2)
+                                .padding(2)
+                        }
+                    }
                 )
-                .shadow(color: .black, radius: 0, x: 8, y: 8)
         )
     }
 
@@ -255,7 +263,7 @@ struct NeoBrutalismCarouselView: View {
             ZStack {
                 // Navigation buttons
                 HStack {
-                    NeoBrutalNavigationButton(direction: .left) {
+                    NeoBrutalNavigationButton(direction: .left, colorScheme: colorScheme) {
                         withAnimation(.spring(duration: 0.3, bounce: 0.5)) {
                             currentIndex = (currentIndex - 1 + displayNotes.count) % max(displayNotes.count, 1)
                         }
@@ -263,7 +271,7 @@ struct NeoBrutalismCarouselView: View {
 
                     Spacer()
 
-                    NeoBrutalNavigationButton(direction: .right) {
+                    NeoBrutalNavigationButton(direction: .right, colorScheme: colorScheme) {
                         withAnimation(.spring(duration: 0.3, bounce: 0.5)) {
                             currentIndex = (currentIndex + 1) % max(displayNotes.count, 1)
                         }
@@ -338,21 +346,27 @@ struct NeoBrutalismCarouselView: View {
         VStack(spacing: 20) {
             Image(systemName: "note.text")
                 .font(.system(size: min(geometry.size.width * 0.08, 64), weight: .black))
-                .foregroundColor(.black)
+                .foregroundColor(colorScheme == .dark ? .white : .black)
 
             Text(showTrash ? "TRASH IS EMPTY" : "NO NOTES YET")
                 .font(.system(size: min(geometry.size.width * 0.04, 32), weight: .black))
-                .foregroundColor(.black)
+                .foregroundColor(colorScheme == .dark ? .white : .black)
         }
         .frame(maxWidth: geometry.size.width * 0.6)
         .frame(maxHeight: .infinity)
         .background(
-            Color.white
+            (colorScheme == .dark ? Color(hex: "2a2a2a") : Color.white)
                 .overlay(
-                    Rectangle()
-                        .stroke(Color.black, lineWidth: 4)
+                    ZStack {
+                        Rectangle()
+                            .stroke(colorScheme == .dark ? Color.white.opacity(0.9) : .black, lineWidth: 4)
+                        if colorScheme == .dark {
+                            Rectangle()
+                                .stroke(Color.black.opacity(0.5), lineWidth: 2)
+                                .padding(2)
+                        }
+                    }
                 )
-                .shadow(color: .black, radius: 0, x: 12, y: 12)
         )
     }
 
@@ -370,7 +384,7 @@ struct NeoBrutalismCarouselView: View {
     private var progressDots: some View {
         HStack(spacing: 16) {
             ForEach(0..<max(displayNotes.count, 1), id: \.self) { index in
-                NeoBrutalDot(isActive: index == currentIndex) {
+                NeoBrutalDot(isActive: index == currentIndex, colorScheme: colorScheme) {
                     withAnimation(.spring(duration: 0.3, bounce: 0.5)) {
                         currentIndex = index
                     }
@@ -398,12 +412,18 @@ struct NeoBrutalismCarouselView: View {
             .padding(24)
         }
         .background(
-            Color.white
+            (colorScheme == .dark ? Color(hex: "2a2a2a") : Color.white)
                 .overlay(
-                    Rectangle()
-                        .stroke(Color.black, lineWidth: 4)
+                    ZStack {
+                        Rectangle()
+                            .stroke(colorScheme == .dark ? Color.white.opacity(0.9) : .black, lineWidth: 4)
+                        if colorScheme == .dark {
+                            Rectangle()
+                                .stroke(Color.black.opacity(0.5), lineWidth: 2)
+                                .padding(2)
+                        }
+                    }
                 )
-                .shadow(color: .black, radius: 0, x: 6, y: 6)
         )
     }
 
@@ -458,17 +478,23 @@ struct NeoBrutalismCarouselView: View {
 
             Text("CARD \(currentIndex + 1) OF \(max(displayNotes.count, 1)) • USE ← →")
                 .font(.system(size: 13, weight: .black))
-                .foregroundColor(.black)
+                .foregroundColor(colorScheme == .dark ? .white : .black)
         }
         .padding(.horizontal, 20)
         .padding(.vertical, 14)
         .background(
-            Color.white
+            (colorScheme == .dark ? Color(hex: "2a2a2a") : Color.white)
                 .overlay(
-                    Rectangle()
-                        .stroke(Color.black, lineWidth: 4)
+                    ZStack {
+                        Rectangle()
+                            .stroke(colorScheme == .dark ? Color.white.opacity(0.9) : .black, lineWidth: 4)
+                        if colorScheme == .dark {
+                            Rectangle()
+                                .stroke(Color.black.opacity(0.5), lineWidth: 2)
+                                .padding(2)
+                        }
+                    }
                 )
-                .shadow(color: .black, radius: 0, x: 6, y: 6)
         )
     }
 
@@ -489,12 +515,12 @@ struct NeoBrutalismCarouselView: View {
                     HStack {
                         Text(option.rawValue)
                             .font(.system(size: 16, weight: .black))
-                            .foregroundColor(.black)
+                            .foregroundColor(colorScheme == .dark ? .white : .black)
                         Spacer()
                         if selectedFilter == option {
                             Image(systemName: "checkmark")
                                 .font(.system(size: 16, weight: .black))
-                                .foregroundColor(.black)
+                                .foregroundColor(colorScheme == .dark ? .white : .black)
                         }
                     }
                     .padding(16)
@@ -503,14 +529,14 @@ struct NeoBrutalismCarouselView: View {
 
                 if option != FilterOption.allCases.last {
                     Rectangle()
-                        .fill(Color.black)
+                        .fill(colorScheme == .dark ? Color.white.opacity(0.3) : .black)
                         .frame(height: 2)
                 }
             }
 
             if selectedFilter == .folder && !availableFolders.isEmpty {
                 Rectangle()
-                    .fill(Color.black)
+                    .fill(colorScheme == .dark ? Color.white.opacity(0.3) : .black)
                     .frame(height: 4)
 
                 ForEach(availableFolders, id: \.self) { folder in
@@ -522,12 +548,12 @@ struct NeoBrutalismCarouselView: View {
                         HStack {
                             Text(folder.uppercased())
                                 .font(.system(size: 16, weight: .black))
-                                .foregroundColor(.black)
+                                .foregroundColor(colorScheme == .dark ? .white : .black)
                             Spacer()
                             if selectedFolder == folder {
                                 Image(systemName: "checkmark")
                                     .font(.system(size: 16, weight: .black))
-                                    .foregroundColor(.black)
+                                    .foregroundColor(colorScheme == .dark ? .white : .black)
                             }
                         }
                         .padding(16)
@@ -536,19 +562,25 @@ struct NeoBrutalismCarouselView: View {
 
                     if folder != availableFolders.last {
                         Rectangle()
-                            .fill(Color.black)
+                            .fill(colorScheme == .dark ? Color.white.opacity(0.3) : .black)
                             .frame(height: 2)
                     }
                 }
             }
         }
         .background(
-            Color.white
+            (colorScheme == .dark ? Color(hex: "2a2a2a") : Color.white)
                 .overlay(
-                    Rectangle()
-                        .stroke(Color.black, lineWidth: 4)
+                    ZStack {
+                        Rectangle()
+                            .stroke(colorScheme == .dark ? Color.white.opacity(0.9) : .black, lineWidth: 4)
+                        if colorScheme == .dark {
+                            Rectangle()
+                                .stroke(Color.black.opacity(0.5), lineWidth: 2)
+                                .padding(2)
+                        }
+                    }
                 )
-                .shadow(color: .black, radius: 0, x: 6, y: 6)
         )
     }
 
@@ -563,12 +595,12 @@ struct NeoBrutalismCarouselView: View {
                     HStack {
                         Text(order.rawValue)
                             .font(.system(size: 16, weight: .black))
-                            .foregroundColor(.black)
+                            .foregroundColor(colorScheme == .dark ? .white : .black)
                         Spacer()
                         if sortOrder == order {
                             Image(systemName: "checkmark")
                                 .font(.system(size: 16, weight: .black))
-                                .foregroundColor(.black)
+                                .foregroundColor(colorScheme == .dark ? .white : .black)
                         }
                     }
                     .padding(16)
@@ -577,18 +609,24 @@ struct NeoBrutalismCarouselView: View {
 
                 if order != SortOrder.allCases.last {
                     Rectangle()
-                        .fill(Color.black)
+                        .fill(colorScheme == .dark ? Color.white.opacity(0.3) : .black)
                         .frame(height: 2)
                 }
             }
         }
         .background(
-            Color.white
+            (colorScheme == .dark ? Color(hex: "2a2a2a") : Color.white)
                 .overlay(
-                    Rectangle()
-                        .stroke(Color.black, lineWidth: 4)
+                    ZStack {
+                        Rectangle()
+                            .stroke(colorScheme == .dark ? Color.white.opacity(0.9) : .black, lineWidth: 4)
+                        if colorScheme == .dark {
+                            Rectangle()
+                                .stroke(Color.black.opacity(0.5), lineWidth: 2)
+                                .padding(2)
+                        }
+                    }
                 )
-                .shadow(color: .black, radius: 0, x: 6, y: 6)
         )
     }
 }
@@ -647,6 +685,7 @@ struct NeoBrutalNoteCard: View {
     let onRestore: () -> Void
     let isTrashView: Bool
 
+    @Environment(\.colorScheme) var colorScheme
     @State private var showDeleteConfirmation = false
 
     var body: some View {
@@ -655,7 +694,7 @@ struct NeoBrutalNoteCard: View {
             HStack {
                 Text(noteData.title.uppercased())
                     .font(.system(size: min(geometry.size.width * 0.03, 40), weight: .heavy))
-                    .foregroundColor(.black)
+                    .foregroundColor(noteData.noteColor.textColor(for: colorScheme))
                     .lineLimit(1)
 
                 Spacer()
@@ -663,14 +702,14 @@ struct NeoBrutalNoteCard: View {
                 Button(action: onFavorite) {
                     Image(systemName: noteData.isFavorite ? "star.fill" : "star")
                         .font(.system(size: min(geometry.size.width * 0.02, 24), weight: .black))
-                        .foregroundColor(noteData.isFavorite ? Color(hex: "ffb703") : .black)
+                        .foregroundColor(noteData.isFavorite ? Color(hex: "ffb703") : noteData.noteColor.iconColor(for: colorScheme))
                 }
                 .buttonStyle(.plain)
             }
             .padding(.bottom, geometry.size.height * 0.03)
             .overlay(
                 Rectangle()
-                    .fill(Color.black)
+                    .fill(noteData.noteColor.outerBorderColor(for: colorScheme))
                     .frame(height: 4),
                 alignment: .bottom
             )
@@ -679,7 +718,7 @@ struct NeoBrutalNoteCard: View {
             ScrollView {
                 Text(noteData.content.isEmpty ? "Empty note" : noteData.content)
                     .font(.system(size: min(geometry.size.width * 0.014, 18), weight: .regular))
-                    .foregroundColor(.black)
+                    .foregroundColor(noteData.noteColor.textColor(for: colorScheme))
                     .lineSpacing(6)
                     .frame(maxWidth: .infinity, alignment: .leading)
             }
@@ -690,7 +729,7 @@ struct NeoBrutalNoteCard: View {
             // Footer
             VStack(spacing: 0) {
                 Rectangle()
-                    .fill(Color.black)
+                    .fill(noteData.noteColor.outerBorderColor(for: colorScheme))
                     .frame(height: 4)
 
                 HStack {
@@ -698,32 +737,39 @@ struct NeoBrutalNoteCard: View {
                         if let folder = noteData.folder {
                             Text(folder.uppercased())
                                 .font(.system(size: min(geometry.size.width * 0.01, 13), weight: .black))
-                                .foregroundColor(.black)
+                                .foregroundColor(colorScheme == .dark ? .white : .black)
                                 .padding(.horizontal, 16)
                                 .padding(.vertical, 8)
-                                .background(Color.white)
+                                .background(colorScheme == .dark ? Color(hex: "2a2a2a") : Color.white)
                                 .overlay(
-                                    Rectangle()
-                                        .stroke(Color.black, lineWidth: 3)
+                                    ZStack {
+                                        Rectangle()
+                                            .stroke(colorScheme == .dark ? Color.white.opacity(0.9) : .black, lineWidth: 3)
+                                        if colorScheme == .dark {
+                                            Rectangle()
+                                                .stroke(Color.black.opacity(0.5), lineWidth: 2)
+                                                .padding(1.5)
+                                        }
+                                    }
                                 )
                         }
 
                         Text(formatDate(noteData.modifiedAt))
                             .font(.system(size: min(geometry.size.width * 0.011, 14), weight: .black))
-                            .foregroundColor(.black)
+                            .foregroundColor(noteData.noteColor.textColor(for: colorScheme))
                     }
 
                     Spacer()
 
                     HStack(spacing: 8) {
                         if isTrashView {
-                            NeoBrutalButton(text: "RESTORE", icon: "arrow.uturn.backward", background: Color(hex: "22c55e"), action: onRestore)
-                            NeoBrutalButton(text: "DELETE", icon: "trash", background: Color(hex: "fb8500")) {
+                            NeoBrutalButton(text: "RESTORE", icon: "arrow.uturn.backward", background: Color(hex: "22c55e"), colorScheme: colorScheme, action: onRestore)
+                            NeoBrutalButton(text: "DELETE", icon: "trash", background: Color(hex: "fb8500"), colorScheme: colorScheme) {
                                 showDeleteConfirmation = true
                             }
                         } else {
-                            NeoBrutalButton(text: "EDIT", icon: "pencil", background: .white, action: onTap)
-                            NeoBrutalButton(icon: "trash", background: Color(hex: "fb8500"), action: onDelete)
+                            NeoBrutalButton(text: "EDIT", icon: "pencil", background: colorScheme == .dark ? Color(hex: "2a2a2a") : .white, colorScheme: colorScheme, action: onTap)
+                            NeoBrutalButton(icon: "trash", background: Color(hex: "fb8500"), colorScheme: colorScheme, action: onDelete)
                         }
                     }
                 }
@@ -732,12 +778,19 @@ struct NeoBrutalNoteCard: View {
         }
         .padding(geometry.size.width * 0.035)
         .background(
-            noteData.color
+            noteData.noteColor.backgroundColor(for: colorScheme)
                 .overlay(
-                    Rectangle()
-                        .stroke(Color.black, lineWidth: 4)
+                    ZStack {
+                        Rectangle()
+                            .stroke(noteData.noteColor.outerBorderColor(for: colorScheme), lineWidth: 4)
+                        if colorScheme == .dark {
+                            Rectangle()
+                                .stroke(noteData.noteColor.innerBorderColor(for: colorScheme), lineWidth: 2)
+                                .padding(2)
+                        }
+                    }
                 )
-                .shadow(color: .black, radius: 0, x: position.shadowOffset, y: position.shadowOffset)
+                .modifier(ConditionalShadow(colorScheme: colorScheme, shadowOffset: position.shadowOffset))
         )
         .offset(position.offset)
         .opacity(position.opacity)
@@ -766,11 +819,28 @@ struct NeoBrutalNoteCard: View {
     }
 }
 
+// MARK: - Conditional Shadow Modifier
+
+struct ConditionalShadow: ViewModifier {
+    let colorScheme: ColorScheme
+    let shadowOffset: CGFloat
+
+    func body(content: Content) -> some View {
+        if colorScheme == .dark {
+            content
+        } else {
+            content.shadow(color: .black, radius: 0, x: shadowOffset, y: shadowOffset)
+        }
+    }
+}
+
 // MARK: - Delete Confirmation Dialog
 
 struct NeoBrutalDeleteConfirmation: View {
     let onConfirm: () -> Void
     let onCancel: () -> Void
+
+    @Environment(\.colorScheme) var colorScheme
 
     var body: some View {
         ZStack {
@@ -788,7 +858,7 @@ struct NeoBrutalDeleteConfirmation: View {
 
                     Text("PERMANENT DELETE")
                         .font(.system(size: 32, weight: .black))
-                        .foregroundColor(.black)
+                        .foregroundColor(colorScheme == .dark ? .white : .black)
                 }
                 .padding(.top, 40)
                 .padding(.horizontal, 40)
@@ -797,11 +867,11 @@ struct NeoBrutalDeleteConfirmation: View {
                 VStack(spacing: 16) {
                     Text("This action cannot be undone.")
                         .font(.system(size: 18, weight: .bold))
-                        .foregroundColor(.black)
+                        .foregroundColor(colorScheme == .dark ? .white : .black)
 
                     Text("The note will be permanently deleted from your device and cannot be recovered.")
                         .font(.system(size: 16, weight: .regular))
-                        .foregroundColor(.black.opacity(0.7))
+                        .foregroundColor(colorScheme == .dark ? Color.white.opacity(0.7) : Color.black.opacity(0.7))
                         .multilineTextAlignment(.center)
                 }
                 .padding(.vertical, 32)
@@ -816,14 +886,21 @@ struct NeoBrutalDeleteConfirmation: View {
                             Text("CANCEL")
                                 .font(.system(size: 18, weight: .black))
                         }
-                        .foregroundColor(.black)
+                        .foregroundColor(colorScheme == .dark ? .white : .black)
                         .frame(maxWidth: .infinity)
                         .padding(.vertical, 20)
                         .background(
-                            Color.white
+                            (colorScheme == .dark ? Color(hex: "2a2a2a") : Color.white)
                                 .overlay(
-                                    Rectangle()
-                                        .stroke(Color.black, lineWidth: 4)
+                                    ZStack {
+                                        Rectangle()
+                                            .stroke(colorScheme == .dark ? Color.white.opacity(0.9) : .black, lineWidth: 4)
+                                        if colorScheme == .dark {
+                                            Rectangle()
+                                                .stroke(Color.black.opacity(0.5), lineWidth: 2)
+                                                .padding(2)
+                                        }
+                                    }
                                 )
                         )
                     }
@@ -854,12 +931,19 @@ struct NeoBrutalDeleteConfirmation: View {
             }
             .frame(width: 520)
             .background(
-                Color.white
+                (colorScheme == .dark ? Color(hex: "2a2a2a") : Color.white)
                     .overlay(
-                        Rectangle()
-                            .stroke(Color.black, lineWidth: 6)
+                        ZStack {
+                            Rectangle()
+                                .stroke(colorScheme == .dark ? Color.white.opacity(0.9) : .black, lineWidth: 6)
+                            if colorScheme == .dark {
+                                Rectangle()
+                                    .stroke(Color.black.opacity(0.5), lineWidth: 3)
+                                    .padding(3)
+                            }
+                        }
                     )
-                    .shadow(color: .black, radius: 0, x: 12, y: 12)
+                    .modifier(ConditionalShadow(colorScheme: colorScheme, shadowOffset: 12))
             )
         }
     }
@@ -871,6 +955,7 @@ struct NeoBrutalButton: View {
     var text: String = ""
     var icon: String?
     var background: Color
+    var colorScheme: ColorScheme = .light
     var action: () -> Void
 
     var body: some View {
@@ -885,18 +970,33 @@ struct NeoBrutalButton: View {
                         .font(.system(size: 14, weight: .black))
                 }
             }
-            .foregroundColor(.black)
+            .foregroundColor(textColor)
             .padding(.horizontal, text.isEmpty ? 12 : 20)
             .padding(.vertical, 10)
             .background(
                 background
                     .overlay(
-                        Rectangle()
-                            .stroke(Color.black, lineWidth: 3)
+                        ZStack {
+                            Rectangle()
+                                .stroke(colorScheme == .dark ? Color.white.opacity(0.9) : .black, lineWidth: 3)
+                            if colorScheme == .dark {
+                                Rectangle()
+                                    .stroke(Color.black.opacity(0.5), lineWidth: 2)
+                                    .padding(1.5)
+                            }
+                        }
                     )
             )
         }
         .buttonStyle(NeoBrutalButtonStyle())
+    }
+
+    private var textColor: Color {
+        // Yellow and orange backgrounds need black text even in dark mode
+        if background == Color(hex: "ffb703") || background == Color(hex: "fb8500") {
+            return .black
+        }
+        return colorScheme == .dark ? .white : .black
     }
 }
 
@@ -914,19 +1014,27 @@ struct NeoBrutalNavigationButton: View {
     }
 
     let direction: Direction
+    var colorScheme: ColorScheme = .light
     let action: () -> Void
 
     var body: some View {
         Button(action: action) {
             Image(systemName: direction == .left ? "chevron.left" : "chevron.right")
                 .font(.system(size: 36, weight: .black))
-                .foregroundColor(.black)
+                .foregroundColor(colorScheme == .dark ? .white : .black)
                 .frame(width: 72, height: 72)
                 .background(
-                    Color.white
+                    (colorScheme == .dark ? Color(hex: "2a2a2a") : Color.white)
                         .overlay(
-                            Rectangle()
-                                .stroke(Color.black, lineWidth: 4)
+                            ZStack {
+                                Rectangle()
+                                    .stroke(colorScheme == .dark ? Color.white.opacity(0.9) : .black, lineWidth: 4)
+                                if colorScheme == .dark {
+                                    Rectangle()
+                                        .stroke(Color.black.opacity(0.5), lineWidth: 2)
+                                        .padding(2)
+                                }
+                            }
                         )
                 )
         }
@@ -936,20 +1044,29 @@ struct NeoBrutalNavigationButton: View {
 
 struct NeoBrutalDot: View {
     let isActive: Bool
+    var colorScheme: ColorScheme = .light
     let action: () -> Void
 
     var body: some View {
         Button(action: action) {
             ZStack {
                 Rectangle()
-                    .fill(isActive ? Color(hex: "219ebc") : Color.white)
+                    .fill(isActive ? Color(hex: "219ebc") : (colorScheme == .dark ? Color(hex: "2a2a2a") : Color.white))
                     .frame(width: isActive ? 48 : 20, height: 20)
                     .rotationEffect(.degrees(isActive ? 45 : 0))
 
                 Rectangle()
-                    .stroke(Color.black, lineWidth: 4)
+                    .stroke(colorScheme == .dark ? Color.white.opacity(0.9) : .black, lineWidth: 4)
                     .frame(width: isActive ? 48 : 20, height: 20)
                     .rotationEffect(.degrees(isActive ? 45 : 0))
+
+                if colorScheme == .dark {
+                    Rectangle()
+                        .stroke(Color.black.opacity(0.5), lineWidth: 2)
+                        .frame(width: isActive ? 48 : 20, height: 20)
+                        .rotationEffect(.degrees(isActive ? 45 : 0))
+                        .padding(2)
+                }
             }
         }
         .buttonStyle(.plain)
