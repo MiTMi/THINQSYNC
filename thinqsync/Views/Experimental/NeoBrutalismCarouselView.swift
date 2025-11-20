@@ -6,6 +6,8 @@
 //
 
 import SwiftUI
+import AppKit
+import UniformTypeIdentifiers
 
 struct NeoBrutalismCarouselView: View {
     @Environment(NotesManager.self) private var notesManager
@@ -20,6 +22,9 @@ struct NeoBrutalismCarouselView: View {
     @State private var selectedFolder: String? = nil
     @State private var showFilterPopover = false
     @State private var showSortPopover = false
+    @State private var showExportPopover = false
+    @State private var showCreateFolderSheet = false
+    @State private var newFolderName = ""
 
     enum FilterOption: String, CaseIterable {
         case all = "ALL NOTES"
@@ -145,7 +150,7 @@ struct NeoBrutalismCarouselView: View {
                 .padding(geometry.size.width * 0.025)
 
                 // Popovers overlaid on top of entire view
-                if showFilterPopover || showSortPopover {
+                if showFilterPopover || showSortPopover || showExportPopover {
                     VStack {
                         Spacer()
 
@@ -164,6 +169,14 @@ struct NeoBrutalismCarouselView: View {
                                 .frame(maxWidth: .infinity, alignment: .leading)
                                 .transition(.move(edge: .bottom).combined(with: .opacity))
                         }
+
+                        if showExportPopover {
+                            exportPopoverContent
+                                .padding(.horizontal, geometry.size.width * 0.025 + 24)
+                                .padding(.bottom, 80)
+                                .frame(maxWidth: .infinity, alignment: .leading)
+                                .transition(.move(edge: .bottom).combined(with: .opacity))
+                        }
                     }
                 }
             }
@@ -176,6 +189,40 @@ struct NeoBrutalismCarouselView: View {
                 currentIndex = 0
             }
         }
+        .sheet(isPresented: $showCreateFolderSheet) {
+            CreateFolderSheet(
+                newFolderName: $newFolderName,
+                onSave: {
+                    createFolder(name: newFolderName)
+                    showCreateFolderSheet = false
+                    newFolderName = ""
+                },
+                onCancel: {
+                    showCreateFolderSheet = false
+                    newFolderName = ""
+                }
+            )
+        }
+    }
+
+    // MARK: - Folder Management
+
+    private func createFolder(name: String) {
+        guard !name.isEmpty, !availableFolders.contains(name) else { return }
+
+        // Create a new note in the folder to establish it
+        let newNote = notesManager.createNote(title: "New Note in \(name)")
+        var noteToUpdate = newNote
+        noteToUpdate.folder = name
+        notesManager.updateNote(noteToUpdate)
+
+        // Switch to folder filter and select the new folder
+        selectedFilter = .folder
+        selectedFolder = name
+        currentIndex = 0
+
+        // Open the new note for editing
+        openWindow(value: newNote.id)
     }
 
     // MARK: - Top Bar
@@ -205,6 +252,10 @@ struct NeoBrutalismCarouselView: View {
 
                     NeoBrutalButton(icon: "gear", background: colorScheme == .dark ? Color(hex: "2a2a2a") : .white, colorScheme: colorScheme) {
                         // Settings action
+                    }
+
+                    NeoBrutalButton(text: "NEW FOLDER", icon: "folder.badge.plus", background: Color(hex: "22c55e"), colorScheme: colorScheme) {
+                        showCreateFolderSheet = true
                     }
 
                     NeoBrutalButton(text: "NEW NOTE", icon: "plus", background: Color(hex: "fb8500"), colorScheme: colorScheme) {
@@ -470,6 +521,22 @@ struct NeoBrutalismCarouselView: View {
                         searchText = ""
                         showFilterPopover = false
                         showSortPopover = false
+                        showExportPopover = false
+                    }
+                }
+
+                // Export button
+                if !showTrash && !displayNotes.isEmpty {
+                    NeoBrutalButton(
+                        text: "EXPORT",
+                        icon: "square.and.arrow.up",
+                        background: Color(hex: "22c55e")
+                    ) {
+                        withAnimation(.spring(duration: 0.3, bounce: 0.5)) {
+                            showExportPopover.toggle()
+                            showFilterPopover = false
+                            showSortPopover = false
+                        }
                     }
                 }
             }
@@ -628,6 +695,151 @@ struct NeoBrutalismCarouselView: View {
                     }
                 )
         )
+    }
+
+    private var exportPopoverContent: some View {
+        VStack(spacing: 0) {
+            Button(action: {
+                exportCurrentNoteAsPDF()
+                showExportPopover = false
+            }) {
+                HStack {
+                    Image(systemName: "doc.fill")
+                        .font(.system(size: 16, weight: .black))
+                        .foregroundColor(Color(hex: "fb8500"))
+                    Text("EXPORT AS PDF")
+                        .font(.system(size: 16, weight: .black))
+                        .foregroundColor(colorScheme == .dark ? .white : .black)
+                    Spacer()
+                }
+                .padding(16)
+            }
+            .buttonStyle(.plain)
+
+            Rectangle()
+                .fill(colorScheme == .dark ? Color.white.opacity(0.3) : .black)
+                .frame(height: 2)
+
+            Button(action: {
+                exportCurrentNoteAsText()
+                showExportPopover = false
+            }) {
+                HStack {
+                    Image(systemName: "doc.text.fill")
+                        .font(.system(size: 16, weight: .black))
+                        .foregroundColor(Color(hex: "219ebc"))
+                    Text("EXPORT AS TEXT")
+                        .font(.system(size: 16, weight: .black))
+                        .foregroundColor(colorScheme == .dark ? .white : .black)
+                    Spacer()
+                }
+                .padding(16)
+            }
+            .buttonStyle(.plain)
+        }
+        .background(
+            (colorScheme == .dark ? Color(hex: "2a2a2a") : Color.white)
+                .overlay(
+                    ZStack {
+                        Rectangle()
+                            .stroke(colorScheme == .dark ? Color.white.opacity(0.9) : .black, lineWidth: 4)
+                        if colorScheme == .dark {
+                            Rectangle()
+                                .stroke(Color.black.opacity(0.5), lineWidth: 2)
+                                .padding(2)
+                        }
+                    }
+                )
+        )
+    }
+
+    // MARK: - Export Functions
+
+    private func exportCurrentNoteAsPDF() {
+        guard !displayNotes.isEmpty else { return }
+        let safeIndex = min(currentIndex, displayNotes.count - 1)
+        let noteData = displayNotes[safeIndex]
+
+        guard let note = notesManager.notes.first(where: { $0.id == noteData.id }) else { return }
+
+        let savePanel = NSSavePanel()
+        savePanel.allowedContentTypes = [.pdf]
+        savePanel.nameFieldStringValue = "\(note.title).pdf"
+        savePanel.title = "Export Note as PDF"
+
+        savePanel.begin { response in
+            guard response == .OK, let url = savePanel.url else { return }
+
+            // Create PDF from attributed string
+            let printInfo = NSPrintInfo.shared
+            printInfo.paperSize = NSSize(width: 612, height: 792) // Letter size
+            printInfo.topMargin = 72
+            printInfo.bottomMargin = 72
+            printInfo.leftMargin = 72
+            printInfo.rightMargin = 72
+
+            // Create attributed string with title
+            let titleAttributes: [NSAttributedString.Key: Any] = [
+                .font: NSFont.boldSystemFont(ofSize: 24),
+                .foregroundColor: NSColor.labelColor
+            ]
+            let titleString = NSMutableAttributedString(string: "\(note.title)\n\n", attributes: titleAttributes)
+            titleString.append(note.attributedContent)
+
+            // Create PDF context
+            let pdfData = NSMutableData()
+            let consumer = CGDataConsumer(data: pdfData as CFMutableData)!
+            var mediaBox = CGRect(x: 0, y: 0, width: 612, height: 792)
+
+            guard let pdfContext = CGContext(consumer: consumer, mediaBox: &mediaBox, nil) else { return }
+
+            pdfContext.beginPDFPage(nil)
+
+            // Draw the attributed string
+            let drawRect = CGRect(x: 72, y: 72, width: 468, height: 648)
+            pdfContext.saveGState()
+
+            let framesetter = CTFramesetterCreateWithAttributedString(titleString)
+            let path = CGPath(rect: drawRect, transform: nil)
+            let frame = CTFramesetterCreateFrame(framesetter, CFRange(location: 0, length: titleString.length), path, nil)
+            CTFrameDraw(frame, pdfContext)
+
+            pdfContext.restoreGState()
+            pdfContext.endPDFPage()
+            pdfContext.closePDF()
+
+            // Write to file
+            do {
+                try pdfData.write(to: url)
+            } catch {
+                print("Error writing PDF: \(error)")
+            }
+        }
+    }
+
+    private func exportCurrentNoteAsText() {
+        guard !displayNotes.isEmpty else { return }
+        let safeIndex = min(currentIndex, displayNotes.count - 1)
+        let noteData = displayNotes[safeIndex]
+
+        guard let note = notesManager.notes.first(where: { $0.id == noteData.id }) else { return }
+
+        let savePanel = NSSavePanel()
+        savePanel.allowedContentTypes = [.plainText]
+        savePanel.nameFieldStringValue = "\(note.title).txt"
+        savePanel.title = "Export Note as Text"
+
+        savePanel.begin { response in
+            guard response == .OK, let url = savePanel.url else { return }
+
+            let content = "\(note.title)\n\n\(note.content)"
+
+            do {
+                try content.write(to: url, atomically: true, encoding: .utf8)
+            } catch {
+                print("Error writing text file: \(error)")
+            }
+        }
     }
 }
 
@@ -1095,6 +1307,126 @@ struct NeoBrutalThumbnail: View {
         }
         .buttonStyle(NeoBrutalButtonStyle())
         .animation(.spring(duration: 0.3, bounce: 0.5), value: isActive)
+    }
+}
+
+// MARK: - Create Folder Sheet
+
+struct CreateFolderSheet: View {
+    @Binding var newFolderName: String
+    let onSave: () -> Void
+    let onCancel: () -> Void
+
+    @Environment(\.colorScheme) var colorScheme
+
+    var body: some View {
+        VStack(spacing: 0) {
+            // Header
+            VStack(spacing: 16) {
+                Image(systemName: "folder.badge.plus")
+                    .font(.system(size: 56, weight: .black))
+                    .foregroundColor(Color(hex: "22c55e"))
+
+                Text("CREATE NEW FOLDER")
+                    .font(.system(size: 32, weight: .black))
+                    .foregroundColor(colorScheme == .dark ? .white : .black)
+            }
+            .padding(.top, 40)
+            .padding(.horizontal, 40)
+
+            // Input field
+            VStack(spacing: 12) {
+                Text("FOLDER NAME")
+                    .font(.system(size: 14, weight: .black))
+                    .foregroundColor(colorScheme == .dark ? .white : .black)
+                    .frame(maxWidth: .infinity, alignment: .leading)
+
+                TextField("Enter folder name...", text: $newFolderName)
+                    .textFieldStyle(.plain)
+                    .font(.system(size: 18, weight: .bold))
+                    .foregroundColor(.black)
+                    .padding(16)
+                    .background(
+                        Color.white
+                            .overlay(
+                                Rectangle()
+                                    .stroke(Color.black, lineWidth: 3)
+                            )
+                    )
+            }
+            .padding(.vertical, 32)
+            .padding(.horizontal, 40)
+
+            // Buttons
+            HStack(spacing: 16) {
+                Button(action: onCancel) {
+                    HStack(spacing: 8) {
+                        Image(systemName: "xmark")
+                            .font(.system(size: 18, weight: .black))
+                        Text("CANCEL")
+                            .font(.system(size: 18, weight: .black))
+                    }
+                    .foregroundColor(colorScheme == .dark ? .white : .black)
+                    .frame(maxWidth: .infinity)
+                    .padding(.vertical, 20)
+                    .background(
+                        (colorScheme == .dark ? Color(hex: "2a2a2a") : Color.white)
+                            .overlay(
+                                ZStack {
+                                    Rectangle()
+                                        .stroke(colorScheme == .dark ? Color.white.opacity(0.9) : .black, lineWidth: 4)
+                                    if colorScheme == .dark {
+                                        Rectangle()
+                                            .stroke(Color.black.opacity(0.5), lineWidth: 2)
+                                            .padding(2)
+                                    }
+                                }
+                            )
+                    )
+                }
+                .buttonStyle(NeoBrutalButtonStyle())
+
+                Button(action: onSave) {
+                    HStack(spacing: 8) {
+                        Image(systemName: "checkmark")
+                            .font(.system(size: 18, weight: .black))
+                        Text("CREATE")
+                            .font(.system(size: 18, weight: .black))
+                    }
+                    .foregroundColor(.black)
+                    .frame(maxWidth: .infinity)
+                    .padding(.vertical, 20)
+                    .background(
+                        Color(hex: "22c55e")
+                            .overlay(
+                                Rectangle()
+                                    .stroke(Color.black, lineWidth: 4)
+                            )
+                    )
+                }
+                .buttonStyle(NeoBrutalButtonStyle())
+                .disabled(newFolderName.trimmingCharacters(in: .whitespaces).isEmpty)
+                .opacity(newFolderName.trimmingCharacters(in: .whitespaces).isEmpty ? 0.5 : 1.0)
+            }
+            .padding(.horizontal, 40)
+            .padding(.bottom, 40)
+        }
+        .frame(width: 520)
+        .background(
+            (colorScheme == .dark ? Color(hex: "2a2a2a") : Color.white)
+                .overlay(
+                    ZStack {
+                        Rectangle()
+                            .stroke(colorScheme == .dark ? Color.white.opacity(0.9) : .black, lineWidth: 6)
+                        if colorScheme == .dark {
+                            Rectangle()
+                                .stroke(Color.black.opacity(0.5), lineWidth: 3)
+                                .padding(3)
+                        }
+                    }
+                )
+                .modifier(ConditionalShadow(colorScheme: colorScheme, shadowOffset: 12))
+        )
     }
 }
 
