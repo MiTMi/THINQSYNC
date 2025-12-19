@@ -1,0 +1,60 @@
+<svg width="1024" height="1024" viewBox="0 0 1024 1024" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <!-- Background with gradient -->
+  <rect width="1024" height="1024" rx="226" fill="url(#grad4)"/>
+
+  <!-- Shadow for depth -->
+  <rect x="280" y="250" width="464" height="600" rx="24" fill="#000000" opacity="0.1"/>
+
+  <!-- Main "T" shaped note document -->
+  <rect x="270" y="240" width="464" height="600" rx="24" fill="url(#tGrad)"/>
+
+  <!-- Top bar of "T" -->
+  <rect x="270" y="240" width="464" height="140" rx="24" fill="url(#topBar)"/>
+  <rect x="270" y="356" width="464" height="24" fill="url(#topBar)"/>
+
+  <!-- Vertical bar of "T" - centered -->
+  <rect x="432" y="240" width="140" height="600" rx="24" fill="url(#vertBar)"/>
+
+  <!-- Paper texture lines -->
+  <line x1="300" y1="480" x2="404" y2="480" stroke="#E2E8F0" stroke-width="6" stroke-linecap="round" opacity="0.5"/>
+  <line x1="300" y1="540" x2="380" y2="540" stroke="#E2E8F0" stroke-width="6" stroke-linecap="round" opacity="0.5"/>
+  <line x1="300" y1="600" x2="394" y2="600" stroke="#E2E8F0" stroke-width="6" stroke-linecap="round" opacity="0.5"/>
+  <line x1="300" y1="660" x2="370" y2="660" stroke="#E2E8F0" stroke-width="6" stroke-linecap="round" opacity="0.5"/>
+  <line x1="300" y1="720" x2="390" y2="720" stroke="#E2E8F0" stroke-width="6" stroke-linecap="round" opacity="0.5"/>
+
+  <line x1="600" y1="480" x2="704" y2="480" stroke="#E2E8F0" stroke-width="6" stroke-linecap="round" opacity="0.5"/>
+  <line x1="620" y1="540" x2="704" y2="540" stroke="#E2E8F0" stroke-width="6" stroke-linecap="round" opacity="0.5"/>
+  <line x1="610" y1="600" x2="704" y2="600" stroke="#E2E8F0" stroke-width="6" stroke-linecap="round" opacity="0.5"/>
+  <line x1="630" y1="660" x2="704" y2="660" stroke="#E2E8F0" stroke-width="6" stroke-linecap="round" opacity="0.5"/>
+  <line x1="610" y1="720" x2="704" y2="720" stroke="#E2E8F0" stroke-width="6" stroke-linecap="round" opacity="0.5"/>
+
+  <!-- Highlight on left edge -->
+  <rect x="270" y="240" width="20" height="600" rx="12" fill="#FFFFFF" opacity="0.3"/>
+
+  <!-- Folded corner -->
+  <path d="M 734 240 L 734 300 L 674 240 Z" fill="#1A365D" opacity="0.2"/>
+  <path d="M 734 240 L 734 300 L 674 240 Z" fill="url(#foldGrad)"/>
+
+  <defs>
+    <linearGradient id="grad4" x1="0" y1="0" x2="1024" y2="1024" gradientUnits="userSpaceOnUse">
+      <stop offset="0%" stop-color="#2C5282"/>
+      <stop offset="100%" stop-color="#2A4365"/>
+    </linearGradient>
+    <linearGradient id="tGrad" x1="270" y1="240" x2="734" y2="840" gradientUnits="userSpaceOnUse">
+      <stop offset="0%" stop-color="#FFFFFF"/>
+      <stop offset="100%" stop-color="#F7FAFC"/>
+    </linearGradient>
+    <linearGradient id="topBar" x1="270" y1="240" x2="734" y2="380" gradientUnits="userSpaceOnUse">
+      <stop offset="0%" stop-color="#4299E1"/>
+      <stop offset="100%" stop-color="#3182CE"/>
+    </linearGradient>
+    <linearGradient id="vertBar" x1="432" y1="240" x2="572" y2="840" gradientUnits="userSpaceOnUse">
+      <stop offset="0%" stop-color="#4299E1"/>
+      <stop offset="100%" stop-color="#2C5282"/>
+    </linearGradient>
+    <linearGradient id="foldGrad" x1="674" y1="240" x2="734" y2="300" gradientUnits="userSpaceOnUse">
+      <stop offset="0%" stop-color="#90CDF4"/>
+      <stop offset="100%" stop-color="#63B3ED"/>
+    </linearGradient>
+  </defs>
+</svg>

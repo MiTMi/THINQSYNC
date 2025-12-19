@@ -1,0 +1,206 @@
+<svg width="1024" height="1024" viewBox="0 0 1024 1024" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <!-- Base background with black rounded square -->
+    <linearGradient id="baseBg" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#3A3A3C"/>
+      <stop offset="100%" stop-color="#1C1C1E"/>
+    </linearGradient>
+
+    <!-- Colorful gradient wallpaper background - Cyan, Orange, Green, Blue (NO PINK, NO PURPLE) -->
+    <linearGradient id="wallpaperGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#00D4FF"/>
+      <stop offset="33%" stop-color="#F59E0B"/>
+      <stop offset="66%" stop-color="#10B981"/>
+      <stop offset="100%" stop-color="#4FACFE"/>
+    </linearGradient>
+
+    <!-- Blue note gradient - stronger, more vibrant -->
+    <linearGradient id="blueNote" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#5DADE2"/>
+      <stop offset="100%" stop-color="#3498DB"/>
+    </linearGradient>
+
+    <!-- Yellow note gradient - stronger, more saturated -->
+    <linearGradient id="yellowNote" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#FFD93D"/>
+      <stop offset="100%" stop-color="#FFC107"/>
+    </linearGradient>
+
+    <!-- Lime/Green note gradient - stronger, more vibrant -->
+    <linearGradient id="greenNote" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#AED136"/>
+      <stop offset="100%" stop-color="#9BC93A"/>
+    </linearGradient>
+
+    <!-- Heavy shadow for the base -->
+    <filter id="heavyShadow" x="-50%" y="-50%" width="200%" height="200%">
+      <feGaussianBlur in="SourceAlpha" stdDeviation="30"/>
+      <feOffset dx="0" dy="40" result="offsetblur"/>
+      <feComponentTransfer>
+        <feFuncA type="linear" slope="0.6"/>
+      </feComponentTransfer>
+      <feMerge>
+        <feMergeNode/>
+        <feMergeNode in="SourceGraphic"/>
+      </feMerge>
+    </filter>
+
+    <!-- Note shadow - realistic depth -->
+    <filter id="noteDepth" x="-100%" y="-100%" width="300%" height="300%">
+      <feGaussianBlur in="SourceAlpha" stdDeviation="15"/>
+      <feOffset dx="0" dy="20" result="offsetblur"/>
+      <feComponentTransfer>
+        <feFuncA type="linear" slope="0.4"/>
+      </feComponentTransfer>
+      <feMerge>
+        <feMergeNode/>
+        <feMergeNode in="SourceGraphic"/>
+      </feMerge>
+    </filter>
+
+    <!-- Top note shadow - lighter -->
+    <filter id="topNoteDepth" x="-100%" y="-100%" width="300%" height="300%">
+      <feGaussianBlur in="SourceAlpha" stdDeviation="10"/>
+      <feOffset dx="0" dy="12" result="offsetblur"/>
+      <feComponentTransfer>
+        <feFuncA type="linear" slope="0.3"/>
+      </feComponentTransfer>
+      <feMerge>
+        <feMergeNode/>
+        <feMergeNode in="SourceGraphic"/>
+      </feMerge>
+    </filter>
+
+    <!-- Shine effect -->
+    <linearGradient id="shine" x1="0%" y1="0%" x2="0%" y2="100%">
+      <stop offset="0%" stop-color="#FFFFFF" stop-opacity="0.4"/>
+      <stop offset="40%" stop-color="#FFFFFF" stop-opacity="0.1"/>
+      <stop offset="100%" stop-color="#000000" stop-opacity="0.05"/>
+    </linearGradient>
+
+    <!-- Page curl shadow -->
+    <filter id="curlShadow">
+      <feGaussianBlur in="SourceAlpha" stdDeviation="3"/>
+      <feOffset dx="2" dy="2"/>
+      <feComponentTransfer>
+        <feFuncA type="linear" slope="0.5"/>
+      </feComponentTransfer>
+      <feMerge>
+        <feMergeNode/>
+        <feMergeNode in="SourceGraphic"/>
+      </feMerge>
+    </filter>
+
+    <!-- Fold gradient for blue note -->
+    <linearGradient id="foldGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#2E7D9E"/>
+      <stop offset="100%" stop-color="#1F5F7A"/>
+    </linearGradient>
+
+    <!-- Darker blue for fold back -->
+    <linearGradient id="foldBack" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#2874A6"/>
+      <stop offset="100%" stop-color="#1A5276"/>
+    </linearGradient>
+  </defs>
+
+  <!-- Main icon base with rounded corners -->
+  <rect width="1024" height="1024" rx="226" fill="url(#baseBg)" filter="url(#heavyShadow)"/>
+
+  <!-- Border rim -->
+  <rect x="10" y="10" width="1004" height="1004" rx="220" fill="none" stroke="#5A5A5C" stroke-width="2" opacity="0.5"/>
+
+  <!-- Colorful wallpaper inside - Cyan, Orange, Green, Blue -->
+  <rect x="60" y="60" width="904" height="904" rx="180" fill="url(#wallpaperGrad)"/>
+
+  <!-- Blur overlay on wallpaper for depth -->
+  <rect x="60" y="60" width="904" height="904" rx="180" fill="#000000" opacity="0.15"/>
+
+  <!-- BLUE NOTE (back left) - WITH FOLDED CORNER -->
+  <g filter="url(#noteDepth)">
+    <!-- Main note body -->
+    <rect x="100" y="320" width="420" height="400" rx="44" fill="url(#blueNote)"/>
+
+    <!-- Top shine -->
+    <rect x="100" y="320" width="420" height="120" rx="44" fill="url(#shine)"/>
+
+    <!-- Close button -->
+    <circle cx="145" cy="365" r="16" fill="#2874A6" opacity="0.6"/>
+    <path d="M 139 359 L 151 371 M 151 359 L 139 371" stroke="#FFFFFF" stroke-width="2.5" stroke-linecap="round" opacity="0.9"/>
+
+    <!-- Note lines with varying lengths -->
+    <line x1="145" y1="450" x2="460" y2="450" stroke="#2874A6" stroke-width="12" stroke-linecap="round" opacity="0.45"/>
+    <line x1="145" y1="515" x2="340" y2="515" stroke="#2874A6" stroke-width="12" stroke-linecap="round" opacity="0.45"/>
+    <line x1="145" y1="580" x2="440" y2="580" stroke="#2874A6" stroke-width="12" stroke-linecap="round" opacity="0.45"/>
+
+    <!-- Bullet points -->
+    <circle cx="160" cy="645" r="7" fill="#2874A6" opacity="0.45"/>
+    <line x1="185" y1="645" x2="370" y2="645" stroke="#2874A6" stroke-width="12" stroke-linecap="round" opacity="0.45"/>
+
+    <!-- FOLDED CORNER (top right) -->
+    <!-- Fold triangle showing back side -->
+    <path d="M 480 320 L 480 380 L 420 320 Z" fill="url(#foldBack)"/>
+    <!-- Fold front side -->
+    <path d="M 480 320 L 480 380 L 520 360 L 520 320 Z" fill="url(#foldGrad)" filter="url(#curlShadow)"/>
+    <!-- Fold crease line -->
+    <line x1="480" y1="320" x2="480" y2="380" stroke="#1A5276" stroke-width="2" opacity="0.5"/>
+  </g>
+
+  <!-- YELLOW NOTE (top right) - SMALLER SIZE -->
+  <g filter="url(#topNoteDepth)">
+    <rect x="540" y="100" width="380" height="340" rx="44" fill="url(#yellowNote)"/>
+
+    <!-- Top shine -->
+    <rect x="540" y="100" width="380" height="105" rx="44" fill="url(#shine)"/>
+
+    <!-- Close button -->
+    <circle cx="585" cy="145" r="16" fill="#E67E22" opacity="0.5"/>
+    <path d="M 579 139 L 591 151 M 591 139 L 579 151" stroke="#FFFFFF" stroke-width="2.5" stroke-linecap="round" opacity="0.9"/>
+
+    <!-- Bullet list style -->
+    <circle cx="590" cy="220" r="8" fill="#D68910" opacity="0.5"/>
+    <line x1="615" y1="220" x2="860" y2="220" stroke="#D68910" stroke-width="11" stroke-linecap="round" opacity="0.5"/>
+
+    <circle cx="590" cy="275" r="8" fill="#D68910" opacity="0.5"/>
+    <line x1="615" y1="275" x2="740" y2="275" stroke="#D68910" stroke-width="11" stroke-linecap="round" opacity="0.5"/>
+
+    <circle cx="590" cy="330" r="8" fill="#D68910" opacity="0.5"/>
+    <line x1="615" y1="330" x2="820" y2="330" stroke="#D68910" stroke-width="11" stroke-linecap="round" opacity="0.5"/>
+
+    <circle cx="590" cy="385" r="8" fill="#D68910" opacity="0.5"/>
+    <line x1="615" y1="385" x2="770" y2="385" stroke="#D68910" stroke-width="11" stroke-linecap="round" opacity="0.5"/>
+  </g>
+
+  <!-- LIME/GREEN NOTE (bottom right) - LARGER SIZE WITH BOTTOM FOLD -->
+  <g filter="url(#topNoteDepth)">
+    <rect x="500" y="480" width="440" height="420" rx="44" fill="url(#greenNote)"/>
+
+    <!-- Top shine -->
+    <rect x="500" y="480" width="440" height="120" rx="44" fill="url(#shine)"/>
+
+    <!-- Close button -->
+    <circle cx="545" cy="525" r="16" fill="#7D8E2A" opacity="0.5"/>
+    <path d="M 539 519 L 551 531 M 551 519 L 539 531" stroke="#FFFFFF" stroke-width="2.5" stroke-linecap="round" opacity="0.9"/>
+
+    <!-- Lines on note -->
+    <line x1="550" y1="610" x2="880" y2="610" stroke="#7D8E2A" stroke-width="13" stroke-linecap="round" opacity="0.5"/>
+    <line x1="550" y1="675" x2="800" y2="675" stroke="#7D8E2A" stroke-width="13" stroke-linecap="round" opacity="0.5"/>
+    <line x1="550" y1="740" x2="890" y2="740" stroke="#7D8E2A" stroke-width="13" stroke-linecap="round" opacity="0.5"/>
+    <line x1="550" y1="805" x2="820" y2="805" stroke="#7D8E2A" stroke-width="13" stroke-linecap="round" opacity="0.5"/>
+
+    <!-- BOTTOM RIGHT CORNER CURL -->
+    <g filter="url(#curlShadow)">
+      <path d="M 900 860 Q 920 870, 940 900 Q 930 880, 920 870 Q 910 865, 900 860 Z"
+            fill="#8FA034" opacity="0.95"/>
+      <path d="M 920 870 L 940 900 L 925 890 Z" fill="#6B7A26" opacity="0.7"/>
+      <!-- Curl highlight -->
+      <path d="M 900 860 Q 910 862, 920 870" stroke="#C5D65C" stroke-width="2" opacity="0.6" stroke-linecap="round"/>
+    </g>
+  </g>
+
+  <!-- Overall subtle highlight at top of icon for glass effect -->
+  <ellipse cx="512" cy="200" rx="400" ry="150" fill="#FFFFFF" opacity="0.08"/>
+
+  <!-- Outer border for polish -->
+  <rect x="2" y="2" width="1020" height="1020" rx="226" fill="none" stroke="#000000" stroke-width="3" opacity="0.3"/>
+</svg>

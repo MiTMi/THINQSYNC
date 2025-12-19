@@ -276,7 +276,7 @@ struct RichTextEditorWithSlashMenu: View {
         // Apply to selected text - toggle bold on/off
         textStorage.beginEditing()
         textStorage.enumerateAttribute(.font, in: selectedRange) { value, range, _ in
-            let font = value as? NSFont ?? NSFont.systemFont(ofSize: 16)
+            let font = value as? NSFont ?? NSFont.systemFont(ofSize: 18)
             let isBold = font.fontDescriptor.symbolicTraits.contains(.bold)
             let newFont = isBold ?
                 NSFontManager.shared.convert(font, toNotHaveTrait: .boldFontMask) :
@@ -294,7 +294,7 @@ struct RichTextEditorWithSlashMenu: View {
 
         // If no text is selected, just set typing attributes for future text
         if selectedRange.length == 0 {
-            let font = NSFont.systemFont(ofSize: 16).italic
+            let font = NSFont.systemFont(ofSize: 18).italic
             textView.typingAttributes[.font] = font
             return
         }
@@ -302,7 +302,7 @@ struct RichTextEditorWithSlashMenu: View {
         // Apply to selected text - toggle italic on/off
         textStorage.beginEditing()
         textStorage.enumerateAttribute(.font, in: selectedRange) { value, range, _ in
-            let font = value as? NSFont ?? NSFont.systemFont(ofSize: 16)
+            let font = value as? NSFont ?? NSFont.systemFont(ofSize: 18)
             let isItalic = font.fontDescriptor.symbolicTraits.contains(.italic)
             let newFont = isItalic ?
                 NSFontManager.shared.convert(font, toNotHaveTrait: .italicFontMask) :
@@ -378,7 +378,7 @@ struct RichTextEditorWithSlashMenu: View {
         let selectedRange = textView.selectedRange()
 
         let defaultAttributes: [NSAttributedString.Key: Any] = [
-            .font: NSFont.systemFont(ofSize: 16),
+            .font: NSFont.systemFont(ofSize: 18),
             .foregroundColor: NSColor(textColor)
         ]
 

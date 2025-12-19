@@ -33,7 +33,7 @@ struct Note: Identifiable, Codable, Sendable {
         set {
             // Set both font and foreground color attributes
             let attributes: [NSAttributedString.Key: Any] = [
-                .font: NSFont.systemFont(ofSize: 16),
+                .font: NSFont.systemFont(ofSize: 18),
                 .foregroundColor: NSColor.labelColor
             ]
             contentWrapper = AttributedStringWrapper(NSAttributedString(string: newValue, attributes: attributes))
@@ -56,7 +56,7 @@ struct Note: Identifiable, Codable, Sendable {
         self.title = title
         // Set both font and foreground color attributes
         let attributes: [NSAttributedString.Key: Any] = [
-            .font: NSFont.systemFont(ofSize: 16),
+            .font: NSFont.systemFont(ofSize: 18),
             .foregroundColor: NSColor.labelColor
         ]
         self.contentWrapper = AttributedStringWrapper(NSAttributedString(string: content, attributes: attributes))

@@ -45,18 +45,6 @@ struct GettingStartedView: View {
             Divider()
                 .padding(.horizontal, 16)
 
-            // Carousel Dashboard button
-            MenuButton(
-                icon: "square.stack.3d.up",
-                title: "Carousel Dashboard",
-                action: {
-                    openWindow(id: "carousel-dashboard")
-                }
-            )
-
-            Divider()
-                .padding(.horizontal, 16)
-
             // Notes list - showing only 5 most recent notes
             ScrollView {
                 VStack(spacing: 0) {
@@ -96,7 +84,9 @@ struct GettingStartedView: View {
                 MenuButton(
                     icon: "gear",
                     title: "Settings",
-                    action: { }
+                    action: {
+                        openWindow(id: "settings")
+                    }
                 )
 
                 Divider()

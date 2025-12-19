@@ -21,7 +21,7 @@ class PlainPasteTextView: NSTextView {
         }
 
         // Create attributed string with default formatting
-        let defaultFont = NSFont.systemFont(ofSize: 16)
+        let defaultFont = NSFont.systemFont(ofSize: 18)
         let defaultColor = self.textColor ?? NSColor.labelColor
 
         let attributes: [NSAttributedString.Key: Any] = [
@@ -121,7 +121,7 @@ struct RichTextEditor: NSViewRepresentable {
 
         // Set default typing attributes
         textView.typingAttributes = [
-            .font: NSFont.systemFont(ofSize: 16),
+            .font: NSFont.systemFont(ofSize: 18),
             .foregroundColor: NSColor(textColor)
         ]
 
@@ -228,7 +228,7 @@ struct RichTextEditor: NSViewRepresentable {
                     if previousChar.isNewline {
                         // Reset typing attributes to default
                         textView.typingAttributes = [
-                            .font: NSFont.systemFont(ofSize: 16),
+                            .font: NSFont.systemFont(ofSize: 18),
                             .foregroundColor: NSColor(parent.textColor)
                         ]
                     }
@@ -369,7 +369,7 @@ struct RichTextEditor: NSViewRepresentable {
 extension NSAttributedString {
     convenience init(string: String, color: NSColor) {
         let attributes: [NSAttributedString.Key: Any] = [
-            .font: NSFont.systemFont(ofSize: 16),
+            .font: NSFont.systemFont(ofSize: 18),
             .foregroundColor: color  // Use the provided color
         ]
         self.init(string: string, attributes: attributes)

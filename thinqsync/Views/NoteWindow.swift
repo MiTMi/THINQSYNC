@@ -191,6 +191,8 @@ struct CustomTitleBar: View {
     @State private var showingFormatMenu = false
     @State private var showingAIMenu = false
     @State private var showingMoreMenu = false
+    @State private var showingNewFolderAlert = false
+    @State private var newFolderName = ""
     @StateObject private var aiService = DeepseekAIService.shared
 
     // Strong black color for neo-brutalism style
@@ -340,6 +342,76 @@ struct CustomTitleBar: View {
                                 }
                                 .buttonStyle(.plain)
                             }
+                        }
+
+                        Divider()
+
+                        // Folder assignment
+                        VStack(alignment: .leading, spacing: 4) {
+                            Text("Move to Folder")
+                                .font(.caption)
+                                .foregroundColor(.secondary)
+                                .padding(.horizontal, 12)
+                                .padding(.top, 8)
+
+                            // No folder option
+                            Button(action: {
+                                note.folder = nil
+                                notesManager.updateNote(note)
+                                showingOptionsMenu = false
+                            }) {
+                                HStack {
+                                    Image(systemName: note.folder == nil ? "checkmark" : "")
+                                        .font(.system(size: 10, weight: .bold))
+                                        .frame(width: 12)
+                                    Text("No Folder")
+                                }
+                                .frame(maxWidth: .infinity, alignment: .leading)
+                                .padding(.horizontal, 12)
+                                .padding(.vertical, 6)
+                            }
+                            .buttonStyle(.plain)
+
+                            // Existing folders
+                            ForEach(notesManager.availableFolders, id: \.self) { folder in
+                                Button(action: {
+                                    note.folder = folder
+                                    notesManager.updateNote(note)
+                                    showingOptionsMenu = false
+                                }) {
+                                    HStack {
+                                        Image(systemName: note.folder == folder ? "checkmark" : "")
+                                            .font(.system(size: 10, weight: .bold))
+                                            .frame(width: 12)
+                                        Image(systemName: "folder.fill")
+                                            .font(.system(size: 10))
+                                            .foregroundColor(.blue)
+                                        Text(folder)
+                                    }
+                                    .frame(maxWidth: .infinity, alignment: .leading)
+                                    .padding(.horizontal, 12)
+                                    .padding(.vertical, 6)
+                                }
+                                .buttonStyle(.plain)
+                            }
+
+                            // Create new folder button
+                            Button(action: {
+                                showingOptionsMenu = false
+                                showingNewFolderAlert = true
+                            }) {
+                                HStack {
+                                    Image(systemName: "plus.circle")
+                                        .font(.system(size: 10))
+                                        .foregroundColor(.blue)
+                                    Text("Create New Folder...")
+                                        .foregroundColor(.blue)
+                                }
+                                .frame(maxWidth: .infinity, alignment: .leading)
+                                .padding(.horizontal, 12)
+                                .padding(.vertical, 6)
+                            }
+                            .buttonStyle(.plain)
                         }
 
                         Divider()
@@ -668,6 +740,22 @@ struct CustomTitleBar: View {
         }
         .frame(height: 44)
         .background(.clear)
+        .alert("New Folder", isPresented: $showingNewFolderAlert) {
+            TextField("Folder Name", text: $newFolderName)
+            Button("Cancel", role: .cancel) {
+                newFolderName = ""
+            }
+            Button("Create") {
+                if !newFolderName.isEmpty {
+                    notesManager.createFolder(newFolderName)
+                    note.folder = newFolderName
+                    notesManager.updateNote(note)
+                    newFolderName = ""
+                }
+            }
+        } message: {
+            Text("Enter a name for the new folder")
+        }
     }
 
     // Text formatting functions
@@ -690,7 +778,7 @@ struct CustomTitleBar: View {
 
         textStorage.beginEditing()
         textStorage.enumerateAttribute(.font, in: rangeToFormat) { value, range, _ in
-            let font = value as? NSFont ?? NSFont.systemFont(ofSize: 16)
+            let font = value as? NSFont ?? NSFont.systemFont(ofSize: 18)
             let isBold = font.fontDescriptor.symbolicTraits.contains(.bold)
             let newFont = isBold ?
                 NSFontManager.shared.convert(font, toNotHaveTrait: .boldFontMask) :
@@ -722,7 +810,7 @@ struct CustomTitleBar: View {
 
         textStorage.beginEditing()
         textStorage.enumerateAttribute(.font, in: rangeToFormat) { value, range, _ in
-            let font = value as? NSFont ?? NSFont.systemFont(ofSize: 16)
+            let font = value as? NSFont ?? NSFont.systemFont(ofSize: 18)
             let isItalic = font.fontDescriptor.symbolicTraits.contains(.italic)
             let newFont = isItalic ?
                 NSFontManager.shared.convert(font, toNotHaveTrait: .italicFontMask) :
@@ -812,7 +900,7 @@ struct CustomTitleBar: View {
 
         textStorage.beginEditing()
         textStorage.enumerateAttribute(.font, in: rangeToFormat) { value, range, _ in
-            let font = value as? NSFont ?? NSFont.systemFont(ofSize: 16)
+            let font = value as? NSFont ?? NSFont.systemFont(ofSize: 18)
             let newFont = NSFont(name: font.fontName, size: size) ?? NSFont.systemFont(ofSize: size)
             textStorage.addAttribute(.font, value: newFont, range: range)
         }

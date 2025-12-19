@@ -16,8 +16,10 @@ class NotesManager {
     var openNotes: [UUID: Bool] = [:]
     var iCloudEnabled: Bool = false
     var isSyncing: Bool = false
+    var folders: [String] = []
 
     private let saveKey = "SavedNotes"
+    private let foldersKey = "SavedFolders"
     private let cloudSync = CloudKitSyncManager.shared
 
     // Public computed property that filters out deleted notes
@@ -31,8 +33,9 @@ class NotesManager {
     }
 
     init() {
-        // Load saved notes from UserDefaults
+        // Load saved notes and folders from UserDefaults
         loadNotes()
+        loadFolders()
 
         // If no saved notes exist, create sample notes (only if not using iCloud)
         if _allNotes.isEmpty {
@@ -59,8 +62,15 @@ class NotesManager {
         return folders
     }
 
-    func createNote(title: String = "", color: NoteColor = .yellow) -> Note {
-        let note = Note(title: title, color: color)
+    var availableFolders: [String] {
+        // Combine explicitly created folders with folders that have notes
+        let foldersWithNotes = Set(notes.compactMap { $0.folder })
+        return Array(Set(folders).union(foldersWithNotes)).sorted()
+    }
+
+    func createNote(title: String = "", color: NoteColor = .yellow, folder: String? = nil) -> Note {
+        var note = Note(title: title, color: color)
+        note.folder = folder
         _allNotes.append(note)
         openNotes[note.id] = true
         saveNotes()
@@ -123,6 +133,43 @@ class NotesManager {
         openNotes[id] = false
     }
 
+    // MARK: - Folder Management
+
+    func createFolder(_ name: String) {
+        guard !name.isEmpty && !folders.contains(name) else { return }
+        folders.append(name)
+        folders.sort()
+        saveFolders()
+    }
+
+    func deleteFolder(_ name: String) {
+        folders.removeAll { $0 == name }
+        // Remove folder assignment from all notes in this folder
+        for index in _allNotes.indices {
+            if _allNotes[index].folder == name {
+                _allNotes[index].folder = nil
+            }
+        }
+        saveFolders()
+        saveNotes()
+    }
+
+    func renameFolder(from oldName: String, to newName: String) {
+        guard !newName.isEmpty && oldName != newName else { return }
+        if let index = folders.firstIndex(of: oldName) {
+            folders[index] = newName
+            folders.sort()
+        }
+        // Update folder assignment in all notes
+        for index in _allNotes.indices {
+            if _allNotes[index].folder == oldName {
+                _allNotes[index].folder = newName
+            }
+        }
+        saveFolders()
+        saveNotes()
+    }
+
     // Get note by ID (including deleted notes)
     func getNote(by id: UUID) -> Note? {
         _allNotes.first(where: { $0.id == id })
@@ -162,6 +209,19 @@ class NotesManager {
         if let savedNotes = UserDefaults.standard.data(forKey: saveKey),
            let decodedNotes = try? JSONDecoder().decode([Note].self, from: savedNotes) {
             _allNotes = decodedNotes
+        }
+    }
+
+    private func saveFolders() {
+        if let encoded = try? JSONEncoder().encode(folders) {
+            UserDefaults.standard.set(encoded, forKey: foldersKey)
+        }
+    }
+
+    private func loadFolders() {
+        if let savedFolders = UserDefaults.standard.data(forKey: foldersKey),
+           let decodedFolders = try? JSONDecoder().decode([String].self, from: savedFolders) {
+            folders = decodedFolders
         }
     }
 

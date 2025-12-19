@@ -7,6 +7,13 @@
 
 import SwiftUI
 
+struct Particle {
+    var position: CGPoint
+    var angle: Double
+    var distance: Double
+    var opacity: Double
+}
+
 struct ParticleBurstView: View {
     let center: CGPoint
     let color: Color

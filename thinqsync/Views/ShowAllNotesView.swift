@@ -7,6 +7,7 @@
 
 import SwiftUI
 import AppKit
+import UniformTypeIdentifiers
 
 struct ShowAllNotesView: View {
     @Environment(NotesManager.self) private var notesManager
@@ -40,8 +41,7 @@ struct ShowAllNotesView: View {
     }
 
     var folders: [String] {
-        let folderSet = Set(notesManager.notes.compactMap { $0.folder })
-        return folderSet.sorted()
+        return notesManager.availableFolders
     }
 
     var filteredNotes: [Note] {
@@ -107,7 +107,14 @@ struct ShowAllNotesView: View {
 
                 // New Note Button
                 Button(action: {
-                    let newNote = notesManager.createNote()
+                    // If viewing a folder, create note in that folder
+                    let folder: String? = {
+                        if case .folder(let folderName) = selectedSection {
+                            return folderName
+                        }
+                        return nil
+                    }()
+                    let newNote = notesManager.createNote(folder: folder)
                     openWindow(value: newNote.id)
                 }) {
                     HStack {
@@ -132,7 +139,18 @@ struct ShowAllNotesView: View {
                     title: "All Notes",
                     count: notesManager.notes.count,
                     iconColor: .blue,
-                    isSelected: selectedSection == .allNotes
+                    isSelected: selectedSection == .allNotes,
+                    onDrop: { noteIdString in
+                        // Handle drop: remove note's folder assignment
+                        guard let noteId = UUID(uuidString: noteIdString),
+                              let note = notesManager.getNote(by: noteId) else {
+                            return false
+                        }
+                        var updatedNote = note
+                        updatedNote.folder = nil
+                        notesManager.updateNote(updatedNote)
+                        return true
+                    }
                 )
                 .contentShape(Rectangle())
                 .onTapGesture {
@@ -156,11 +174,12 @@ struct ShowAllNotesView: View {
                         Button(action: {
                             showingNewFolderAlert = true
                         }) {
-                            Image(systemName: "plus")
-                                .font(.system(size: 10))
+                            Image(systemName: "plus.circle.fill")
+                                .font(.system(size: 16))
                                 .foregroundColor(Color(nsColor: .secondaryLabelColor))
                         }
                         .buttonStyle(.plain)
+                        .help("Create New Folder")
                     }
                     .padding(.horizontal, 20)
                     .padding(.bottom, 8)
@@ -171,7 +190,18 @@ struct ShowAllNotesView: View {
                             title: folder,
                             count: notesManager.notes.filter { $0.folder == folder }.count,
                             iconColor: getFolderColor(folder),
-                            isSelected: selectedSection == .folder(folder)
+                            isSelected: selectedSection == .folder(folder),
+                            onDrop: { noteIdString in
+                                // Handle drop: update note's folder
+                                guard let noteId = UUID(uuidString: noteIdString),
+                                      let note = notesManager.getNote(by: noteId) else {
+                                    return false
+                                }
+                                var updatedNote = note
+                                updatedNote.folder = folder
+                                notesManager.updateNote(updatedNote)
+                                return true
+                            }
                         )
                         .contentShape(Rectangle())
                         .onTapGesture {
@@ -421,6 +451,11 @@ struct ShowAllNotesView: View {
                                         },
                                         onRestore: {
                                             notesManager.restoreNote(note)
+                                        },
+                                        onFolderChange: { folder in
+                                            var updatedNote = note
+                                            updatedNote.folder = folder
+                                            notesManager.updateNote(updatedNote)
                                         }
                                     )
                                 }
@@ -461,11 +496,9 @@ struct ShowAllNotesView: View {
             }
             Button("Create") {
                 if !newFolderName.isEmpty {
-                    var newNote = notesManager.createNote()
-                    newNote.folder = newFolderName
-                    notesManager.updateNote(newNote)
+                    // Create the folder without any notes
+                    notesManager.createFolder(newFolderName)
                     selectedSection = .folder(newFolderName)
-                    openWindow(value: newNote.id)
                     newFolderName = ""
                 }
             }
@@ -523,6 +556,9 @@ struct SidebarRow: View {
     let count: Int
     var iconColor: Color = .gray
     var isSelected: Bool = false
+    var onDrop: ((String) -> Bool)? = nil
+
+    @State private var isDropTarget = false
 
     var body: some View {
         HStack(spacing: 10) {
@@ -543,8 +579,24 @@ struct SidebarRow: View {
         }
         .padding(.horizontal, 20)
         .padding(.vertical, 6)
-        .background(isSelected ? Color(nsColor: .selectedContentBackgroundColor) : Color.clear)
+        .background(isDropTarget ? Color.blue.opacity(0.1) : Color.clear)
         .cornerRadius(6)
+        .onDrop(of: [.text], isTargeted: $isDropTarget) { providers in
+            guard let onDrop = onDrop else { return false }
+            guard let provider = providers.first else { return false }
+
+            provider.loadItem(forTypeIdentifier: "public.text", options: nil) { (item, error) in
+                guard let data = item as? Data,
+                      let noteIdString = String(data: data, encoding: .utf8) else {
+                    return
+                }
+
+                DispatchQueue.main.async {
+                    _ = onDrop(noteIdString)
+                }
+            }
+            return true
+        }
     }
 }
 
@@ -556,6 +608,7 @@ struct NoteCard: View {
     let onTap: () -> Void
     let onDelete: () -> Void
     let onRestore: () -> Void
+    let onFolderChange: ((String?) -> Void)?
 
     @State private var isHoveringDelete = false
     @State private var isHoveringHeader = false
@@ -643,6 +696,11 @@ struct NoteCard: View {
         .contentShape(Rectangle())
         .onTapGesture {
             onTap()
+        }
+        .onDrag {
+            // Provide note ID as drag data
+            let itemProvider = NSItemProvider(object: note.id.uuidString as NSString)
+            return itemProvider
         }
         .contextMenu {
             if isTrash {
