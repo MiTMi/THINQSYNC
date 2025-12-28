@@ -1,0 +1,27 @@
+<svg width="1024" height="1024" viewBox="0 0 1024 1024" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <!-- Dark rounded background -->
+  <rect width="1024" height="1024" rx="220" fill="#1C1C1E"/>
+
+  <!-- BLUE NOTE (back, upper left) - NO ROTATION -->
+  <rect x="220" y="230" width="340" height="300" rx="25" fill="#38BDF8"/>
+  <rect x="260" y="290" width="200" height="10" rx="5" fill="#0284C7"/>
+  <rect x="260" y="325" width="260" height="10" rx="5" fill="#0284C7"/>
+  <rect x="260" y="360" width="160" height="10" rx="5" fill="#0284C7"/>
+  <rect x="260" y="395" width="220" height="10" rx="5" fill="#0284C7"/>
+
+  <!-- PINK NOTE (middle, upper right) - NO ROTATION -->
+  <rect x="460" y="280" width="340" height="300" rx="25" fill="#FBCFE8"/>
+  <rect x="500" y="340" width="180" height="10" rx="5" fill="#DB2777"/>
+  <rect x="500" y="375" width="260" height="10" rx="5" fill="#DB2777"/>
+  <rect x="500" y="410" width="140" height="10" rx="5" fill="#DB2777"/>
+  <rect x="500" y="445" width="200" height="10" rx="5" fill="#DB2777"/>
+
+  <!-- YELLOW NOTE (front, center-bottom) - NO ROTATION -->
+  <rect x="282" y="480" width="460" height="340" rx="30" fill="#FDE047"/>
+  <rect x="332" y="550" width="280" height="12" rx="6" fill="#A16207"/>
+  <rect x="332" y="595" width="360" height="12" rx="6" fill="#A16207"/>
+  <rect x="332" y="640" width="220" height="12" rx="6" fill="#A16207"/>
+  <rect x="332" y="685" width="300" height="12" rx="6" fill="#A16207"/>
+  <!-- Wavy signature -->
+  <path d="M 342 750 Q 412 710, 482 750 Q 552 790, 622 750" stroke="#A16207" stroke-width="12" fill="none" stroke-linecap="round"/>
+</svg>

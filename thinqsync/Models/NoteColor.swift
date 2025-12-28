@@ -23,36 +23,36 @@ enum NoteColor: String, Codable, CaseIterable, Sendable {
     // Adaptive background color based on color scheme
     func backgroundColor(for colorScheme: ColorScheme) -> Color {
         if colorScheme == .dark {
-            // Darkened colors for dark mode (25% darker)
+            // Darkened colors for dark mode
             switch self {
             case .green:
-                return Color(hex: "1a9f4a") // Darker green
+                return Color(hex: "1a9f4a") // Darker green (unchanged)
             case .yellow:
-                return Color(hex: "cc9202") // Darker yellow
+                return Color(hex: "d4af37") // Softer gold for dark mode (was cc9202)
             case .orange:
-                return Color(hex: "c96a00") // Darker orange
+                return Color(hex: "e89a5c") // Softer orange for dark mode (was c96a00)
             case .blue:
-                return Color(hex: "1a7e96") // Darker blue
+                return Color(hex: "1a7e96") // Darker blue (unchanged)
             case .purple:
-                return Color(hex: "8644c5") // Darker purple
+                return Color(hex: "9370db") // Softer purple for dark mode (was 8644c5)
             case .pink:
-                return Color(hex: "2a2a2a") // Dark gray instead of white
+                return Color(hex: "2a2a2a") // Dark gray (unchanged)
             }
         } else {
-            // Original vibrant colors for light mode
+            // Colors for light mode - green & blue unchanged, others toned down
             switch self {
             case .green:
-                return Color(hex: "22c55e") // Neo-brutalism Green
+                return Color(hex: "22c55e") // Neo-brutalism Green (unchanged)
             case .yellow:
-                return Color(hex: "ffb703") // Neo-brutalism Yellow
+                return Color(hex: "ffd966") // Softer yellow (was ffb703)
             case .orange:
-                return Color(hex: "fb8500") // Neo-brutalism Orange
+                return Color(hex: "ffb366") // Softer orange (was fb8500)
             case .blue:
-                return Color(hex: "219ebc") // Neo-brutalism Blue
+                return Color(hex: "219ebc") // Neo-brutalism Blue (unchanged)
             case .purple:
-                return Color(hex: "a855f7") // Neo-brutalism Purple
+                return Color(hex: "c299ff") // Softer purple (was a855f7)
             case .pink:
-                return .white // Neo-brutalism White
+                return Color(hex: "fff9f0") // Warm off-white (was pure white)
             }
         }
     }
@@ -61,17 +61,17 @@ enum NoteColor: String, Codable, CaseIterable, Sendable {
     var nsBackgroundColor: NSColor {
         switch self {
         case .green:
-            return NSColor(red: 0x22/255, green: 0xc5/255, blue: 0x5e/255, alpha: 1.0) // #22c55e
+            return NSColor(red: 0x22/255, green: 0xc5/255, blue: 0x5e/255, alpha: 1.0) // #22c55e (unchanged)
         case .yellow:
-            return NSColor(red: 0xff/255, green: 0xb7/255, blue: 0x03/255, alpha: 1.0) // #ffb703
+            return NSColor(red: 0xff/255, green: 0xd9/255, blue: 0x66/255, alpha: 1.0) // #ffd966
         case .orange:
-            return NSColor(red: 0xfb/255, green: 0x85/255, blue: 0x00/255, alpha: 1.0) // #fb8500
+            return NSColor(red: 0xff/255, green: 0xb3/255, blue: 0x66/255, alpha: 1.0) // #ffb366
         case .blue:
-            return NSColor(red: 0x21/255, green: 0x9e/255, blue: 0xbc/255, alpha: 1.0) // #219ebc
+            return NSColor(red: 0x21/255, green: 0x9e/255, blue: 0xbc/255, alpha: 1.0) // #219ebc (unchanged)
         case .purple:
-            return NSColor(red: 0xa8/255, green: 0x55/255, blue: 0xf7/255, alpha: 1.0) // #a855f7
+            return NSColor(red: 0xc2/255, green: 0x99/255, blue: 0xff/255, alpha: 1.0) // #c299ff
         case .pink:
-            return NSColor.white // White
+            return NSColor(red: 0xff/255, green: 0xf9/255, blue: 0xf0/255, alpha: 1.0) // #fff9f0
         }
     }
 

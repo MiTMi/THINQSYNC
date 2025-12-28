@@ -20,6 +20,7 @@ struct Note: Identifiable, Codable, Sendable {
     var modifiedAt: Date
     var deletedAt: Date?
     var windowFrame: CGRect?  // Saved window position and size
+    var isCollapsed: Bool  // Whether the note is collapsed to just show title bar
 
     // Computed property for easy access to attributed string
     var attributedContent: NSAttributedString {
@@ -50,7 +51,8 @@ struct Note: Identifiable, Codable, Sendable {
         createdAt: Date = Date(),
         modifiedAt: Date = Date(),
         deletedAt: Date? = nil,
-        windowFrame: CGRect? = nil
+        windowFrame: CGRect? = nil,
+        isCollapsed: Bool = false
     ) {
         self.id = id
         self.title = title
@@ -67,6 +69,7 @@ struct Note: Identifiable, Codable, Sendable {
         self.modifiedAt = modifiedAt
         self.deletedAt = deletedAt
         self.windowFrame = windowFrame
+        self.isCollapsed = isCollapsed
     }
 
     // Initializer for CloudKit deserialization (with contentWrapper directly)
@@ -80,7 +83,8 @@ struct Note: Identifiable, Codable, Sendable {
         createdAt: Date,
         modifiedAt: Date,
         deletedAt: Date? = nil,
-        windowFrame: CGRect? = nil
+        windowFrame: CGRect? = nil,
+        isCollapsed: Bool = false
     ) {
         self.id = id
         self.title = title
@@ -92,10 +96,11 @@ struct Note: Identifiable, Codable, Sendable {
         self.modifiedAt = modifiedAt
         self.deletedAt = deletedAt
         self.windowFrame = windowFrame
+        self.isCollapsed = isCollapsed
     }
 
     // Custom coding keys
     enum CodingKeys: String, CodingKey {
-        case id, title, contentWrapper, color, isFavorite, folder, createdAt, modifiedAt, deletedAt, windowFrame
+        case id, title, contentWrapper, color, isFavorite, folder, createdAt, modifiedAt, deletedAt, windowFrame, isCollapsed
     }
 }

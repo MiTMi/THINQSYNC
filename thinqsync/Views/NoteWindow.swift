@@ -26,6 +26,7 @@ struct NoteWindow: View {
     @State private var showingColorPicker = false
     @StateObject private var textViewRef = TextViewReference()
     @State private var windowConfigured = false
+    @State private var expandedWindowFrame: CGRect?  // Store frame before collapse
 
     var body: some View {
         VStack(spacing: 0) {
@@ -48,6 +49,12 @@ struct NoteWindow: View {
                         }
                     }
                 },
+                onCollapse: {
+                    // Toggle collapse state with animation
+                    DispatchQueue.main.async {
+                        toggleCollapse()
+                    }
+                },
                 onDelete: {
                     // Delete the note then close
                     DispatchQueue.main.async {
@@ -67,9 +74,12 @@ struct NoteWindow: View {
                 alignment: .bottom
             )
 
-            // Main content area with text
-            NoteContentArea(note: $note, textViewRef: textViewRef)
-                .background(note.color.backgroundColor) // Apply color directly to content area
+            // Main content area with text - hidden when collapsed
+            if !note.isCollapsed {
+                NoteContentArea(note: $note, textViewRef: textViewRef)
+                    .background(note.color.backgroundColor)
+                    .transition(.opacity.combined(with: .move(edge: .top)))
+            }
         }
         .cornerRadius(20)
         .overlay(
@@ -82,6 +92,44 @@ struct NoteWindow: View {
         .background(WindowAccessor(onWindowReady: { window in
             configureWindow(window)
         }))
+        .animation(.spring(duration: 0.3, bounce: 0.2), value: note.isCollapsed)
+    }
+
+    private func toggleCollapse() {
+        guard let window = NSApp.keyWindow else { return }
+
+        if note.isCollapsed {
+            // Expand: restore to previous frame
+            note.isCollapsed = false
+            notesManager.updateNote(note)
+
+            if let savedFrame = expandedWindowFrame {
+                NSAnimationContext.runAnimationGroup { context in
+                    context.duration = 0.3
+                    context.timingFunction = CAMediaTimingFunction(name: .easeInEaseOut)
+                    window.animator().setFrame(savedFrame, display: true)
+                }
+            }
+        } else {
+            // Collapse: save current frame and shrink to title bar height
+            expandedWindowFrame = window.frame
+            note.isCollapsed = true
+            notesManager.updateNote(note)
+
+            let collapsedHeight: CGFloat = 64  // Title bar height + some padding
+            let newFrame = NSRect(
+                x: window.frame.origin.x,
+                y: window.frame.origin.y + window.frame.height - collapsedHeight,
+                width: window.frame.width,
+                height: collapsedHeight
+            )
+
+            NSAnimationContext.runAnimationGroup { context in
+                context.duration = 0.3
+                context.timingFunction = CAMediaTimingFunction(name: .easeInEaseOut)
+                window.animator().setFrame(newFrame, display: true)
+            }
+        }
     }
 
     private func configureWindow(_ window: NSWindow) {
@@ -178,6 +226,7 @@ struct CustomTitleBar: View {
     let textViewRef: TextViewReference
     var onClose: () -> Void
     var onMinimize: () -> Void
+    var onCollapse: () -> Void
     var onDelete: () -> Void
 
     @Environment(NotesManager.self) private var notesManager
@@ -186,6 +235,7 @@ struct CustomTitleBar: View {
 
     @State private var isHoveringClose = false
     @State private var isHoveringMinimize = false
+    @State private var isHoveringCollapse = false
     @State private var isHoveringDelete = false
     @State private var showingOptionsMenu = false
     @State private var showingFormatMenu = false
@@ -241,6 +291,24 @@ struct CustomTitleBar: View {
                 .onHover { hovering in
                     isHoveringMinimize = hovering
                 }
+
+                // Collapse button (collapse/expand chevrons)
+                Button(action: onCollapse) {
+                    ZStack {
+                        Circle()
+                            .fill(adaptiveColor.opacity(isHoveringCollapse ? 0.3 : 0.2))
+                            .frame(width: 32, height: 32)
+
+                        Image(systemName: note.isCollapsed ? "chevron.down.2" : "chevron.up.2")
+                            .font(.system(size: 12, weight: .black))
+                            .foregroundColor(adaptiveColor)
+                    }
+                }
+                .buttonStyle(.plain)
+                .onHover { hovering in
+                    isHoveringCollapse = hovering
+                }
+                .help(note.isCollapsed ? "Expand note" : "Collapse note")
             }
             .padding(.leading, 12)
 

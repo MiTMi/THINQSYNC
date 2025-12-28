@@ -1,0 +1,25 @@
+<svg width="1024" height="1024" viewBox="0 0 1024 1024" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <!-- Dark rounded background -->
+  <rect width="1024" height="1024" rx="220" fill="#1C1C1E"/>
+
+  <!-- PINK NOTE (back, top right) - no rotation -->
+  <rect x="420" y="180" width="380" height="340" rx="30" fill="#FBCFE8"/>
+  <rect x="470" y="250" width="220" height="12" rx="6" fill="#DB2777"/>
+  <rect x="470" y="290" width="280" height="12" rx="6" fill="#DB2777"/>
+  <rect x="470" y="330" width="180" height="12" rx="6" fill="#DB2777"/>
+  <rect x="470" y="370" width="240" height="12" rx="6" fill="#DB2777"/>
+
+  <!-- GREEN NOTE (middle, left) - no rotation -->
+  <rect x="150" y="340" width="380" height="380" rx="30" fill="#86EFAC"/>
+  <rect x="200" y="420" width="200" height="12" rx="6" fill="#166534"/>
+  <rect x="200" y="460" width="280" height="12" rx="6" fill="#166534"/>
+  <rect x="200" y="500" width="160" height="12" rx="6" fill="#166534"/>
+  <path d="M 210 600 Q 260 560, 310 600 Q 360 640, 410 600" stroke="#166534" stroke-width="12" fill="none" stroke-linecap="round"/>
+
+  <!-- YELLOW NOTE (front, center-right) - no rotation -->
+  <rect x="340" y="480" width="440" height="400" rx="35" fill="#FDE047"/>
+  <rect x="400" y="560" width="280" height="14" rx="7" fill="#A16207"/>
+  <rect x="400" y="605" width="320" height="14" rx="7" fill="#A16207"/>
+  <rect x="400" y="650" width="200" height="14" rx="7" fill="#A16207"/>
+  <path d="M 410 750 Q 470 700, 530 750 Q 590 800, 650 750" stroke="#A16207" stroke-width="14" fill="none" stroke-linecap="round"/>
+</svg>
