@@ -12,6 +12,7 @@ import Combine
 @MainActor
 class TextViewReference: ObservableObject {
     var textView: NSTextView?
+    var noteWindow: NSWindow?
     var isFormatting = false
 
     var isReady: Bool {
@@ -97,16 +98,12 @@ struct NoteWindow: View {
         }))
         .animation(.spring(duration: 0.3, bounce: 0.2), value: note.isCollapsed)
         .onChange(of: alwaysOnTop) { _, newValue in
-            if let window = NSApp.windows.first(where: { $0.isVisible && $0.title == note.id.uuidString || $0.isKeyWindow }) {
-                window.level = newValue ? .floating : .normal
-            }
+            textViewRef.noteWindow?.level = newValue ? .floating : .normal
         }
         .onChange(of: showOnAllWorkspaces) { _, newValue in
-            if let window = NSApp.windows.first(where: { $0.isVisible && $0.title == note.id.uuidString || $0.isKeyWindow }) {
-                window.collectionBehavior = newValue
-                    ? [.canJoinAllSpaces, .fullScreenAuxiliary]
-                    : [.fullScreenAuxiliary]
-            }
+            textViewRef.noteWindow?.collectionBehavior = newValue
+                ? [.canJoinAllSpaces, .fullScreenAuxiliary]
+                : [.fullScreenAuxiliary]
         }
     }
 
@@ -151,6 +148,9 @@ struct NoteWindow: View {
         // Only configure once to avoid repeated modifications
         guard !windowConfigured else { return }
         windowConfigured = true
+
+        // Store window reference for live updates from menu toggles
+        textViewRef.noteWindow = window
 
         // Restore saved window frame if it exists, otherwise use default size
         if let savedFrame = note.windowFrame {
@@ -269,6 +269,8 @@ struct CustomTitleBar: View {
     @State private var showingNewFolderAlert = false
     @State private var newFolderName = ""
     @StateObject private var aiService = DeepseekAIService.shared
+    @AppStorage("AlwaysOnTop") private var alwaysOnTop = false
+    @AppStorage("ShowOnAllWorkspaces") private var showOnAllWorkspaces = false
 
     // Strong black color for neo-brutalism style
     private var adaptiveColor: Color {
@@ -511,6 +513,41 @@ struct CustomTitleBar: View {
                                 .padding(.vertical, 6)
                             }
                             .buttonStyle(.plain)
+                        }
+
+                        Divider()
+
+                        // Window behavior toggles
+                        VStack(alignment: .leading, spacing: 4) {
+                            Text("Window")
+                                .font(.caption)
+                                .foregroundColor(.secondary)
+                                .padding(.horizontal, 12)
+                                .padding(.top, 8)
+
+                            Toggle(isOn: $alwaysOnTop) {
+                                Label("Always on Top", systemImage: "pin")
+                            }
+                            .toggleStyle(.switch)
+                            .controlSize(.small)
+                            .padding(.horizontal, 12)
+                            .padding(.vertical, 4)
+                            .onChange(of: alwaysOnTop) { _, newValue in
+                                textViewRef.noteWindow?.level = newValue ? .floating : .normal
+                            }
+
+                            Toggle(isOn: $showOnAllWorkspaces) {
+                                Label("All Workspaces", systemImage: "rectangle.on.rectangle")
+                            }
+                            .toggleStyle(.switch)
+                            .controlSize(.small)
+                            .padding(.horizontal, 12)
+                            .padding(.vertical, 4)
+                            .onChange(of: showOnAllWorkspaces) { _, newValue in
+                                textViewRef.noteWindow?.collectionBehavior = newValue
+                                    ? [.canJoinAllSpaces, .fullScreenAuxiliary]
+                                    : [.fullScreenAuxiliary]
+                            }
                         }
 
                         Divider()
