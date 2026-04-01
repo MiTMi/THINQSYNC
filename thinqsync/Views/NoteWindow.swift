@@ -28,6 +28,8 @@ struct NoteWindow: View {
     @State private var windowConfigured = false
     @State private var expandedWindowFrame: CGRect?  // Store frame before collapse
     @State private var frameSaveTask: DispatchWorkItem?
+    @AppStorage("AlwaysOnTop") private var alwaysOnTop = false
+    @AppStorage("ShowOnAllWorkspaces") private var showOnAllWorkspaces = false
 
     var body: some View {
         VStack(spacing: 0) {
@@ -94,6 +96,18 @@ struct NoteWindow: View {
             configureWindow(window)
         }))
         .animation(.spring(duration: 0.3, bounce: 0.2), value: note.isCollapsed)
+        .onChange(of: alwaysOnTop) { _, newValue in
+            if let window = NSApp.windows.first(where: { $0.isVisible && $0.title == note.id.uuidString || $0.isKeyWindow }) {
+                window.level = newValue ? .floating : .normal
+            }
+        }
+        .onChange(of: showOnAllWorkspaces) { _, newValue in
+            if let window = NSApp.windows.first(where: { $0.isVisible && $0.title == note.id.uuidString || $0.isKeyWindow }) {
+                window.collectionBehavior = newValue
+                    ? [.canJoinAllSpaces, .fullScreenAuxiliary]
+                    : [.fullScreenAuxiliary]
+            }
+        }
     }
 
     private func toggleCollapse() {
@@ -148,9 +162,11 @@ struct NoteWindow: View {
             window.setFrame(newFrame, display: true)
         }
 
-        // Set window to float
-        window.level = .floating
-        window.collectionBehavior = [.canJoinAllSpaces, .fullScreenAuxiliary]
+        // Window level and workspace behavior based on user preferences
+        window.level = alwaysOnTop ? .floating : .normal
+        window.collectionBehavior = showOnAllWorkspaces
+            ? [.canJoinAllSpaces, .fullScreenAuxiliary]
+            : [.fullScreenAuxiliary]
 
         // Use fullSizeContentView instead of borderless to maintain key/main status
         // This is the correct approach according to Apple's documentation

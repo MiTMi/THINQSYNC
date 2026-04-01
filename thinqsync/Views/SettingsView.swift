@@ -50,6 +50,8 @@ struct SettingsView: View {
     @State private var tempAPIKey: String = ""
     @State private var showingSavedConfirmation = false
     @AppStorage("LaunchAtLogin") private var launchAtLogin = false
+    @AppStorage("AlwaysOnTop") private var alwaysOnTop = false
+    @AppStorage("ShowOnAllWorkspaces") private var showOnAllWorkspaces = false
 
     var currentProvider: AIProvider {
         AIProvider.allCases.first { $0.rawValue == selectedProvider } ?? .openRouter
@@ -215,6 +217,32 @@ struct SettingsView: View {
                         }
                         .onChange(of: launchAtLogin) { oldValue, newValue in
                             setLaunchAtLogin(enabled: newValue)
+                        }
+                        .padding(16)
+                        .background(Color(nsColor: .controlBackgroundColor))
+                        .cornerRadius(8)
+
+                        Toggle(isOn: $alwaysOnTop) {
+                            VStack(alignment: .leading, spacing: 4) {
+                                Text("Always on Top")
+                                    .font(.system(size: 13, weight: .medium))
+                                Text("Keep notes floating above other windows")
+                                    .font(.system(size: 11))
+                                    .foregroundColor(.secondary)
+                            }
+                        }
+                        .padding(16)
+                        .background(Color(nsColor: .controlBackgroundColor))
+                        .cornerRadius(8)
+
+                        Toggle(isOn: $showOnAllWorkspaces) {
+                            VStack(alignment: .leading, spacing: 4) {
+                                Text("Show on All Workspaces")
+                                    .font(.system(size: 13, weight: .medium))
+                                Text("Notes follow you across all desktop spaces")
+                                    .font(.system(size: 11))
+                                    .foregroundColor(.secondary)
+                            }
                         }
                         .padding(16)
                         .background(Color(nsColor: .controlBackgroundColor))
