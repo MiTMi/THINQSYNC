@@ -29,7 +29,7 @@ enum AIProvider: String, CaseIterable, Identifiable {
         }
     }
 
-    var userDefaultsKey: String {
+    var keychainKey: String {
         switch self {
         case .openRouter:
             return "DeepseekAPIKey"
@@ -259,14 +259,16 @@ struct SettingsView: View {
 
     private func loadAPIKeys() {
         for provider in AIProvider.allCases {
-            if let key = UserDefaults.standard.string(forKey: provider.userDefaultsKey) {
+            // Migrate any keys still in UserDefaults to Keychain
+            KeychainHelper.migrateFromUserDefaults(userDefaultsKey: provider.keychainKey, keychainKey: provider.keychainKey)
+            if let key = KeychainHelper.load(key: provider.keychainKey) {
                 apiKeys[provider] = key
             }
         }
     }
 
     private func saveAPIKey(for provider: AIProvider) {
-        UserDefaults.standard.set(tempAPIKey, forKey: provider.userDefaultsKey)
+        _ = KeychainHelper.save(key: provider.keychainKey, value: tempAPIKey)
         apiKeys[provider] = tempAPIKey
         showingAPIKeyField = nil
         tempAPIKey = ""
@@ -279,7 +281,7 @@ struct SettingsView: View {
     }
 
     private func removeAPIKey(for provider: AIProvider) {
-        UserDefaults.standard.removeObject(forKey: provider.userDefaultsKey)
+        KeychainHelper.delete(key: provider.keychainKey)
         apiKeys[provider] = nil
         showingAPIKeyField = nil
         tempAPIKey = ""

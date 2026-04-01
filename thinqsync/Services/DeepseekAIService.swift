@@ -13,7 +13,7 @@ class DeepseekAIService: ObservableObject {
     static let shared = DeepseekAIService()
 
     private let apiEndpoint = "https://openrouter.ai/api/v1/chat/completions"
-    private let apiKeyUserDefaultsKey = "DeepseekAPIKey"
+    private let keychainKey = "DeepseekAPIKey"
     private let modelUserDefaultsKey = "DeepseekModelName"
 
     @Published var isConfigured: Bool = false
@@ -31,6 +31,8 @@ class DeepseekAIService: ObservableObject {
     ]
 
     private init() {
+        // Migrate API key from UserDefaults to Keychain (one-time)
+        KeychainHelper.migrateFromUserDefaults(userDefaultsKey: "DeepseekAPIKey", keychainKey: keychainKey)
         checkConfiguration()
     }
 
@@ -43,14 +45,18 @@ class DeepseekAIService: ObservableObject {
         }
     }
 
-    // MARK: - API Key Management
+    // MARK: - API Key Management (Keychain-backed)
 
     var apiKey: String? {
         get {
-            UserDefaults.standard.string(forKey: apiKeyUserDefaultsKey)
+            KeychainHelper.load(key: keychainKey)
         }
         set {
-            UserDefaults.standard.set(newValue, forKey: apiKeyUserDefaultsKey)
+            if let newValue, !newValue.isEmpty {
+                _ = KeychainHelper.save(key: keychainKey, value: newValue)
+            } else {
+                KeychainHelper.delete(key: keychainKey)
+            }
             checkConfiguration()
         }
     }
@@ -60,7 +66,7 @@ class DeepseekAIService: ObservableObject {
     }
 
     func clearAPIKey() {
-        UserDefaults.standard.removeObject(forKey: apiKeyUserDefaultsKey)
+        KeychainHelper.delete(key: keychainKey)
         checkConfiguration()
     }
 

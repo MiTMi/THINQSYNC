@@ -27,6 +27,7 @@ struct NoteWindow: View {
     @StateObject private var textViewRef = TextViewReference()
     @State private var windowConfigured = false
     @State private var expandedWindowFrame: CGRect?  // Store frame before collapse
+    @State private var frameSaveTask: DispatchWorkItem?
 
     var body: some View {
         VStack(spacing: 0) {
@@ -168,34 +169,34 @@ struct NoteWindow: View {
         window.isOpaque = false
         window.hasShadow = false  // We add our own shadow in SwiftUI
 
-        // Set up notification observer to save window frame when it changes
+        // Save window frame on move/resize, debounced to avoid writes on every drag pixel
+        let debouncedFrameSave = { [weak window] in
+            guard let window = window else { return }
+            Task { @MainActor in
+                self.frameSaveTask?.cancel()
+                let task = DispatchWorkItem { [weak window] in
+                    guard let window = window else { return }
+                    Task { @MainActor in
+                        note.windowFrame = window.frame
+                        notesManager.updateNote(note)
+                    }
+                }
+                self.frameSaveTask = task
+                DispatchQueue.main.asyncAfter(deadline: .now() + 0.3, execute: task)
+            }
+        }
+
         NotificationCenter.default.addObserver(
             forName: NSWindow.didResizeNotification,
             object: window,
             queue: .main
-        ) { [weak window] _ in
-            if let window = window {
-                Task { @MainActor in
-                    // Save window frame
-                    note.windowFrame = window.frame
-                    notesManager.updateNote(note)
-                }
-            }
-        }
+        ) { _ in debouncedFrameSave() }
 
         NotificationCenter.default.addObserver(
             forName: NSWindow.didMoveNotification,
             object: window,
             queue: .main
-        ) { [weak window] _ in
-            if let window = window {
-                Task { @MainActor in
-                    // Save window frame
-                    note.windowFrame = window.frame
-                    notesManager.updateNote(note)
-                }
-            }
-        }
+        ) { _ in debouncedFrameSave() }
     }
 }
 
@@ -214,10 +215,18 @@ struct WindowAccessor: NSViewRepresentable {
     }
 
     func updateNSView(_ nsView: NSView, context: Context) {
-        // Check if window is available on updates too
-        if let window = nsView.window {
+        // Only fire once -- configureWindow is guarded by windowConfigured flag,
+        // but calling it on every view update still causes unnecessary overhead.
+        if !context.coordinator.didConfigure, let window = nsView.window {
+            context.coordinator.didConfigure = true
             onWindowReady(window)
         }
+    }
+
+    func makeCoordinator() -> Coordinator { Coordinator() }
+
+    class Coordinator {
+        var didConfigure = false
     }
 }
 
@@ -274,6 +283,7 @@ struct CustomTitleBar: View {
                 .onHover { hovering in
                     isHoveringClose = hovering
                 }
+                .accessibilityLabel("Close note")
 
                 // Minimize button (down arrow)
                 Button(action: onMinimize) {
@@ -291,6 +301,7 @@ struct CustomTitleBar: View {
                 .onHover { hovering in
                     isHoveringMinimize = hovering
                 }
+                .accessibilityLabel("Minimize note")
 
                 // Collapse button (collapse/expand chevrons)
                 Button(action: onCollapse) {
@@ -308,6 +319,7 @@ struct CustomTitleBar: View {
                 .onHover { hovering in
                     isHoveringCollapse = hovering
                 }
+                .accessibilityLabel(note.isCollapsed ? "Expand note" : "Collapse note")
                 .help(note.isCollapsed ? "Expand note" : "Collapse note")
             }
             .padding(.leading, 12)
@@ -320,6 +332,8 @@ struct CustomTitleBar: View {
                 .multilineTextAlignment(.leading)
                 .frame(maxWidth: .infinity, alignment: .leading)
                 .padding(.leading, 12)
+                .accessibilityLabel("Note title")
+                .accessibilityValue(note.title.isEmpty ? "Untitled" : note.title)
 
             // iCloud sync indicator
             if notesManager.iCloudEnabled {
@@ -365,6 +379,7 @@ struct CustomTitleBar: View {
                     .frame(width: 36, height: 36)
                 }
                 .buttonStyle(.plain)
+                .accessibilityLabel("Note options")
                 .popover(isPresented: $showingOptionsMenu, arrowEdge: .bottom) {
                     VStack(alignment: .leading, spacing: 0) {
                         Button(action: {

@@ -144,6 +144,8 @@ struct MenuButton: View {
         .onHover { hovering in
             isHovering = hovering
         }
+        .accessibilityLabel(title)
+        .accessibilityHint(icon == "square.and.pencil" ? "Creates a new note" : icon == "power" ? "Quits the application" : "")
     }
 }
 

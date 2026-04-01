@@ -148,23 +148,14 @@ struct RichTextEditorWithSlashMenu: View {
         let menuHeight = calculateAvailableMenuHeight()
         let spaceBelow = viewHeight - slashMenuPosition.y
 
-        print("📍 Menu Position Debug:")
-        print("   Cursor Y: \(slashMenuPosition.y)")
-        print("   View Height: \(viewHeight)")
-        print("   Space Below: \(spaceBelow)")
-        print("   Menu Height: \(menuHeight)")
-
         // Check if there's enough space below the cursor
         if spaceBelow < menuHeight + 40 {
             // Not enough space below - show menu above the cursor
             let abovePosition = slashMenuPosition.y - menuHeight - 10
-            print("   ⬆️ Showing ABOVE at Y: \(abovePosition)")
             return max(10, abovePosition)  // Ensure menu doesn't go above top edge
         } else {
             // Enough space below - show menu below the cursor (default)
-            let belowPosition = slashMenuPosition.y + 20
-            print("   ⬇️ Showing BELOW at Y: \(belowPosition)")
-            return belowPosition
+            return slashMenuPosition.y + 20
         }
     }
 

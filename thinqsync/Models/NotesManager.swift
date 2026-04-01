@@ -12,7 +12,9 @@ import Observation
 @MainActor
 @Observable
 class NotesManager {
-    private var _allNotes: [Note] = []
+    private var _allNotes: [Note] = [] {
+        didSet { invalidateCache() }
+    }
     var openNotes: [UUID: Bool] = [:]
     var iCloudEnabled: Bool = false
     var isSyncing: Bool = false
@@ -21,15 +23,29 @@ class NotesManager {
     private let saveKey = "SavedNotes"
     private let foldersKey = "SavedFolders"
     private let cloudSync = CloudKitSyncManager.shared
+    private var debouncedSaveTask: DispatchWorkItem?
 
-    // Public computed property that filters out deleted notes
-    var notes: [Note] {
-        _allNotes.filter { $0.deletedAt == nil }
+    // Cached filtered lists, invalidated when _allNotes changes
+    private var _cachedNotes: [Note]?
+    private var _cachedDeletedNotes: [Note]?
+
+    private func invalidateCache() {
+        _cachedNotes = nil
+        _cachedDeletedNotes = nil
     }
 
-    // Trash: deleted notes
+    var notes: [Note] {
+        if let cached = _cachedNotes { return cached }
+        let result = _allNotes.filter { $0.deletedAt == nil }
+        _cachedNotes = result
+        return result
+    }
+
     var deletedNotes: [Note] {
-        _allNotes.filter { $0.deletedAt != nil }.sorted { ($0.deletedAt ?? Date()) > ($1.deletedAt ?? Date()) }
+        if let cached = _cachedDeletedNotes { return cached }
+        let result = _allNotes.filter { $0.deletedAt != nil }.sorted { ($0.deletedAt ?? Date()) > ($1.deletedAt ?? Date()) }
+        _cachedDeletedNotes = result
+        return result
     }
 
     init() {
@@ -89,7 +105,7 @@ class NotesManager {
         if let index = _allNotes.firstIndex(where: { $0.id == note.id }) {
             _allNotes[index].deletedAt = Date()
             openNotes.removeValue(forKey: note.id)
-            saveNotes()
+            saveNotesImmediately()
         }
     }
 
@@ -97,7 +113,7 @@ class NotesManager {
     func restoreNote(_ note: Note) {
         if let index = _allNotes.firstIndex(where: { $0.id == note.id }) {
             _allNotes[index].deletedAt = nil
-            saveNotes()
+            saveNotesImmediately()
         }
     }
 
@@ -105,13 +121,13 @@ class NotesManager {
     func permanentlyDeleteNote(_ note: Note) {
         _allNotes.removeAll { $0.id == note.id }
         openNotes.removeValue(forKey: note.id)
-        saveNotes()
+        saveNotesImmediately()
     }
 
     // Empty trash - permanently delete all deleted notes
     func emptyTrash() {
         _allNotes.removeAll { $0.deletedAt != nil }
-        saveNotes()
+        saveNotesImmediately()
     }
 
     func toggleFavorite(_ note: Note) {
@@ -193,6 +209,23 @@ class NotesManager {
     }
 
     private func saveNotes() {
+        debouncedSaveTask?.cancel()
+        let task = DispatchWorkItem { [weak self] in
+            guard let self else { return }
+            Task { @MainActor in
+                self.performSave()
+            }
+        }
+        debouncedSaveTask = task
+        DispatchQueue.main.asyncAfter(deadline: .now() + 0.3, execute: task)
+    }
+
+    private func saveNotesImmediately() {
+        debouncedSaveTask?.cancel()
+        performSave()
+    }
+
+    private func performSave() {
         if let encoded = try? JSONEncoder().encode(_allNotes) {
             UserDefaults.standard.set(encoded, forKey: saveKey)
         }
