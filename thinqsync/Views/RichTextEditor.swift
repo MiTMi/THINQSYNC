@@ -89,9 +89,29 @@ class ResizableImageAttachmentCell: NSTextAttachmentCell {
     }
 }
 
+// MARK: - Default Paragraph Style
+
+/// Shared paragraph style used for default line spacing across all text in notes.
+let defaultParagraphStyle: NSMutableParagraphStyle = {
+    let style = NSMutableParagraphStyle()
+    style.lineSpacing = 4
+    return style
+}()
+
 // MARK: - Custom NSTextView with Image Paste and Resize Support
 
 class PlainPasteTextView: NSTextView {
+
+    /// Closure called on keyDown when the slash menu is visible.
+    /// Return `true` if the key was handled (consumed), `false` to let NSTextView process it.
+    var slashMenuKeyHandler: ((NSEvent) -> Bool)?
+
+    override func keyDown(with event: NSEvent) {
+        if let handler = slashMenuKeyHandler, handler(event) {
+            return  // Key was consumed by slash menu
+        }
+        super.keyDown(with: event)
+    }
 
     // Image resize tracking
     private var isResizingImage = false
@@ -562,8 +582,14 @@ struct RichTextEditor: NSViewRepresentable {
         // Set default typing attributes
         textView.typingAttributes = [
             .font: NSFont.systemFont(ofSize: 18),
-            .foregroundColor: NSColor(textColor)
+            .foregroundColor: NSColor(textColor),
+            .paragraphStyle: defaultParagraphStyle
         ]
+
+        // Apply default line spacing to existing text
+        if let textStorage = textView.textStorage, textStorage.length > 0 {
+            textStorage.addAttribute(.paragraphStyle, value: defaultParagraphStyle, range: NSRange(location: 0, length: textStorage.length))
+        }
 
         // Notify parent of textView creation
         onTextViewCreated?(textView)
@@ -702,7 +728,8 @@ struct RichTextEditor: NSViewRepresentable {
                         // Reset typing attributes to default
                         textView.typingAttributes = [
                             .font: NSFont.systemFont(ofSize: 18),
-                            .foregroundColor: NSColor(parent.textColor)
+                            .foregroundColor: NSColor(parent.textColor),
+                            .paragraphStyle: defaultParagraphStyle
                         ]
                     }
                 }
@@ -850,7 +877,8 @@ extension NSAttributedString {
     convenience init(string: String, color: NSColor) {
         let attributes: [NSAttributedString.Key: Any] = [
             .font: NSFont.systemFont(ofSize: 18),
-            .foregroundColor: color  // Use the provided color
+            .foregroundColor: color,
+            .paragraphStyle: defaultParagraphStyle
         ]
         self.init(string: string, attributes: attributes)
     }

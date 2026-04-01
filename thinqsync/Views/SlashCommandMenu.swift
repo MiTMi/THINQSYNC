@@ -93,8 +93,8 @@ struct SlashCommandMenu: View {
     @Binding var searchText: String
     let onCommandSelected: (SlashCommand) -> Void
     var availableHeight: CGFloat? = nil  // Optional max height constraint
+    @Binding var selectedIndex: Int
 
-    @State private var selectedIndex = 0
     @State private var hoveredIndex: Int?
 
     var filteredCommands: [SlashCommand] {
@@ -111,28 +111,36 @@ struct SlashCommandMenu: View {
     var body: some View {
         VStack(spacing: 0) {
             // Commands list with scrolling
-            ScrollView {
-                VStack(spacing: 0) {
-                    ForEach(Array(filteredCommands.enumerated()), id: \.element.id) { index, command in
-                        Button(action: {
-                            onCommandSelected(command)
-                            isPresented = false
-                        }) {
-                            SlashCommandRow(
-                                command: command,
-                                isSelected: index == selectedIndex,
-                                isHovered: index == hoveredIndex
-                            )
-                        }
-                        .buttonStyle(.plain)
-                        .onHover { hovering in
-                            hoveredIndex = hovering ? index : nil
+            ScrollViewReader { scrollProxy in
+                ScrollView {
+                    VStack(spacing: 0) {
+                        ForEach(Array(filteredCommands.enumerated()), id: \.element.id) { index, command in
+                            Button(action: {
+                                onCommandSelected(command)
+                                isPresented = false
+                            }) {
+                                SlashCommandRow(
+                                    command: command,
+                                    isSelected: index == selectedIndex,
+                                    isHovered: index == hoveredIndex
+                                )
+                            }
+                            .buttonStyle(.plain)
+                            .id(index)
+                            .onHover { hovering in
+                                hoveredIndex = hovering ? index : nil
+                            }
                         }
                     }
+                    .padding(.vertical, 4)
                 }
-                .padding(.vertical, 4)
+                .frame(maxHeight: calculateMaxHeight())
+                .onChange(of: selectedIndex) { _, newIndex in
+                    withAnimation(.easeInOut(duration: 0.15)) {
+                        scrollProxy.scrollTo(newIndex, anchor: .center)
+                    }
+                }
             }
-            .frame(maxHeight: calculateMaxHeight())
         }
         .frame(width: 220)
         .background(
@@ -201,7 +209,7 @@ struct SlashCommandRow: View {
         .padding(.horizontal, 11)
         .padding(.vertical, 7)
         .background(
-            isHovered ? Color(nsColor: .controlAccentColor).opacity(0.2) : Color.clear
+            (isSelected || isHovered) ? Color(nsColor: .controlAccentColor).opacity(0.2) : Color.clear
         )
     }
 }
@@ -210,6 +218,7 @@ struct SlashCommandRow: View {
     SlashCommandMenu(
         isPresented: .constant(true),
         searchText: .constant(""),
-        onCommandSelected: { _ in }
+        onCommandSelected: { _ in },
+        selectedIndex: .constant(0)
     )
 }

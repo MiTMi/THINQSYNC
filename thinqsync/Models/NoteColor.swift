@@ -26,9 +26,9 @@ enum NoteColor: String, Codable, CaseIterable, Sendable {
             // Darkened colors for dark mode
             switch self {
             case .green:
-                return Color(hex: "1a9f4a") // Darker green (unchanged)
+                return Color(hex: "09b844") // Dimmed malachite green for dark mode
             case .yellow:
-                return Color(hex: "d4af37") // Softer gold for dark mode (was cc9202)
+                return Color(hex: "e6d700") // Slightly dimmed neon yellow for dark mode
             case .orange:
                 return Color(hex: "e89a5c") // Softer orange for dark mode (was c96a00)
             case .blue:
@@ -42,9 +42,9 @@ enum NoteColor: String, Codable, CaseIterable, Sendable {
             // Colors for light mode - green & blue unchanged, others toned down
             switch self {
             case .green:
-                return Color(hex: "22c55e") // Neo-brutalism Green (unchanged)
+                return Color(hex: "0bda51") // Malachite green
             case .yellow:
-                return Color(hex: "ffd966") // Softer yellow (was ffb703)
+                return Color(hex: "ffef00") // Coolors neon yellow
             case .orange:
                 return Color(hex: "ffb366") // Softer orange (was fb8500)
             case .blue:
@@ -61,9 +61,9 @@ enum NoteColor: String, Codable, CaseIterable, Sendable {
     var nsBackgroundColor: NSColor {
         switch self {
         case .green:
-            return NSColor(red: 0x22/255, green: 0xc5/255, blue: 0x5e/255, alpha: 1.0) // #22c55e (unchanged)
+            return NSColor(red: 0x0b/255, green: 0xda/255, blue: 0x51/255, alpha: 1.0) // #0bda51
         case .yellow:
-            return NSColor(red: 0xff/255, green: 0xd9/255, blue: 0x66/255, alpha: 1.0) // #ffd966
+            return NSColor(red: 0xff/255, green: 0xef/255, blue: 0x00/255, alpha: 1.0) // #ffef00
         case .orange:
             return NSColor(red: 0xff/255, green: 0xb3/255, blue: 0x66/255, alpha: 1.0) // #ffb366
         case .blue:

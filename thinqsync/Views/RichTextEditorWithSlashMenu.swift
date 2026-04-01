@@ -29,6 +29,7 @@ struct RichTextEditorWithSlashMenu: View {
     @State private var viewHeight: CGFloat = 0
     @State private var showAIError = false
     @State private var aiErrorMessage = ""
+    @State private var slashMenuSelectedIndex = 0
     @StateObject private var aiService = DeepseekAIService.shared
 
     var body: some View {
@@ -41,6 +42,46 @@ struct RichTextEditorWithSlashMenu: View {
                     onTextViewCreated: { tv in
                         tvCoordinator.textView = tv
                         tvCoordinator.coordinator = tv.delegate as? RichTextEditor.Coordinator
+                        // Set up keyboard navigation for slash menu
+                        if let plainPasteTV = tv as? PlainPasteTextView {
+                            plainPasteTV.slashMenuKeyHandler = { event in
+                                guard showSlashMenu else { return false }
+
+                                // Compute filtered commands to know the count
+                                let filteredCommands: [SlashCommand]
+                                if slashSearchText.isEmpty {
+                                    filteredCommands = Array(SlashCommand.allCases)
+                                } else {
+                                    filteredCommands = SlashCommand.allCases.filter { command in
+                                        command.title.localizedCaseInsensitiveContains(slashSearchText) ||
+                                        command.description.localizedCaseInsensitiveContains(slashSearchText)
+                                    }
+                                }
+
+                                switch Int(event.keyCode) {
+                                case 126: // Arrow Up
+                                    if slashMenuSelectedIndex > 0 {
+                                        slashMenuSelectedIndex -= 1
+                                    }
+                                    return true
+                                case 125: // Arrow Down
+                                    if slashMenuSelectedIndex < filteredCommands.count - 1 {
+                                        slashMenuSelectedIndex += 1
+                                    }
+                                    return true
+                                case 36: // Return/Enter
+                                    if slashMenuSelectedIndex < filteredCommands.count {
+                                        executeCommand(filteredCommands[slashMenuSelectedIndex])
+                                    }
+                                    return true
+                                case 53: // Escape
+                                    dismissSlashMenu()
+                                    return true
+                                default:
+                                    return false
+                                }
+                            }
+                        }
                         // Also notify parent if callback provided
                         onTextViewCreated?(tv)
                     },
@@ -82,7 +123,8 @@ struct RichTextEditorWithSlashMenu: View {
                     onCommandSelected: { command in
                         executeCommand(command)
                     },
-                    availableHeight: calculateAvailableMenuHeight()
+                    availableHeight: calculateAvailableMenuHeight(),
+                    selectedIndex: $slashMenuSelectedIndex
                 )
                 .offset(x: slashMenuPosition.x, y: calculateMenuYPosition())
                 .zIndex(1000)
@@ -370,7 +412,8 @@ struct RichTextEditorWithSlashMenu: View {
 
         let defaultAttributes: [NSAttributedString.Key: Any] = [
             .font: NSFont.systemFont(ofSize: 18),
-            .foregroundColor: NSColor(textColor)
+            .foregroundColor: NSColor(textColor),
+            .paragraphStyle: defaultParagraphStyle
         ]
 
         // If no text is selected, just set typing attributes for future text
