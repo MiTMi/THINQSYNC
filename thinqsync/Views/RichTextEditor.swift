@@ -313,23 +313,14 @@ class PlainPasteTextView: NSTextView {
             height: originalSize.height * scaleFactor
         )
 
-        // Create resized image using proper drawing method
+        // Create resized image using NSImage.draw which respects orientation metadata
         let resizedImage = NSImage(size: newSize)
         resizedImage.lockFocus()
-
-        // Flip the coordinate system to prevent upside-down images
-        let transform = NSAffineTransform()
-        transform.translateX(by: 0, yBy: newSize.height)
-        transform.scaleX(by: 1.0, yBy: -1.0)
-        transform.concat()
-
-        // Draw with flipped context
-        if let cgImage = image.cgImage(forProposedRect: nil, context: nil, hints: nil) {
-            let context = NSGraphicsContext.current?.cgContext
-            context?.interpolationQuality = .high
-            context?.draw(cgImage, in: CGRect(origin: .zero, size: newSize))
-        }
-
+        NSGraphicsContext.current?.imageInterpolation = .high
+        image.draw(in: NSRect(origin: .zero, size: newSize),
+                   from: NSRect(origin: .zero, size: originalSize),
+                   operation: .copy,
+                   fraction: 1.0)
         resizedImage.unlockFocus()
         return resizedImage
     }
@@ -730,9 +721,17 @@ struct RichTextEditor: NSViewRepresentable {
                     let previousChar = text[previousCharIndex]
 
                     if previousChar.isNewline {
-                        // Reset typing attributes to default
+                        let currentFont = textView.typingAttributes[.font] as? NSFont ?? NSFont.systemFont(ofSize: 18)
+                        // If coming from a heading (size > 18), reset fully to default.
+                        // Otherwise preserve the custom font family so /font choice sticks across lines.
+                        let fontForNextLine: NSFont
+                        if currentFont.pointSize > 18 {
+                            fontForNextLine = NSFont.systemFont(ofSize: 18)
+                        } else {
+                            fontForNextLine = currentFont
+                        }
                         textView.typingAttributes = [
-                            .font: NSFont.systemFont(ofSize: 18),
+                            .font: fontForNextLine,
                             .foregroundColor: NSColor(parent.textColor),
                             .paragraphStyle: defaultParagraphStyle
                         ]

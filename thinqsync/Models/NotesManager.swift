@@ -27,6 +27,9 @@ class NotesManager {
     private let foldersKey = "SavedFolders"
     private let cloudSync = CloudKitSyncManager.shared
     private var debouncedSaveTask: DispatchWorkItem?
+    // iCloud sync uses a much longer debounce (10s) to avoid blocking the UI
+    // during frequent note edits/scrolling.
+    private var debouncedSyncTask: DispatchWorkItem?
 
     // Cached filtered lists, invalidated when _allNotes changes
     private var _cachedNotes: [Note]?
@@ -221,6 +224,23 @@ class NotesManager {
         }
         debouncedSaveTask = task
         DispatchQueue.main.asyncAfter(deadline: .now() + 0.3, execute: task)
+
+        // Schedule iCloud sync on a separate long debounce (10s) so frequent
+        // edits don't trigger sync on every keystroke and block scrolling.
+        scheduleCloudSync()
+    }
+
+    private func scheduleCloudSync() {
+        guard iCloudEnabled else { return }
+        debouncedSyncTask?.cancel()
+        let task = DispatchWorkItem { [weak self] in
+            guard let self else { return }
+            Task { @MainActor in
+                await self.syncToiCloud()
+            }
+        }
+        debouncedSyncTask = task
+        DispatchQueue.main.asyncAfter(deadline: .now() + 10.0, execute: task)
     }
 
     private func saveNotesImmediately() {
@@ -229,14 +249,17 @@ class NotesManager {
     }
 
     private func performSave() {
-        if let encoded = try? JSONEncoder().encode(_allNotes) {
-            UserDefaults.standard.set(encoded, forKey: saveKey)
-        }
+        // Capture the notes array for background encoding
+        let notesToSave = _allNotes
+        let key = saveKey
 
-        // Auto-sync to iCloud after saving locally
-        if iCloudEnabled {
-            Task {
-                await syncToiCloud()
+        // Move heavy JSON encoding off the main thread to avoid blocking scrolling/UI
+        Task.detached(priority: .utility) {
+            let encoded = try? JSONEncoder().encode(notesToSave)
+            await MainActor.run {
+                if let encoded {
+                    UserDefaults.standard.set(encoded, forKey: key)
+                }
             }
         }
     }

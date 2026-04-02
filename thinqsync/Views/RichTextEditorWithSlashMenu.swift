@@ -33,6 +33,7 @@ struct RichTextEditorWithSlashMenu: View {
     @State private var showAIError = false
     @State private var aiErrorMessage = ""
     @State private var slashMenuSelectedIndex = 0
+    @State private var fontPickerPanel = FontPickerPanel()
     @StateObject private var aiService = AIService.shared
 
     var body: some View {
@@ -234,6 +235,24 @@ struct RichTextEditorWithSlashMenu: View {
             applyUnderline(textView: textView)
         case .strikethrough:
             applyStrikethrough(textView: textView)
+        case .font:
+            // Show font picker as a floating panel (avoids clipping by note bounds)
+            coordinator.finishSlashCommand()
+            showSlashMenu = false
+            if let lm = textView.layoutManager, let tc = textView.textContainer {
+                let cursorRange = textView.selectedRange()
+                let glyphRect = lm.boundingRect(forGlyphRange: NSRange(location: cursorRange.location, length: 0), in: tc)
+                fontPickerPanel.show(relativeTo: textView, cursorLocation: NSPoint(x: glyphRect.origin.x, y: glyphRect.maxY)) { [weak textViewRef] fontOption in
+                    self.applyFont(fontOption)
+                    DispatchQueue.main.async {
+                        textViewRef?.isFormatting = false
+                    }
+                }
+            }
+            DispatchQueue.main.async { [weak textViewRef] in
+                textViewRef?.isFormatting = false
+            }
+            return
         case .bulletList:
             insertText("• ", textView: textView)
         case .numberList:
@@ -435,6 +454,81 @@ struct RichTextEditorWithSlashMenu: View {
         textView.typingAttributes = defaultAttributes
 
         logger.debug("Cleared formatting on selected text")
+    }
+
+    // MARK: - Font Application
+
+    private func applyFont(_ fontOption: FontOption) {
+        guard let textView = tvCoordinator.textView,
+              let textStorage = textView.textStorage else { return }
+
+        textView.window?.makeFirstResponder(textView)
+        let selectedRange = textView.selectedRange()
+
+        // If no text is selected, set typing attributes for future text
+        if selectedRange.length == 0 {
+            if let currentFont = textView.typingAttributes[.font] as? NSFont {
+                let newFont: NSFont
+                if fontOption.fontName == ".AppleSystemUIFont" {
+                    newFont = NSFont.systemFont(ofSize: currentFont.pointSize)
+                } else {
+                    newFont = NSFont(name: fontOption.fontName, size: currentFont.pointSize)
+                        ?? NSFont.systemFont(ofSize: currentFont.pointSize)
+                }
+                // Preserve bold/italic traits
+                let traits = currentFont.fontDescriptor.symbolicTraits
+                var convertedFont = newFont
+                if traits.contains(.bold) {
+                    convertedFont = NSFontManager.shared.convert(convertedFont, toHaveTrait: .boldFontMask)
+                }
+                if traits.contains(.italic) {
+                    convertedFont = NSFontManager.shared.convert(convertedFont, toHaveTrait: .italicFontMask)
+                }
+                textView.typingAttributes[.font] = convertedFont
+            }
+            return
+        }
+
+        // Apply to selected text, preserving size and traits
+        textStorage.beginEditing()
+        textStorage.enumerateAttribute(.font, in: selectedRange) { value, range, _ in
+            let existingFont = value as? NSFont ?? NSFont.systemFont(ofSize: 18)
+            let size = existingFont.pointSize
+            let traits = existingFont.fontDescriptor.symbolicTraits
+
+            let baseFont: NSFont
+            if fontOption.fontName == ".AppleSystemUIFont" {
+                baseFont = NSFont.systemFont(ofSize: size)
+            } else {
+                baseFont = NSFont(name: fontOption.fontName, size: size)
+                    ?? NSFont.systemFont(ofSize: size)
+            }
+
+            var convertedFont = baseFont
+            if traits.contains(.bold) {
+                convertedFont = NSFontManager.shared.convert(convertedFont, toHaveTrait: .boldFontMask)
+            }
+            if traits.contains(.italic) {
+                convertedFont = NSFontManager.shared.convert(convertedFont, toHaveTrait: .italicFontMask)
+            }
+
+            textStorage.addAttribute(.font, value: convertedFont, range: range)
+        }
+        textStorage.endEditing()
+
+        // Update typing attributes too
+        if let currentFont = textView.typingAttributes[.font] as? NSFont {
+            let newFont: NSFont
+            if fontOption.fontName == ".AppleSystemUIFont" {
+                newFont = NSFont.systemFont(ofSize: currentFont.pointSize)
+            } else {
+                newFont = NSFont(name: fontOption.fontName, size: currentFont.pointSize)
+                    ?? NSFont.systemFont(ofSize: currentFont.pointSize)
+            }
+            textView.typingAttributes[.font] = newFont
+        }
+
+        onTextChange(textView.attributedString())
     }
 
     // MARK: - AI Commands

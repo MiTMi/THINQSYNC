@@ -33,6 +33,7 @@ struct NoteWindow: View {
     @State private var windowConfigured = false
     @State private var expandedWindowFrame: CGRect?  // Store frame before collapse
     @State private var frameSaveTask: DispatchWorkItem?
+    @State private var isAnimatingCollapse = false
     @AppStorage("AlwaysOnTop") private var alwaysOnTop = false
     @AppStorage("ShowOnAllWorkspaces") private var showOnAllWorkspaces = false
 
@@ -114,17 +115,25 @@ struct NoteWindow: View {
     private func toggleCollapse() {
         guard let window = NSApp.keyWindow else { return }
 
+        // Suppress frame-save notifications during the animation to avoid
+        // redundant saves that block scrolling after expand/collapse.
+        isAnimatingCollapse = true
+
         if note.isCollapsed {
             // Expand: restore to previous frame
             note.isCollapsed = false
             notesManager.updateNote(note)
 
             if let savedFrame = expandedWindowFrame {
-                NSAnimationContext.runAnimationGroup { context in
+                NSAnimationContext.runAnimationGroup({ context in
                     context.duration = 0.3
                     context.timingFunction = CAMediaTimingFunction(name: .easeInEaseOut)
                     window.animator().setFrame(savedFrame, display: true)
-                }
+                }, completionHandler: {
+                    self.isAnimatingCollapse = false
+                })
+            } else {
+                isAnimatingCollapse = false
             }
         } else {
             // Collapse: save current frame and shrink to title bar height
@@ -140,11 +149,13 @@ struct NoteWindow: View {
                 height: collapsedHeight
             )
 
-            NSAnimationContext.runAnimationGroup { context in
+            NSAnimationContext.runAnimationGroup({ context in
                 context.duration = 0.3
                 context.timingFunction = CAMediaTimingFunction(name: .easeInEaseOut)
                 window.animator().setFrame(newFrame, display: true)
-            }
+            }, completionHandler: {
+                self.isAnimatingCollapse = false
+            })
         }
     }
 
@@ -162,7 +173,7 @@ struct NoteWindow: View {
         } else {
             // Default window size
             let currentOrigin = window.frame.origin
-            let newFrame = NSRect(x: currentOrigin.x, y: currentOrigin.y, width: 530, height: 330)
+            let newFrame = NSRect(x: currentOrigin.x, y: currentOrigin.y, width: 580, height: 330)
             window.setFrame(newFrame, display: true)
         }
 
@@ -193,6 +204,11 @@ struct NoteWindow: View {
         let debouncedFrameSave = { [weak window] in
             guard let window = window else { return }
             Task { @MainActor in
+                // Skip frame saves during collapse/expand animation — the toggle
+                // already calls updateNote, so these would be redundant and cause
+                // extra JSON encoding that blocks scrolling.
+                guard !self.isAnimatingCollapse else { return }
+
                 self.frameSaveTask?.cancel()
                 let task = DispatchWorkItem { [weak window] in
                     guard let window = window else { return }
@@ -358,6 +374,12 @@ struct CustomTitleBar: View {
                 .padding(.leading, 12)
                 .accessibilityLabel("Note title")
                 .accessibilityValue(note.title.isEmpty ? "Untitled" : note.title)
+                .onSubmit {
+                    // Move focus to note body when Enter is pressed in the title
+                    if let textView = textViewRef.textView {
+                        textView.window?.makeFirstResponder(textView)
+                    }
+                }
 
             // iCloud sync indicator
             if notesManager.iCloudEnabled {

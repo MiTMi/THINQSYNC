@@ -16,6 +16,7 @@ enum SlashCommand: Identifiable, CaseIterable {
     case italic
     case underline
     case strikethrough
+    case font
     case bulletList
     case numberList
     case divider
@@ -36,6 +37,7 @@ enum SlashCommand: Identifiable, CaseIterable {
         case .italic: return "Italic"
         case .underline: return "Underline"
         case .strikethrough: return "Strikethrough"
+        case .font: return "Font"
         case .bulletList: return "Bullet List"
         case .numberList: return "Numbered List"
         case .divider: return "Divider"
@@ -56,6 +58,7 @@ enum SlashCommand: Identifiable, CaseIterable {
         case .italic: return "italic"
         case .underline: return "underline"
         case .strikethrough: return "strikethrough"
+        case .font: return "textformat"
         case .bulletList: return "list.bullet"
         case .numberList: return "list.number"
         case .divider: return "minus.rectangle"
@@ -76,6 +79,7 @@ enum SlashCommand: Identifiable, CaseIterable {
         case .italic: return "Make text italic"
         case .underline: return "Underline text"
         case .strikethrough: return "Strikethrough text"
+        case .font: return "Change font style"
         case .bulletList: return "Create a bulleted list"
         case .numberList: return "Create a numbered list"
         case .divider: return "Insert a horizontal line"

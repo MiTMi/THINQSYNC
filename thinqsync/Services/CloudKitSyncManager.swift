@@ -11,7 +11,8 @@ import os
 
 private let logger = Logger(subsystem: "com.MIT.thinqsync", category: "CloudKit")
 
-@MainActor
+// Not @MainActor — CloudKit network operations and CKRecord creation don't
+// touch any AppKit/UI code, so they can safely run on a background executor.
 class CloudKitSyncManager {
     static let shared = CloudKitSyncManager()
 
