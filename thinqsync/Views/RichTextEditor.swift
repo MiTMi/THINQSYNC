@@ -51,25 +51,27 @@ class ResizableImageAttachmentCell: NSTextAttachmentCell {
         }
 
         // Draw the image scaled to fit the cell frame
-        image.draw(in: cellFrame, from: NSRect(origin: .zero, size: image.size), operation: .sourceOver, fraction: 1.0)
+        // respectFlipped: true ensures correct orientation in both screen and print contexts
+        image.draw(in: cellFrame, from: NSRect(origin: .zero, size: image.size), operation: .sourceOver, fraction: 1.0, respectFlipped: true, hints: nil)
 
-        // Draw resize handle in bottom-right corner
-        let handleSize: CGFloat = 12
-        let handleRect = NSRect(
-            x: cellFrame.maxX - handleSize - 2,
-            y: cellFrame.minY + 2,
-            width: handleSize,
-            height: handleSize
-        )
+        // Only draw resize handle on screen, not when printing
+        if NSPrintOperation.current == nil {
+            let handleSize: CGFloat = 12
+            let handleRect = NSRect(
+                x: cellFrame.maxX - handleSize - 2,
+                y: cellFrame.minY + 2,
+                width: handleSize,
+                height: handleSize
+            )
 
-        // Draw a subtle resize indicator
-        NSColor.gray.withAlphaComponent(0.6).setFill()
-        let path = NSBezierPath()
-        path.move(to: NSPoint(x: handleRect.maxX, y: handleRect.minY))
-        path.line(to: NSPoint(x: handleRect.maxX, y: handleRect.maxY))
-        path.line(to: NSPoint(x: handleRect.minX, y: handleRect.maxY))
-        path.close()
-        path.fill()
+            NSColor.gray.withAlphaComponent(0.6).setFill()
+            let path = NSBezierPath()
+            path.move(to: NSPoint(x: handleRect.maxX, y: handleRect.minY))
+            path.line(to: NSPoint(x: handleRect.maxX, y: handleRect.maxY))
+            path.line(to: NSPoint(x: handleRect.minX, y: handleRect.maxY))
+            path.close()
+            path.fill()
+        }
     }
 
     func isInResizeHandle(point: NSPoint, cellFrame: NSRect) -> Bool {
