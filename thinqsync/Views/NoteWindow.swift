@@ -1123,61 +1123,36 @@ struct CustomTitleBar: View {
         panel.allowedContentTypes = [.pdf]
         panel.begin { response in
             if response == .OK, let url = panel.url {
-                // Create a text view for rendering
-                let printView = NSTextView(frame: NSRect(x: 0, y: 0, width: 468, height: 648))
-                printView.textStorage?.setAttributedString(note.attributedContent)
-                printView.sizeToFit()
+                // Create an offscreen text view with the full content
+                let contentWidth: CGFloat = 468 // US Letter minus margins
+                let textView = NSTextView(frame: NSRect(x: 0, y: 0, width: contentWidth, height: 0))
+                textView.isVerticallyResizable = true
+                textView.isHorizontallyResizable = false
+                textView.textContainer?.containerSize = NSSize(width: contentWidth, height: .greatestFiniteMagnitude)
+                textView.textContainer?.widthTracksTextView = true
+                textView.textStorage?.setAttributedString(note.attributedContent)
 
-                // Use the text view's frame for the PDF page
-                let pageRect = NSRect(x: 0, y: 0, width: 612, height: 792) // US Letter
-                let printableRect = pageRect.insetBy(dx: 72, dy: 72) // 1-inch margins
+                // Force full layout so the view expands to fit all content
+                textView.layoutManager?.ensureLayout(for: textView.textContainer!)
+                let fullHeight = textView.layoutManager?.usedRect(for: textView.textContainer!).height ?? 100
+                textView.frame = NSRect(x: 0, y: 0, width: contentWidth, height: fullHeight)
 
-                let pdfData = NSMutableData()
-                let consumer = CGDataConsumer(data: pdfData as CFMutableData)!
-                var mediaBox = pageRect
-                guard let context = CGContext(consumer: consumer, mediaBox: &mediaBox, nil) else { return }
+                // Use NSPrintOperation to generate paginated PDF with correct image rendering
+                let printInfo = NSPrintInfo()
+                printInfo.paperSize = NSSize(width: 612, height: 792) // US Letter
+                printInfo.topMargin = 72
+                printInfo.bottomMargin = 72
+                printInfo.leftMargin = 72
+                printInfo.rightMargin = 72
+                printInfo.horizontalPagination = .fit
+                printInfo.verticalPagination = .automatic
+                printInfo.jobDisposition = .save
+                printInfo.dictionary()[NSPrintInfo.AttributeKey.jobSavingURL] = url
 
-                // Render text into PDF pages
-                let textStorage = NSTextStorage(attributedString: note.attributedContent)
-                let layoutManager = NSLayoutManager()
-                textStorage.addLayoutManager(layoutManager)
-
-                let textContainer = NSTextContainer(size: printableRect.size)
-                textContainer.lineFragmentPadding = 0
-                layoutManager.addTextContainer(textContainer)
-
-                // Force layout
-                layoutManager.ensureLayout(for: textContainer)
-                let textHeight = layoutManager.usedRect(for: textContainer).height
-
-                // Calculate number of pages needed
-                let pageContentHeight = printableRect.height
-                let totalPages = max(1, Int(ceil(textHeight / pageContentHeight)))
-
-                for page in 0..<totalPages {
-                    context.beginPDFPage(nil)
-
-                    let origin = NSPoint(x: printableRect.origin.x, y: pageRect.height - printableRect.origin.y)
-                    let glyphRange = layoutManager.glyphRange(for: textContainer)
-
-                    NSGraphicsContext.saveGraphicsState()
-                    let nsContext = NSGraphicsContext(cgContext: context, flipped: true)
-                    NSGraphicsContext.current = nsContext
-
-                    // Translate to account for page offset and margins
-                    context.translateBy(x: printableRect.origin.x, y: pageRect.height - printableRect.origin.y)
-                    context.scaleBy(x: 1.0, y: -1.0)
-                    context.translateBy(x: 0, y: CGFloat(page) * -pageContentHeight)
-
-                    layoutManager.drawBackground(forGlyphRange: glyphRange, at: .zero)
-                    layoutManager.drawGlyphs(forGlyphRange: glyphRange, at: .zero)
-
-                    NSGraphicsContext.restoreGraphicsState()
-                    context.endPDFPage()
-                }
-
-                context.closePDF()
-                pdfData.write(to: url, atomically: true)
+                let printOp = NSPrintOperation(view: textView, printInfo: printInfo)
+                printOp.showsPrintPanel = false
+                printOp.showsProgressPanel = false
+                printOp.run()
             }
         }
     }
