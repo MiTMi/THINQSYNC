@@ -30,7 +30,7 @@ struct RichTextEditorWithSlashMenu: View {
     @State private var showAIError = false
     @State private var aiErrorMessage = ""
     @State private var slashMenuSelectedIndex = 0
-    @StateObject private var aiService = DeepseekAIService.shared
+    @StateObject private var aiService = AIService.shared
 
     var body: some View {
         ZStack(alignment: .topLeading) {
@@ -436,7 +436,7 @@ struct RichTextEditorWithSlashMenu: View {
 
     // MARK: - AI Commands
 
-    private func executeAICommand(_ operation: DeepseekAIService.AIOperation, textView: NSTextView) {
+    private func executeAICommand(_ operation: AIService.AIOperation, textView: NSTextView) {
         guard let coordinator = tvCoordinator.coordinator else {
             print("❌ No coordinator")
             return

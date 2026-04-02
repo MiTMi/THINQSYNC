@@ -268,7 +268,7 @@ struct CustomTitleBar: View {
     @State private var showingMoreMenu = false
     @State private var showingNewFolderAlert = false
     @State private var newFolderName = ""
-    @StateObject private var aiService = DeepseekAIService.shared
+    @StateObject private var aiService = AIService.shared
     @AppStorage("AlwaysOnTop") private var alwaysOnTop = false
     @AppStorage("ShowOnAllWorkspaces") private var showOnAllWorkspaces = false
 
@@ -1081,7 +1081,7 @@ struct CustomTitleBar: View {
         print("Print note")
     }
 
-    private func executeAICommand(_ operation: DeepseekAIService.AIOperation) {
+    private func executeAICommand(_ operation: AIService.AIOperation) {
         guard let textView = textViewRef.textView else {
             print("TextView is nil in executeAICommand")
             return

@@ -1,5 +1,5 @@
 //
-//  DeepseekAIService.swift
+//  AIService.swift
 //  thinqsync
 //
 //  Created by Claude on 04/11/2025.
@@ -9,8 +9,8 @@ import Foundation
 import Combine
 
 @MainActor
-class DeepseekAIService: ObservableObject {
-    static let shared = DeepseekAIService()
+class AIService: ObservableObject {
+    static let shared = AIService()
 
     private let apiEndpoint = "https://openrouter.ai/api/v1/chat/completions"
     private let keychainKey = "DeepseekAPIKey"
@@ -23,11 +23,12 @@ class DeepseekAIService: ObservableObject {
     // Check openrouter.ai/models for current list
     // NOTE: :free models may be rate-limited, paid models are more reliable
     static let availableModels = [
-        "deepseek/deepseek-chat",           // Most stable (RECOMMENDED)
-        "deepseek/deepseek-r1",             // Latest R1 (requires credits)
-        "deepseek/deepseek-coder",          // For code (requires credits)
-        "deepseek/deepseek-r1:free",        // Free but often rate-limited
-        "deepseek/deepseek-chat:free"       // Free but often rate-limited
+        "stepfun/step-3.5-flash:free",      // StepFun 3.5 Flash (free - RECOMMENDED)
+        "deepseek/deepseek-chat",           // Deepseek Chat (requires credits)
+        "deepseek/deepseek-r1",             // Deepseek R1 (requires credits)
+        "deepseek/deepseek-coder",          // Deepseek Coder (requires credits)
+        "deepseek/deepseek-r1:free",        // Deepseek R1 free (rate-limited)
+        "deepseek/deepseek-chat:free"       // Deepseek Chat free (rate-limited)
     ]
 
     private init() {
@@ -38,7 +39,7 @@ class DeepseekAIService: ObservableObject {
 
     var selectedModel: String {
         get {
-            UserDefaults.standard.string(forKey: modelUserDefaultsKey) ?? "deepseek/deepseek-chat"
+            UserDefaults.standard.string(forKey: modelUserDefaultsKey) ?? "stepfun/step-3.5-flash:free"
         }
         set {
             UserDefaults.standard.set(newValue, forKey: modelUserDefaultsKey)

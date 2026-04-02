@@ -8,7 +8,7 @@
 import SwiftUI
 
 struct AISettingsView: View {
-    @StateObject private var aiService = DeepseekAIService.shared
+    @StateObject private var aiService = AIService.shared
     @State private var apiKeyInput: String = ""
     @State private var selectedModel: String = ""
     @State private var showingSaved = false
@@ -34,7 +34,7 @@ struct AISettingsView: View {
                 Text("OpenRouter API Key")
                     .font(.headline)
 
-                Text("Enter your OpenRouter API key to enable AI features. Using Deepseek models.")
+                Text("Enter your OpenRouter API key to enable AI features.")
                     .font(.caption)
                     .foregroundColor(.secondary)
 
@@ -66,7 +66,7 @@ struct AISettingsView: View {
                     .padding(.top, 8)
 
                 Picker("Select Model", selection: $selectedModel) {
-                    ForEach(DeepseekAIService.availableModels, id: \.self) { model in
+                    ForEach(AIService.availableModels, id: \.self) { model in
                         Text(model)
                             .font(.system(size: 11, design: .monospaced))
                             .tag(model)
@@ -94,7 +94,7 @@ struct AISettingsView: View {
                     if aiService.isConfigured {
                         Button("Clear") {
                             apiKeyInput = ""
-                            selectedModel = DeepseekAIService.availableModels[0]
+                            selectedModel = AIService.availableModels[0]
                             aiService.clearAPIKey()
                         }
                         .buttonStyle(.bordered)
