@@ -806,7 +806,29 @@ struct CustomTitleBar: View {
                             exportAsText()
                             showingMoreMenu = false
                         }) {
-                            Label("Export as Text", systemImage: "square.and.arrow.up")
+                            Label("Export as Text", systemImage: "doc.plaintext")
+                                .frame(maxWidth: .infinity, alignment: .leading)
+                                .padding(.horizontal, 12)
+                                .padding(.vertical, 8)
+                        }
+                        .buttonStyle(.plain)
+
+                        Button(action: {
+                            exportAsPDF()
+                            showingMoreMenu = false
+                        }) {
+                            Label("Export as PDF", systemImage: "doc.richtext")
+                                .frame(maxWidth: .infinity, alignment: .leading)
+                                .padding(.horizontal, 12)
+                                .padding(.vertical, 8)
+                        }
+                        .buttonStyle(.plain)
+
+                        Button(action: {
+                            exportAsMarkdown()
+                            showingMoreMenu = false
+                        }) {
+                            Label("Export as Markdown", systemImage: "doc.text")
                                 .frame(maxWidth: .infinity, alignment: .leading)
                                 .padding(.horizontal, 12)
                                 .padding(.vertical, 8)
@@ -1090,6 +1112,121 @@ struct CustomTitleBar: View {
         panel.begin { response in
             if response == .OK, let url = panel.url {
                 try? note.content.write(to: url, atomically: true, encoding: .utf8)
+            }
+        }
+    }
+
+    private func exportAsPDF() {
+        let panel = NSSavePanel()
+        let sanitizedTitle = note.title.isEmpty ? "Untitled" : note.title.replacingOccurrences(of: "/", with: "-")
+        panel.nameFieldStringValue = "\(sanitizedTitle).pdf"
+        panel.allowedContentTypes = [.pdf]
+        panel.begin { response in
+            if response == .OK, let url = panel.url {
+                // Create a text view for rendering
+                let printView = NSTextView(frame: NSRect(x: 0, y: 0, width: 468, height: 648))
+                printView.textStorage?.setAttributedString(note.attributedContent)
+                printView.sizeToFit()
+
+                // Use the text view's frame for the PDF page
+                let pageRect = NSRect(x: 0, y: 0, width: 612, height: 792) // US Letter
+                let printableRect = pageRect.insetBy(dx: 72, dy: 72) // 1-inch margins
+
+                let pdfData = NSMutableData()
+                let consumer = CGDataConsumer(data: pdfData as CFMutableData)!
+                var mediaBox = pageRect
+                guard let context = CGContext(consumer: consumer, mediaBox: &mediaBox, nil) else { return }
+
+                // Render text into PDF pages
+                let textStorage = NSTextStorage(attributedString: note.attributedContent)
+                let layoutManager = NSLayoutManager()
+                textStorage.addLayoutManager(layoutManager)
+
+                let textContainer = NSTextContainer(size: printableRect.size)
+                textContainer.lineFragmentPadding = 0
+                layoutManager.addTextContainer(textContainer)
+
+                // Force layout
+                layoutManager.ensureLayout(for: textContainer)
+                let textHeight = layoutManager.usedRect(for: textContainer).height
+
+                // Calculate number of pages needed
+                let pageContentHeight = printableRect.height
+                let totalPages = max(1, Int(ceil(textHeight / pageContentHeight)))
+
+                for page in 0..<totalPages {
+                    context.beginPDFPage(nil)
+
+                    let origin = NSPoint(x: printableRect.origin.x, y: pageRect.height - printableRect.origin.y)
+                    let glyphRange = layoutManager.glyphRange(for: textContainer)
+
+                    NSGraphicsContext.saveGraphicsState()
+                    let nsContext = NSGraphicsContext(cgContext: context, flipped: true)
+                    NSGraphicsContext.current = nsContext
+
+                    // Translate to account for page offset and margins
+                    context.translateBy(x: printableRect.origin.x, y: pageRect.height - printableRect.origin.y)
+                    context.scaleBy(x: 1.0, y: -1.0)
+                    context.translateBy(x: 0, y: CGFloat(page) * -pageContentHeight)
+
+                    layoutManager.drawBackground(forGlyphRange: glyphRange, at: .zero)
+                    layoutManager.drawGlyphs(forGlyphRange: glyphRange, at: .zero)
+
+                    NSGraphicsContext.restoreGraphicsState()
+                    context.endPDFPage()
+                }
+
+                context.closePDF()
+                pdfData.write(to: url, atomically: true)
+            }
+        }
+    }
+
+    private func exportAsMarkdown() {
+        let panel = NSSavePanel()
+        let sanitizedTitle = note.title.isEmpty ? "Untitled" : note.title.replacingOccurrences(of: "/", with: "-")
+        panel.nameFieldStringValue = "\(sanitizedTitle).md"
+        panel.allowedContentTypes = [UTType(filenameExtension: "md") ?? .plainText]
+        panel.begin { response in
+            if response == .OK, let url = panel.url {
+                let attrStr = note.attributedContent
+                var markdown = ""
+
+                // Add title as heading
+                if !note.title.isEmpty {
+                    markdown += "# \(note.title)\n\n"
+                }
+
+                // Convert attributed string to markdown
+                attrStr.enumerateAttributes(in: NSRange(location: 0, length: attrStr.length)) { attrs, range, _ in
+                    var text = (attrStr.string as NSString).substring(with: range)
+
+                    // Check for bold
+                    if let font = attrs[.font] as? NSFont {
+                        let isBold = font.fontDescriptor.symbolicTraits.contains(.bold)
+                        let isItalic = font.fontDescriptor.symbolicTraits.contains(.italic)
+                        let size = font.pointSize
+
+                        // Headings based on font size
+                        if isBold && size >= 24 {
+                            text = "## \(text)"
+                        } else if isBold && size >= 20 {
+                            text = "### \(text)"
+                        } else {
+                            if isBold { text = "**\(text)**" }
+                            if isItalic { text = "*\(text)*" }
+                        }
+                    }
+
+                    // Check for strikethrough
+                    if let strikethrough = attrs[.strikethroughStyle] as? Int, strikethrough != 0 {
+                        text = "~~\(text)~~"
+                    }
+
+                    markdown += text
+                }
+
+                try? markdown.write(to: url, atomically: true, encoding: .utf8)
             }
         }
     }
