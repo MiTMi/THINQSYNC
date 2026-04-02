@@ -8,6 +8,9 @@
 import Foundation
 import SwiftUI
 import Observation
+import os
+
+private let logger = Logger(subsystem: "com.MIT.thinqsync", category: "NotesManager")
 
 @MainActor
 @Observable
@@ -297,7 +300,7 @@ class NotesManager {
                 await syncFromiCloud()
             }
         } catch {
-            print("iCloud check failed: \(error)")
+            logger.error("iCloud check failed: \(error.localizedDescription, privacy: .public)")
             iCloudEnabled = false
         }
     }
@@ -308,9 +311,9 @@ class NotesManager {
 
         do {
             try await cloudSync.syncNotes(notes)
-            print("Synced \(notes.count) notes to iCloud")
+            logger.info("Synced \(self.notes.count) notes to iCloud")
         } catch {
-            print("Sync to iCloud failed: \(error)")
+            logger.error("Sync to iCloud failed: \(error.localizedDescription, privacy: .public)")
         }
 
         isSyncing = false
@@ -323,15 +326,43 @@ class NotesManager {
         do {
             let cloudNotes = try await cloudSync.fetchAllNotes()
             if !cloudNotes.isEmpty {
-                _allNotes = cloudNotes
+                // Merge cloud notes with local notes instead of overwriting
+                let localByID = Dictionary(uniqueKeysWithValues: _allNotes.map { ($0.id, $0) })
+                let cloudByID = Dictionary(uniqueKeysWithValues: cloudNotes.map { ($0.id, $0) })
+
+                var merged: [Note] = []
+
+                // All known IDs from both sources
+                let allIDs = Set(localByID.keys).union(cloudByID.keys)
+
+                for id in allIDs {
+                    let local = localByID[id]
+                    let cloud = cloudByID[id]
+
+                    switch (local, cloud) {
+                    case let (.some(l), .some(c)):
+                        // Both exist — keep the one with the newer modifiedAt
+                        merged.append(l.modifiedAt >= c.modifiedAt ? l : c)
+                    case let (.some(l), .none):
+                        // Local only — keep it (will sync up on next save)
+                        merged.append(l)
+                    case let (.none, .some(c)):
+                        // Cloud only — add it
+                        merged.append(c)
+                    case (.none, .none):
+                        break
+                    }
+                }
+
+                _allNotes = merged
                 // Save to local storage (without triggering another iCloud sync)
                 if let encoded = try? JSONEncoder().encode(_allNotes) {
                     UserDefaults.standard.set(encoded, forKey: saveKey)
                 }
-                print("Loaded \(cloudNotes.count) notes from iCloud")
+                logger.info("Merged \(cloudNotes.count) cloud notes with \(localByID.count) local notes, \(merged.count) total")
             }
         } catch {
-            print("Sync from iCloud failed: \(error)")
+            logger.error("Sync from iCloud failed: \(error.localizedDescription, privacy: .public)")
         }
 
         isSyncing = false

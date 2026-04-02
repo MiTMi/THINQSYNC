@@ -7,6 +7,9 @@
 
 import SwiftUI
 import AppKit
+import os
+
+private let logger = Logger(subsystem: "com.MIT.thinqsync", category: "RichTextEditor")
 
 // MARK: - Resizable Image Attachment Cell
 
@@ -246,13 +249,13 @@ class PlainPasteTextView: NSTextView {
 
         // Compress the image to PNG (better for RTFD serialization)
         guard let imageData = compressImageToPNG(resizedImage) else {
-            print("Failed to compress image")
+            logger.error("Failed to compress image")
             return
         }
 
         // Create final image from compressed data
         guard let finalImage = NSImage(data: imageData) else {
-            print("Failed to create image from compressed data")
+            logger.error("Failed to create image from compressed data")
             return
         }
 
@@ -415,7 +418,7 @@ class PlainPasteTextView: NSTextView {
                         // Update our reference
                         resizingCell = newCell
 
-                        print("✅ Resized image saved: \(displaySize.width)x\(displaySize.height), data: \(pngData.count) bytes")
+                        logger.debug("Resized image saved: \(displaySize.width)x\(displaySize.height), data: \(pngData.count) bytes")
                     }
                 }
             }

@@ -7,6 +7,10 @@
 
 import SwiftUI
 import Combine
+import UniformTypeIdentifiers
+import os
+
+private let logger = Logger(subsystem: "com.MIT.thinqsync", category: "NoteWindow")
 
 // Reference holder that doesn't trigger view updates
 @MainActor
@@ -268,6 +272,8 @@ struct CustomTitleBar: View {
     @State private var showingMoreMenu = false
     @State private var showingNewFolderAlert = false
     @State private var newFolderName = ""
+    @State private var showAIError = false
+    @State private var aiErrorMessage = ""
     @StateObject private var aiService = AIService.shared
     @AppStorage("AlwaysOnTop") private var alwaysOnTop = false
     @AppStorage("ShowOnAllWorkspaces") private var showOnAllWorkspaces = false
@@ -892,13 +898,18 @@ struct CustomTitleBar: View {
         } message: {
             Text("Enter a name for the new folder")
         }
+        .alert("AI Error", isPresented: $showAIError) {
+            Button("OK", role: .cancel) {}
+        } message: {
+            Text(aiErrorMessage)
+        }
     }
 
     // Text formatting functions
     private func toggleBold() {
         guard let textView = textViewRef.textView,
               let textStorage = textView.textStorage else {
-            print("TextView is nil in toggleBold")
+            logger.error("TextView is nil in toggleBold")
             return
         }
 
@@ -932,7 +943,7 @@ struct CustomTitleBar: View {
     private func toggleItalic() {
         guard let textView = textViewRef.textView,
               let textStorage = textView.textStorage else {
-            print("TextView is nil in toggleItalic")
+            logger.error("TextView is nil in toggleItalic")
             return
         }
 
@@ -964,7 +975,7 @@ struct CustomTitleBar: View {
     private func toggleUnderline() {
         guard let textView = textViewRef.textView,
               let textStorage = textView.textStorage else {
-            print("TextView is nil in toggleUnderline")
+            logger.error("TextView is nil in toggleUnderline")
             return
         }
 
@@ -993,7 +1004,7 @@ struct CustomTitleBar: View {
     private func toggleStrikethrough() {
         guard let textView = textViewRef.textView,
               let textStorage = textView.textStorage else {
-            print("TextView is nil in toggleStrikethrough")
+            logger.error("TextView is nil in toggleStrikethrough")
             return
         }
 
@@ -1022,7 +1033,7 @@ struct CustomTitleBar: View {
     private func setFontSize(_ size: CGFloat) {
         guard let textView = textViewRef.textView,
               let textStorage = textView.textStorage else {
-            print("TextView is nil in setFontSize")
+            logger.error("TextView is nil in setFontSize")
             return
         }
 
@@ -1053,7 +1064,7 @@ struct CustomTitleBar: View {
 
     private func setAlignment(_ alignment: NSTextAlignment) {
         guard let textView = textViewRef.textView else {
-            print("TextView is nil in setAlignment")
+            logger.error("TextView is nil in setAlignment")
             return
         }
 
@@ -1072,18 +1083,29 @@ struct CustomTitleBar: View {
 
     // Additional actions
     private func exportAsText() {
-        // TODO: Implement export functionality
-        print("Export as text")
+        let panel = NSSavePanel()
+        let sanitizedTitle = note.title.isEmpty ? "Untitled" : note.title.replacingOccurrences(of: "/", with: "-")
+        panel.nameFieldStringValue = "\(sanitizedTitle).txt"
+        panel.allowedContentTypes = [.plainText]
+        panel.begin { response in
+            if response == .OK, let url = panel.url {
+                try? note.content.write(to: url, atomically: true, encoding: .utf8)
+            }
+        }
     }
 
     private func printNote() {
-        // TODO: Implement print functionality
-        print("Print note")
+        let printView = NSTextView(frame: NSRect(x: 0, y: 0, width: 468, height: 648))
+        printView.textStorage?.setAttributedString(note.attributedContent)
+        let printOperation = NSPrintOperation(view: printView)
+        printOperation.printInfo.isHorizontallyCentered = true
+        printOperation.printInfo.isVerticallyCentered = false
+        printOperation.run()
     }
 
     private func executeAICommand(_ operation: AIService.AIOperation) {
         guard let textView = textViewRef.textView else {
-            print("TextView is nil in executeAICommand")
+            logger.error("TextView is nil in executeAICommand")
             return
         }
 
@@ -1121,20 +1143,28 @@ struct CustomTitleBar: View {
                 // Clear formatting flag after successful AI result
                 textViewRef.isFormatting = false
             } catch {
-                // Show error to user
-                print("AI Error: \(error.localizedDescription)")
-
                 // Clear formatting flag even on error
                 textViewRef.isFormatting = false
 
-                // TODO: Show error alert to user
+                // Show error alert to user
+                aiErrorMessage = error.localizedDescription
+                showAIError = true
             }
         }
     }
 
     private func duplicateNote() {
-        // TODO: Implement duplicate functionality
-        print("Duplicate note")
+        let newNote = notesManager.createNote(
+            title: note.title + " (Copy)",
+            color: note.color,
+            folder: note.folder
+        )
+        // Copy the attributed content to preserve formatting
+        var duplicated = newNote
+        duplicated.attributedContent = note.attributedContent
+        duplicated.isFavorite = note.isFavorite
+        notesManager.updateNote(duplicated)
+        openWindow(value: newNote.id)
     }
 }
 

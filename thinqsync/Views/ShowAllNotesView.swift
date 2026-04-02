@@ -8,6 +8,7 @@
 import SwiftUI
 import AppKit
 import UniformTypeIdentifiers
+import CloudKit
 
 struct ShowAllNotesView: View {
     @Environment(NotesManager.self) private var notesManager
@@ -20,6 +21,7 @@ struct ShowAllNotesView: View {
     @State private var viewMode: ViewMode = .grid
     @State private var showingEmptyTrashAlert = false
     @State private var sortOrder: SortOrder = .modifiedDate
+    @State private var iCloudUserName: String = "Loading..."
     @Environment(\.openWindow) var openWindow
 
     enum SidebarSection: Hashable {
@@ -94,7 +96,7 @@ struct ShowAllNotesView: View {
                     Spacer()
 
                     Button(action: {
-                        // TODO: Open settings
+                        openWindow(id: "settings")
                     }) {
                         Image(systemName: "gearshape")
                             .font(.system(size: 16))
@@ -252,16 +254,16 @@ struct ShowAllNotesView: View {
                         .fill(Color(nsColor: .quaternaryLabelColor))
                         .frame(width: 32, height: 32)
                         .overlay(
-                            Image(systemName: "person.fill")
+                            Image(systemName: notesManager.iCloudEnabled ? "person.icloud" : "person.fill")
                                 .font(.system(size: 14))
                                 .foregroundColor(Color(nsColor: .secondaryLabelColor))
                         )
 
                     VStack(alignment: .leading, spacing: 2) {
-                        Text("Sarah Wilson")
+                        Text(iCloudUserName)
                             .font(.system(size: 13, weight: .medium))
                             .foregroundColor(Color(nsColor: .labelColor))
-                        Text("Free Plan")
+                        Text(notesManager.iCloudEnabled ? "iCloud Sync Enabled" : "Local Only")
                             .font(.system(size: 11))
                             .foregroundColor(Color(nsColor: .secondaryLabelColor))
                     }
@@ -270,6 +272,9 @@ struct ShowAllNotesView: View {
                 }
                 .padding(.horizontal, 16)
                 .padding(.vertical, 12)
+                .onAppear {
+                    fetchiCloudUserName()
+                }
             }
             .frame(width: 260)
             .background(Color(nsColor: .controlBackgroundColor))
@@ -456,6 +461,9 @@ struct ShowAllNotesView: View {
                                             var updatedNote = note
                                             updatedNote.folder = folder
                                             notesManager.updateNote(updatedNote)
+                                        },
+                                        onPermanentlyDelete: {
+                                            notesManager.permanentlyDeleteNote(note)
                                         }
                                     )
                                 }
@@ -477,6 +485,9 @@ struct ShowAllNotesView: View {
                                         },
                                         onRestore: {
                                             notesManager.restoreNote(note)
+                                        },
+                                        onPermanentlyDelete: {
+                                            notesManager.permanentlyDeleteNote(note)
                                         }
                                     )
                                 }
@@ -530,6 +541,29 @@ struct ShowAllNotesView: View {
         case "personal": return Color(red: 0x10/255, green: 0xB9/255, blue: 0x81/255)
         case "ideas": return Color(red: 0xA8/255, green: 0x5C/255, blue: 0xF6/255)
         default: return Color.blue
+        }
+    }
+
+    private func fetchiCloudUserName() {
+        Task {
+            do {
+                let container = CKContainer.default()
+                let status = try await container.accountStatus()
+                guard status == .available else {
+                    iCloudUserName = "Not Signed In"
+                    return
+                }
+                let userID = try await container.userRecordID()
+                let identity = try await container.userIdentity(forUserRecordID: userID)
+                if let nameComponents = identity?.nameComponents {
+                    let formatter = PersonNameComponentsFormatter()
+                    iCloudUserName = formatter.string(from: nameComponents)
+                } else {
+                    iCloudUserName = "iCloud User"
+                }
+            } catch {
+                iCloudUserName = "iCloud User"
+            }
         }
     }
 
@@ -609,6 +643,7 @@ struct NoteCard: View {
     let onDelete: () -> Void
     let onRestore: () -> Void
     let onFolderChange: ((String?) -> Void)?
+    var onPermanentlyDelete: (() -> Void)? = nil
 
     @State private var isHoveringDelete = false
     @State private var isHoveringHeader = false
@@ -719,7 +754,7 @@ struct NoteCard: View {
         .alert("Permanently Delete Note", isPresented: $showingPermanentDeleteAlert) {
             Button("Cancel", role: .cancel) { }
             Button("Delete Permanently", role: .destructive) {
-                onDelete()
+                onPermanentlyDelete?()
             }
         } message: {
             Text("This note will be permanently deleted and cannot be restored. This action cannot be undone.")
@@ -744,6 +779,7 @@ struct NoteListRow: View {
     let onTap: () -> Void
     let onDelete: () -> Void
     let onRestore: () -> Void
+    var onPermanentlyDelete: (() -> Void)? = nil
 
     @State private var isHoveringDelete = false
     @State private var isHovering = false
@@ -850,7 +886,7 @@ struct NoteListRow: View {
         .alert("Permanently Delete Note", isPresented: $showingPermanentDeleteAlert) {
             Button("Cancel", role: .cancel) { }
             Button("Delete Permanently", role: .destructive) {
-                onDelete()
+                onPermanentlyDelete?()
             }
         } message: {
             Text("This note will be permanently deleted and cannot be restored. This action cannot be undone.")

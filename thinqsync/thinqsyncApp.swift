@@ -59,5 +59,12 @@ struct thinqsyncApp: App {
         }
         .windowResizability(.contentSize)
         .defaultPosition(.center)
+
+        // Window for AI Settings
+        Window("AI Settings", id: "ai-settings") {
+            AISettingsView()
+        }
+        .windowResizability(.contentSize)
+        .defaultPosition(.center)
     }
 }

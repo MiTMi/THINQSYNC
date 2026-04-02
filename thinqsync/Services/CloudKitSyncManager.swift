@@ -7,6 +7,9 @@
 
 import Foundation
 import CloudKit
+import os
+
+private let logger = Logger(subsystem: "com.MIT.thinqsync", category: "CloudKit")
 
 @MainActor
 class CloudKitSyncManager {
@@ -41,30 +44,30 @@ class CloudKitSyncManager {
 
             if results.isEmpty {
                 // No records exist - create a welcome note to initialize schema
-                print("Creating first CloudKit record to initialize schema...")
+                logger.info("Creating first CloudKit record to initialize schema")
                 let welcomeNote = Note(
                     title: "Welcome to ThinqSync!",
                     content: "This is your first synced note. CloudKit sync is now enabled and working.",
                     color: .blue
                 )
                 try await saveNote(welcomeNote)
-                print("CloudKit schema initialized!")
+                logger.info("CloudKit schema initialized")
             } else {
-                print("CloudKit schema already exists with records")
+                logger.debug("CloudKit schema already exists with records")
             }
         } catch let error as CKError where error.code == .invalidArguments {
             // Indexes not ready yet - schema might be initializing
-            print("CloudKit indexes not ready, schema may be initializing")
+            logger.info("CloudKit indexes not ready, schema may be initializing")
         } catch let error as CKError where error.code == .unknownItem {
             // Schema doesn't exist - create welcome note
-            print("Creating CloudKit schema with welcome note...")
+            logger.info("Creating CloudKit schema with welcome note")
             let welcomeNote = Note(
                 title: "Welcome to ThinqSync!",
                 content: "This is your first synced note. CloudKit sync is now enabled and working.",
                 color: .blue
             )
             try await saveNote(welcomeNote)
-            print("CloudKit schema created!")
+            logger.info("CloudKit schema created")
         }
     }
 
@@ -77,7 +80,7 @@ class CloudKitSyncManager {
                 try await saveNote(note)
             } catch let error as CKError where error.code == .serverRecordChanged {
                 // Record already exists with different version - fetch and update
-                print("Record \(note.title) already exists, updating...")
+                logger.debug("Record '\(note.title, privacy: .public)' already exists, updating")
                 let recordID = CKRecord.ID(recordName: note.id.uuidString)
                 if let existingRecord = try? await privateDatabase.record(for: recordID) {
                     // Update existing record with new data
@@ -110,14 +113,14 @@ class CloudKitSyncManager {
                         notes.append(note)
                     }
                 case .failure(let error):
-                    print("Error fetching record: \(error)")
+                    logger.error("Error fetching record: \(error.localizedDescription, privacy: .public)")
                 }
             }
 
             return notes
         } catch let error as CKError where error.code == .invalidArguments {
             // Schema was just created, indexes not ready yet - return empty
-            print("CloudKit indexes not ready yet, will sync on next launch")
+            logger.info("CloudKit indexes not ready yet, will sync on next launch")
             return []
         }
     }
@@ -149,7 +152,7 @@ class CloudKitSyncManager {
             }
         } catch let error as CKError where error.code == .invalidArguments {
             // Schema was just created, indexes not ready yet - skip deletion
-            print("CloudKit indexes not ready yet, skipping deletion")
+            logger.info("CloudKit indexes not ready yet, skipping deletion")
         }
     }
 

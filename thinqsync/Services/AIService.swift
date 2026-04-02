@@ -7,6 +7,9 @@
 
 import Foundation
 import Combine
+import os
+
+private let logger = Logger(subsystem: "com.MIT.thinqsync", category: "AIService")
 
 @MainActor
 class AIService: ObservableObject {
@@ -129,11 +132,7 @@ class AIService: ObservableObject {
 
         request.httpBody = try JSONSerialization.data(withJSONObject: requestBody)
 
-        // Log request for debugging
-        print("🔵 OpenRouter Request:")
-        print("   Model: \(selectedModel)")
-        print("   Endpoint: \(apiEndpoint)")
-        print("   Text length: \(text.count) chars")
+        logger.debug("OpenRouter Request - Model: \(self.selectedModel, privacy: .public), Text length: \(text.count) chars")
 
         // Make API call
         let (data, response) = try await URLSession.shared.data(for: request)
@@ -146,8 +145,7 @@ class AIService: ObservableObject {
         guard httpResponse.statusCode == 200 else {
             // Try to parse error message from response with detailed info
             if let errorJson = try? JSONSerialization.jsonObject(with: data) as? [String: Any] {
-                // Log full error response for debugging
-                print("❌ OpenRouter Error Response: \(errorJson)")
+                logger.error("OpenRouter Error Response: \(String(describing: errorJson), privacy: .public)")
 
                 // Try to extract detailed error message
                 if let error = errorJson["error"] as? [String: Any] {
@@ -177,7 +175,7 @@ class AIService: ObservableObject {
 
             // If we can't parse the error, show HTTP status and raw response
             if let responseString = String(data: data, encoding: .utf8) {
-                print("❌ Raw Error Response: \(responseString)")
+                logger.error("Raw Error Response: \(responseString, privacy: .public)")
                 throw AIError.apiError("HTTP \(httpResponse.statusCode): \(responseString.prefix(200))")
             }
 
@@ -186,24 +184,21 @@ class AIService: ObservableObject {
 
         // Parse response
         guard let json = try JSONSerialization.jsonObject(with: data) as? [String: Any] else {
-            print("❌ Failed to parse JSON response")
+            logger.error("Failed to parse JSON response")
             throw AIError.invalidResponse
         }
 
-        // Log successful response structure for debugging
-        print("✅ OpenRouter Response received")
-        print("   Keys: \(json.keys.joined(separator: ", "))")
+        logger.debug("OpenRouter Response received, keys: \(json.keys.joined(separator: ", "), privacy: .public)")
 
         guard let choices = json["choices"] as? [[String: Any]],
               let firstChoice = choices.first,
               let message = firstChoice["message"] as? [String: Any],
               let content = message["content"] as? String else {
-            print("❌ Response structure invalid")
-            print("   Full response: \(json)")
+            logger.error("Response structure invalid: \(String(describing: json), privacy: .public)")
             throw AIError.invalidResponse
         }
 
-        print("✅ AI Response: \(content.prefix(100))...")
+        logger.debug("AI Response: \(content.prefix(100), privacy: .public)...")
         return content.trimmingCharacters(in: .whitespacesAndNewlines)
     }
 

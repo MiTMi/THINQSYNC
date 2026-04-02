@@ -7,6 +7,9 @@
 
 import SwiftUI
 import AppKit
+import os
+
+private let logger = Logger(subsystem: "com.MIT.thinqsync", category: "SlashMenu")
 
 @MainActor
 class TextViewCoordinator {
@@ -380,7 +383,7 @@ struct RichTextEditorWithSlashMenu: View {
             var attributes = textView.typingAttributes
             attributes[.strikethroughStyle] = NSUnderlineStyle.single.rawValue
             textView.typingAttributes = attributes
-            print("✅ Set strikethrough typing attributes")
+            logger.debug("Set strikethrough typing attributes")
             return
         }
 
@@ -393,17 +396,17 @@ struct RichTextEditorWithSlashMenu: View {
         }
         textStorage.endEditing()
 
-        print("✅ Toggled strikethrough on selected text")
+        logger.debug("Toggled strikethrough on selected text")
     }
 
     private func insertText(_ text: String, textView: NSTextView) {
         textView.insertText(text, replacementRange: textView.selectedRange())
-        print("Inserted text: \(text)")
+        logger.debug("Inserted text: \(text, privacy: .public)")
     }
 
     private func clearFormatting(textView: NSTextView) {
         guard let textStorage = textView.textStorage else {
-            print("❌ No textStorage in clearFormatting")
+            logger.error("No textStorage in clearFormatting")
             return
         }
 
@@ -419,7 +422,7 @@ struct RichTextEditorWithSlashMenu: View {
         // If no text is selected, just set typing attributes for future text
         if selectedRange.length == 0 {
             textView.typingAttributes = defaultAttributes
-            print("✅ Set default typing attributes")
+            logger.debug("Set default typing attributes")
             return
         }
 
@@ -431,14 +434,14 @@ struct RichTextEditorWithSlashMenu: View {
         // Also update typing attributes
         textView.typingAttributes = defaultAttributes
 
-        print("✅ Cleared formatting on selected text")
+        logger.debug("Cleared formatting on selected text")
     }
 
     // MARK: - AI Commands
 
     private func executeAICommand(_ operation: AIService.AIOperation, textView: NSTextView) {
         guard let coordinator = tvCoordinator.coordinator else {
-            print("❌ No coordinator")
+            logger.error("No coordinator")
             return
         }
 
