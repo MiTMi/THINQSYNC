@@ -90,6 +90,16 @@ class NotesManager {
         return Array(Set(folders).union(foldersWithNotes)).sorted()
     }
 
+    var availableTags: [String] {
+        var tagsSet = Set<String>()
+        for note in notes {
+            if let tags = note.tags {
+                tagsSet.formUnion(tags)
+            }
+        }
+        return Array(tagsSet).sorted()
+    }
+
     func createNote(title: String = "", color: NoteColor = .yellow, folder: String? = nil) -> Note {
         var note = Note(title: title, color: color)
         note.folder = folder

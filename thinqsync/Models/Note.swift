@@ -22,6 +22,7 @@ struct Note: Identifiable, Codable, Sendable {
     var windowFrame: CGRect?  // Saved window position and size
     var isCollapsed: Bool  // Whether the note is collapsed to just show title bar
     var imageSizes: [Int: CGSize]?  // Stores display sizes for images at character positions
+    var tags: [String]? // Tags for organization
 
     // Computed property for easy access to attributed string
     var attributedContent: NSAttributedString {
@@ -54,7 +55,8 @@ struct Note: Identifiable, Codable, Sendable {
         deletedAt: Date? = nil,
         windowFrame: CGRect? = nil,
         isCollapsed: Bool = false,
-        imageSizes: [Int: CGSize]? = nil
+        imageSizes: [Int: CGSize]? = nil,
+        tags: [String]? = nil
     ) {
         self.id = id
         self.title = title
@@ -73,6 +75,7 @@ struct Note: Identifiable, Codable, Sendable {
         self.windowFrame = windowFrame
         self.isCollapsed = isCollapsed
         self.imageSizes = imageSizes
+        self.tags = tags
     }
 
     // Initializer for CloudKit deserialization (with contentWrapper directly)
@@ -88,7 +91,8 @@ struct Note: Identifiable, Codable, Sendable {
         deletedAt: Date? = nil,
         windowFrame: CGRect? = nil,
         isCollapsed: Bool = false,
-        imageSizes: [Int: CGSize]? = nil
+        imageSizes: [Int: CGSize]? = nil,
+        tags: [String]? = nil
     ) {
         self.id = id
         self.title = title
@@ -102,10 +106,11 @@ struct Note: Identifiable, Codable, Sendable {
         self.windowFrame = windowFrame
         self.isCollapsed = isCollapsed
         self.imageSizes = imageSizes
+        self.tags = tags
     }
 
     // Custom coding keys
     enum CodingKeys: String, CodingKey {
-        case id, title, contentWrapper, color, isFavorite, folder, createdAt, modifiedAt, deletedAt, windowFrame, isCollapsed, imageSizes
+        case id, title, contentWrapper, color, isFavorite, folder, createdAt, modifiedAt, deletedAt, windowFrame, isCollapsed, imageSizes, tags
     }
 }

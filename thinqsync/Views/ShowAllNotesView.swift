@@ -28,6 +28,7 @@ struct ShowAllNotesView: View {
         case allNotes
         case starred
         case folder(String)
+        case tag(String)
         case trash
     }
 
@@ -55,6 +56,8 @@ struct ShowAllNotesView: View {
             notes = notesManager.notes.filter { $0.isFavorite }
         case .folder(let folderName):
             notes = notesManager.notes.filter { $0.folder == folderName }
+        case .tag(let tagName):
+            notes = notesManager.notes.filter { $0.tags?.contains(tagName) == true }
         case .trash:
             notes = notesManager.deletedNotes
         case .allNotes, .none:
@@ -216,6 +219,54 @@ struct ShowAllNotesView: View {
                 Divider()
                     .padding(.horizontal, 16)
                     .padding(.vertical, 8)
+
+                // Tags Section
+                if !notesManager.availableTags.isEmpty {
+                    VStack(alignment: .leading, spacing: 4) {
+                        HStack {
+                            Text("TAGS")
+                                .font(.system(size: 11, weight: .semibold))
+                                .foregroundColor(Color(nsColor: .secondaryLabelColor))
+                            Spacer()
+                        }
+                        .padding(.horizontal, 20)
+                        .padding(.bottom, 8)
+
+                        ForEach(notesManager.availableTags, id: \.self) { tag in
+                            SidebarRow(
+                                icon: "tag",
+                                title: tag,
+                                count: notesManager.notes.filter { $0.tags?.contains(tag) == true }.count,
+                                iconColor: .orange,
+                                isSelected: selectedSection == .tag(tag),
+                                onDrop: { noteIdString in
+                                    // Handle drop: update note's tags
+                                    guard let noteId = UUID(uuidString: noteIdString),
+                                          let note = notesManager.getNote(by: noteId) else {
+                                        return false
+                                    }
+                                    var updatedNote = note
+                                    var currentTags = updatedNote.tags ?? []
+                                    if !currentTags.contains(tag) {
+                                        currentTags.append(tag)
+                                    }
+                                    updatedNote.tags = currentTags
+                                    notesManager.updateNote(updatedNote)
+                                    return true
+                                }
+                            )
+                            .contentShape(Rectangle())
+                            .onTapGesture {
+                                selectedSection = .tag(tag)
+                            }
+                        }
+                    }
+                    .padding(.bottom, 12)
+
+                    Divider()
+                        .padding(.horizontal, 16)
+                        .padding(.vertical, 8)
+                }
 
                 // Starred
                 SidebarRow(
@@ -409,6 +460,35 @@ struct ShowAllNotesView: View {
                         }
                         .menuStyle(.borderlessButton)
                         .buttonStyle(.plain)
+
+                        // Export All menu
+                        if !filteredNotes.isEmpty && selectedSection != .trash {
+                            Menu {
+                                Button(action: { exportAllNotes(format: "txt") }) {
+                                    Label("Export All as Text", systemImage: "doc.plaintext")
+                                }
+                                Button(action: { exportAllNotes(format: "pdf") }) {
+                                    Label("Export All as PDF", systemImage: "doc.richtext")
+                                }
+                                Button(action: { exportAllNotes(format: "md") }) {
+                                    Label("Export All as Markdown", systemImage: "doc.text")
+                                }
+                            } label: {
+                                HStack(spacing: 6) {
+                                    Image(systemName: "square.and.arrow.up")
+                                        .font(.system(size: 12))
+                                    Text("Export")
+                                        .font(.system(size: 13))
+                                }
+                                .foregroundColor(Color(nsColor: .labelColor))
+                                .padding(.horizontal, 12)
+                                .padding(.vertical, 8)
+                                .background(Color(nsColor: .controlBackgroundColor))
+                                .cornerRadius(8)
+                            }
+                            .menuStyle(.borderlessButton)
+                            .buttonStyle(.plain)
+                        }
                     }
                 }
                 .padding(.leading, 20)
@@ -526,6 +606,24 @@ struct ShowAllNotesView: View {
         }
     }
 
+    // MARK: - Bulk Export
+
+    private func exportAllNotes(format: String) {
+        let panel = NSOpenPanel()
+        panel.canChooseFiles = false
+        panel.canChooseDirectories = true
+        panel.canCreateDirectories = true
+        panel.prompt = "Export Here"
+        panel.message = "Choose a folder to export \(filteredNotes.count) note(s) as .\(format) files"
+
+        panel.begin { response in
+            guard response == .OK, let folder = panel.url else { return }
+            for note in filteredNotes {
+                NoteExporter.export(note: note, format: format, to: folder)
+            }
+        }
+    }
+
     private func getFolderIcon(_ folder: String) -> String {
         switch folder.lowercased() {
         case "work": return "briefcase.fill"
@@ -575,6 +673,8 @@ struct ShowAllNotesView: View {
             return "Starred"
         case .folder(let name):
             return name
+        case .tag(let tagName):
+            return "#\(tagName)"
         case .trash:
             return "Trash"
         case .none:
@@ -709,6 +809,17 @@ struct NoteCard: View {
 
                 Spacer()
 
+                if let tags = note.tags, !tags.isEmpty {
+                    let displayTags = tags.prefix(2).joined(separator: ", ") + (tags.count > 2 ? " +\(tags.count - 2)" : "")
+                    Text(displayTags)
+                        .font(.system(size: 10, weight: .medium))
+                        .foregroundColor(Color.orange)
+                        .padding(.horizontal, 8)
+                        .padding(.vertical, 3)
+                        .background(Color.orange.opacity(0.2))
+                        .cornerRadius(4)
+                }
+
                 if let folder = note.folder {
                     Text(folder)
                         .font(.system(size: 10, weight: .medium))
@@ -746,6 +857,18 @@ struct NoteCard: View {
                     showingPermanentDeleteAlert = true
                 }
             } else {
+                Menu("Export") {
+                    Button(action: { NoteExporter.exportWithSavePanel(note: note, format: "txt") }) {
+                        Label("Export as Text", systemImage: "doc.plaintext")
+                    }
+                    Button(action: { NoteExporter.exportWithSavePanel(note: note, format: "pdf") }) {
+                        Label("Export as PDF", systemImage: "doc.richtext")
+                    }
+                    Button(action: { NoteExporter.exportWithSavePanel(note: note, format: "md") }) {
+                        Label("Export as Markdown", systemImage: "doc.text")
+                    }
+                }
+                Divider()
                 Button("Delete") {
                     onDelete()
                 }
@@ -808,6 +931,18 @@ struct NoteListRow: View {
             }
 
             Spacer()
+
+            // Tags
+            if let tags = note.tags, !tags.isEmpty {
+                let displayTags = tags.prefix(2).joined(separator: ", ") + (tags.count > 2 ? " +\(tags.count - 2)" : "")
+                Text(displayTags)
+                    .font(.system(size: 10, weight: .medium))
+                    .foregroundColor(Color.orange)
+                    .padding(.horizontal, 8)
+                    .padding(.vertical, 3)
+                    .background(Color.orange.opacity(0.2))
+                    .cornerRadius(4)
+            }
 
             // Folder tag
             if let folder = note.folder {
@@ -878,6 +1013,18 @@ struct NoteListRow: View {
                     showingPermanentDeleteAlert = true
                 }
             } else {
+                Menu("Export") {
+                    Button(action: { NoteExporter.exportWithSavePanel(note: note, format: "txt") }) {
+                        Label("Export as Text", systemImage: "doc.plaintext")
+                    }
+                    Button(action: { NoteExporter.exportWithSavePanel(note: note, format: "pdf") }) {
+                        Label("Export as PDF", systemImage: "doc.richtext")
+                    }
+                    Button(action: { NoteExporter.exportWithSavePanel(note: note, format: "md") }) {
+                        Label("Export as Markdown", systemImage: "doc.text")
+                    }
+                }
+                Divider()
                 Button("Delete") {
                     onDelete()
                 }

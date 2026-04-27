@@ -288,6 +288,8 @@ struct CustomTitleBar: View {
     @State private var showingMoreMenu = false
     @State private var showingNewFolderAlert = false
     @State private var newFolderName = ""
+    @State private var showingNewTagAlert = false
+    @State private var newTagName = ""
     @State private var showAIError = false
     @State private var aiErrorMessage = ""
     @StateObject private var aiService = AIService.shared
@@ -309,15 +311,12 @@ struct CustomTitleBar: View {
             HStack(spacing: 8) {
                 // Close button (X)
                 Button(action: onClose) {
-                    ZStack {
-                        Circle()
-                            .fill(adaptiveColor.opacity(isHoveringClose ? 0.3 : 0.2))
-                            .frame(width: 32, height: 32)
-
-                        Image(systemName: "xmark")
-                            .font(.system(size: 14, weight: .black))
-                            .foregroundColor(adaptiveColor)
-                    }
+                    Image(systemName: "xmark")
+                        .font(.system(size: 13, weight: .medium))
+                        .foregroundColor(adaptiveColor.opacity(0.8))
+                        .frame(width: 28, height: 28)
+                        .background(isHoveringClose ? adaptiveColor.opacity(0.1) : Color.clear)
+                        .clipShape(RoundedRectangle(cornerRadius: 6))
                 }
                 .buttonStyle(.plain)
                 .onHover { hovering in
@@ -327,15 +326,12 @@ struct CustomTitleBar: View {
 
                 // Minimize button (down arrow)
                 Button(action: onMinimize) {
-                    ZStack {
-                        Circle()
-                            .fill(adaptiveColor.opacity(isHoveringMinimize ? 0.3 : 0.2))
-                            .frame(width: 32, height: 32)
-
-                        Image(systemName: "chevron.down")
-                            .font(.system(size: 14, weight: .black))
-                            .foregroundColor(adaptiveColor)
-                    }
+                    Image(systemName: "chevron.down")
+                        .font(.system(size: 13, weight: .medium))
+                        .foregroundColor(adaptiveColor.opacity(0.8))
+                        .frame(width: 28, height: 28)
+                        .background(isHoveringMinimize ? adaptiveColor.opacity(0.1) : Color.clear)
+                        .clipShape(RoundedRectangle(cornerRadius: 6))
                 }
                 .buttonStyle(.plain)
                 .onHover { hovering in
@@ -345,15 +341,12 @@ struct CustomTitleBar: View {
 
                 // Collapse button (collapse/expand chevrons)
                 Button(action: onCollapse) {
-                    ZStack {
-                        Circle()
-                            .fill(adaptiveColor.opacity(isHoveringCollapse ? 0.3 : 0.2))
-                            .frame(width: 32, height: 32)
-
-                        Image(systemName: note.isCollapsed ? "chevron.down.2" : "chevron.up.2")
-                            .font(.system(size: 12, weight: .black))
-                            .foregroundColor(adaptiveColor)
-                    }
+                    Image(systemName: note.isCollapsed ? "chevron.down.2" : "chevron.up.2")
+                        .font(.system(size: 13, weight: .medium))
+                        .foregroundColor(adaptiveColor.opacity(0.8))
+                        .frame(width: 28, height: 28)
+                        .background(isHoveringCollapse ? adaptiveColor.opacity(0.1) : Color.clear)
+                        .clipShape(RoundedRectangle(cornerRadius: 6))
                 }
                 .buttonStyle(.plain)
                 .onHover { hovering in
@@ -367,7 +360,7 @@ struct CustomTitleBar: View {
             // Title (left-aligned)
             TextField("", text: $note.title, prompt: Text("New Note").foregroundColor(adaptiveColor.opacity(0.6)))
                 .textFieldStyle(.plain)
-                .font(.system(size: 20, weight: .black))
+                .font(.system(size: 20, weight: .bold))
                 .foregroundColor(adaptiveColor)
                 .multilineTextAlignment(.leading)
                 .frame(maxWidth: .infinity, alignment: .leading)
@@ -409,20 +402,12 @@ struct CustomTitleBar: View {
                 Button(action: {
                     showingOptionsMenu.toggle()
                 }) {
-                    ZStack {
-                        Circle()
-                            .fill(adaptiveColor.opacity(0.2))
-                            .frame(width: 36, height: 36)
-
-                        Circle()
-                            .stroke(adaptiveColor.opacity(0.4), lineWidth: 2)
-                            .frame(width: 36, height: 36)
-
-                        Image(systemName: "list.bullet")
-                            .font(.system(size: 14, weight: .black))
-                            .foregroundColor(adaptiveColor)
-                    }
-                    .frame(width: 36, height: 36)
+                    Image(systemName: "list.bullet")
+                        .font(.system(size: 16, weight: .medium))
+                        .foregroundColor(adaptiveColor.opacity(0.8))
+                        .frame(width: 32, height: 32)
+                        .background(showingOptionsMenu ? adaptiveColor.opacity(0.1) : Color.clear)
+                        .clipShape(RoundedRectangle(cornerRadius: 6))
                 }
                 .buttonStyle(.plain)
                 .accessibilityLabel("Note options")
@@ -545,6 +530,63 @@ struct CustomTitleBar: View {
 
                         Divider()
 
+                        // Tags assignment
+                        VStack(alignment: .leading, spacing: 4) {
+                            Text("Tags")
+                                .font(.caption)
+                                .foregroundColor(.secondary)
+                                .padding(.horizontal, 12)
+                                .padding(.top, 8)
+
+                            // Existing tags
+                            ForEach(notesManager.availableTags, id: \.self) { tag in
+                                Button(action: {
+                                    var currentTags = note.tags ?? []
+                                    if currentTags.contains(tag) {
+                                        currentTags.removeAll { $0 == tag }
+                                    } else {
+                                        currentTags.append(tag)
+                                    }
+                                    note.tags = currentTags.isEmpty ? nil : currentTags
+                                    notesManager.updateNote(note)
+                                }) {
+                                    HStack {
+                                        Image(systemName: (note.tags?.contains(tag) ?? false) ? "checkmark" : "")
+                                            .font(.system(size: 10, weight: .bold))
+                                            .frame(width: 12)
+                                        Image(systemName: "tag.fill")
+                                            .font(.system(size: 10))
+                                            .foregroundColor(.orange)
+                                        Text(tag)
+                                    }
+                                    .frame(maxWidth: .infinity, alignment: .leading)
+                                    .padding(.horizontal, 12)
+                                    .padding(.vertical, 6)
+                                }
+                                .buttonStyle(.plain)
+                            }
+
+                            // Create new tag button
+                            Button(action: {
+                                showingOptionsMenu = false
+                                showingNewTagAlert = true
+                            }) {
+                                HStack {
+                                    Image(systemName: "plus.circle")
+                                        .font(.system(size: 10))
+                                        .foregroundColor(.orange)
+                                    Text("Create New Tag...")
+                                        .foregroundColor(.orange)
+                                }
+                                .frame(maxWidth: .infinity, alignment: .leading)
+                                .padding(.horizontal, 12)
+                                .padding(.vertical, 6)
+                            }
+                            .buttonStyle(.plain)
+                        }
+
+                        Divider()
+
                         // Window behavior toggles
                         VStack(alignment: .leading, spacing: 4) {
                             Text("Window")
@@ -600,20 +642,12 @@ struct CustomTitleBar: View {
                 Button(action: {
                     showingFormatMenu.toggle()
                 }) {
-                    ZStack {
-                        Circle()
-                            .fill(adaptiveColor.opacity(0.2))
-                            .frame(width: 36, height: 36)
-
-                        Circle()
-                            .stroke(adaptiveColor.opacity(0.4), lineWidth: 2)
-                            .frame(width: 36, height: 36)
-
-                        Text("A")
-                            .font(.system(size: 16, weight: .black))
-                            .foregroundColor(adaptiveColor)
-                    }
-                    .frame(width: 36, height: 36)
+                    Text("A")
+                        .font(.system(size: 16, weight: .medium))
+                        .foregroundColor(adaptiveColor.opacity(0.8))
+                        .frame(width: 32, height: 32)
+                        .background(showingFormatMenu ? adaptiveColor.opacity(0.1) : Color.clear)
+                        .clipShape(RoundedRectangle(cornerRadius: 6))
                 }
                 .buttonStyle(.plain)
                 .popover(isPresented: $showingFormatMenu, arrowEdge: .bottom) {
@@ -736,20 +770,12 @@ struct CustomTitleBar: View {
                 Button(action: {
                     showingAIMenu.toggle()
                 }) {
-                    ZStack {
-                        Circle()
-                            .fill(adaptiveColor.opacity(0.2))
-                            .frame(width: 36, height: 36)
-
-                        Circle()
-                            .stroke(adaptiveColor.opacity(0.4), lineWidth: 2)
-                            .frame(width: 36, height: 36)
-
-                        Image(systemName: "sparkles")
-                            .font(.system(size: 14, weight: .black))
-                            .foregroundColor(adaptiveColor)
-                    }
-                    .frame(width: 36, height: 36)
+                    Image(systemName: "sparkles")
+                        .font(.system(size: 16, weight: .medium))
+                        .foregroundColor(adaptiveColor.opacity(0.8))
+                        .frame(width: 32, height: 32)
+                        .background(showingAIMenu ? adaptiveColor.opacity(0.1) : Color.clear)
+                        .clipShape(RoundedRectangle(cornerRadius: 6))
                 }
                 .buttonStyle(.plain)
                 .popover(isPresented: $showingAIMenu, arrowEdge: .bottom) {
@@ -806,20 +832,12 @@ struct CustomTitleBar: View {
                 Button(action: {
                     showingMoreMenu.toggle()
                 }) {
-                    ZStack {
-                        Circle()
-                            .fill(adaptiveColor.opacity(0.2))
-                            .frame(width: 36, height: 36)
-
-                        Circle()
-                            .stroke(adaptiveColor.opacity(0.4), lineWidth: 2)
-                            .frame(width: 36, height: 36)
-
-                        Image(systemName: "ellipsis")
-                            .font(.system(size: 14, weight: .black))
-                            .foregroundColor(adaptiveColor)
-                    }
-                    .frame(width: 36, height: 36)
+                    Image(systemName: "ellipsis")
+                        .font(.system(size: 16, weight: .medium))
+                        .foregroundColor(adaptiveColor.opacity(0.8))
+                        .frame(width: 32, height: 32)
+                        .background(showingMoreMenu ? adaptiveColor.opacity(0.1) : Color.clear)
+                        .clipShape(RoundedRectangle(cornerRadius: 6))
                 }
                 .buttonStyle(.plain)
                 .popover(isPresented: $showingMoreMenu, arrowEdge: .bottom) {
@@ -902,20 +920,12 @@ struct CustomTitleBar: View {
                 Button(action: {
                     onDelete()
                 }) {
-                    ZStack {
-                        Circle()
-                            .fill(adaptiveColor.opacity(isHoveringDelete ? 0.3 : 0.2))
-                            .frame(width: 36, height: 36)
-
-                        Circle()
-                            .stroke(adaptiveColor.opacity(isHoveringDelete ? 0.6 : 0.4), lineWidth: 2)
-                            .frame(width: 36, height: 36)
-
-                        Image(systemName: "trash")
-                            .font(.system(size: 14, weight: .black))
-                            .foregroundColor(isHoveringDelete ? Color.red : adaptiveColor)
-                    }
-                    .frame(width: 36, height: 36)
+                    Image(systemName: "trash")
+                        .font(.system(size: 16, weight: .medium))
+                        .foregroundColor(isHoveringDelete ? .red : adaptiveColor.opacity(0.8))
+                        .frame(width: 32, height: 32)
+                        .background(isHoveringDelete ? Color.red.opacity(0.1) : Color.clear)
+                        .clipShape(RoundedRectangle(cornerRadius: 6))
                 }
                 .buttonStyle(.plain)
                 .onHover { hovering in
@@ -941,6 +951,26 @@ struct CustomTitleBar: View {
             }
         } message: {
             Text("Enter a name for the new folder")
+        }
+        .alert("New Tag", isPresented: $showingNewTagAlert) {
+            TextField("Tag Name", text: $newTagName)
+            Button("Cancel", role: .cancel) {
+                newTagName = ""
+            }
+            Button("Create") {
+                let formattedTag = newTagName.trimmingCharacters(in: .whitespacesAndNewlines)
+                if !formattedTag.isEmpty {
+                    var currentTags = note.tags ?? []
+                    if !currentTags.contains(formattedTag) {
+                        currentTags.append(formattedTag)
+                    }
+                    note.tags = currentTags
+                    notesManager.updateNote(note)
+                    newTagName = ""
+                }
+            }
+        } message: {
+            Text("Enter a name for the new tag")
         }
         .alert("AI Error", isPresented: $showAIError) {
             Button("OK", role: .cancel) {}

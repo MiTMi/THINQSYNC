@@ -28,7 +28,7 @@ enum NoteColor: String, Codable, CaseIterable, Sendable {
             case .green:
                 return Color(hex: "09b844") // Dimmed malachite green for dark mode
             case .yellow:
-                return Color(hex: "e6d700") // Slightly dimmed neon yellow for dark mode
+                return Color(hex: "ffd53e") // Exact custom warm mustard yellow
             case .orange:
                 return Color(hex: "e89a5c") // Softer orange for dark mode (was c96a00)
             case .blue:
@@ -44,7 +44,7 @@ enum NoteColor: String, Codable, CaseIterable, Sendable {
             case .green:
                 return Color(hex: "0bda51") // Malachite green
             case .yellow:
-                return Color(hex: "ffef00") // Coolors neon yellow
+                return Color(hex: "ffd53e") // Exact custom warm mustard yellow
             case .orange:
                 return Color(hex: "ffb366") // Softer orange (was fb8500)
             case .blue:
@@ -63,7 +63,7 @@ enum NoteColor: String, Codable, CaseIterable, Sendable {
         case .green:
             return NSColor(red: 0x0b/255, green: 0xda/255, blue: 0x51/255, alpha: 1.0) // #0bda51
         case .yellow:
-            return NSColor(red: 0xff/255, green: 0xef/255, blue: 0x00/255, alpha: 1.0) // #ffef00
+            return NSColor(red: 0xff/255, green: 0xd5/255, blue: 0x3e/255, alpha: 1.0) // #ffd53e
         case .orange:
             return NSColor(red: 0xff/255, green: 0xb3/255, blue: 0x66/255, alpha: 1.0) // #ffb366
         case .blue:

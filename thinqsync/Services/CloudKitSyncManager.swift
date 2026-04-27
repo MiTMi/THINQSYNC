@@ -92,6 +92,7 @@ class CloudKitSyncManager {
                     existingRecord["isFavorite"] = note.isFavorite as CKRecordValue
                     existingRecord["folder"] = (note.folder ?? "") as CKRecordValue
                     existingRecord["modifiedAt"] = note.modifiedAt as CKRecordValue
+                    existingRecord["tags"] = (note.tags ?? []) as CKRecordValue
                     try? await privateDatabase.save(existingRecord)
                 }
             }
@@ -169,6 +170,7 @@ class CloudKitSyncManager {
         record["color"] = note.color.rawValue as CKRecordValue
         record["isFavorite"] = note.isFavorite as CKRecordValue
         record["folder"] = (note.folder ?? "") as CKRecordValue
+        record["tags"] = (note.tags ?? []) as CKRecordValue
         record["createdAt"] = note.createdAt as CKRecordValue
         record["modifiedAt"] = note.modifiedAt as CKRecordValue
 
@@ -202,6 +204,8 @@ class CloudKitSyncManager {
         }
 
         let folder = record["folder"] as? String
+        let tags = record["tags"] as? [String]
+        
         return Note(
             id: id,
             title: title,
@@ -210,7 +214,8 @@ class CloudKitSyncManager {
             isFavorite: isFavorite,
             folder: folder?.isEmpty == false ? folder : nil,
             createdAt: createdAt,
-            modifiedAt: modifiedAt
+            modifiedAt: modifiedAt,
+            tags: tags?.isEmpty == false ? tags : nil
         )
     }
 }

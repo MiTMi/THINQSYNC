@@ -265,6 +265,7 @@ class PlainPasteTextView: NSTextView {
         let attachment = NSTextAttachment()
         attachment.contents = imageData
         attachment.fileType = "public.png"
+        attachment.bounds = NSRect(origin: .zero, size: resizedImage.size) // Store bounds for correct RTF serialization!
 
         // Create a file wrapper for the attachment data
         let fileWrapper = FileWrapper(regularFileWithContents: imageData)
@@ -293,6 +294,28 @@ class PlainPasteTextView: NSTextView {
             // Notify delegate that content changed
             self.delegate?.textDidChange?(Notification(name: NSText.didChangeNotification, object: self))
         }
+    }
+
+    // MARK: - Drag and Drop Support
+
+    override func performDragOperation(_ sender: NSDraggingInfo) -> Bool {
+        let pasteboard = sender.draggingPasteboard
+        
+        // If there's an image being dragged, handle it through our paste mechanism
+        if let image = getImageFromPasteboard(pasteboard) {
+            // First move the cursor to where the drop happened
+            let dropPoint = convert(sender.draggingLocation, from: nil)
+            let charIndex = characterIndexForInsertion(at: dropPoint)
+            if charIndex != NSNotFound {
+                setSelectedRange(NSRange(location: charIndex, length: 0))
+            }
+            
+            pasteImage(image)
+            return true
+        }
+        
+        // Otherwise use default handling
+        return super.performDragOperation(sender)
     }
 
     private func resizeImageToFit(_ image: NSImage) -> NSImage {
@@ -407,6 +430,9 @@ class PlainPasteTextView: NSTextView {
                         let newCell = ResizableImageAttachmentCell(imageCell: resizedImage)
                         newCell.setDisplaySize(displaySize)
                         attachment.attachmentCell = newCell
+                        
+                        // IMPORTANT: Update attachment bounds for correct RTF/RTFD persistence!
+                        attachment.bounds = NSRect(origin: .zero, size: displaySize)
 
                         // Update our reference
                         resizingCell = newCell
@@ -679,6 +705,8 @@ struct RichTextEditor: NSViewRepresentable {
                 } else {
                     // No stored size, use image's natural size
                     resizableCell.setDisplaySize(img.size)
+                    // Also update bounds for future serialization
+                    attachment.bounds = NSRect(origin: .zero, size: img.size)
                 }
 
                 attachment.attachmentCell = resizableCell
